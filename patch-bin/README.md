@@ -1,17 +1,12 @@
-# Free Cam
-This version of Free Cam will only work in Local Play and Online play.
-The features are meant to help create a cinematic experience.
-
-Controls:
- - Turn On: L1 + R1 + L3
- - Turn Off: L1 + R1 + R3
- - Move: L3/D-Pad
- - Look Around: R3
- - Move Down: L2
- - Move Up: R2
- - x4.0 Speed: L1
- - x0.5 Speed: R1
- - Select Center Point for Camera Lock: R3
- - Lock Camera to Center Point: Hold Circle
- - Toggle Render All: Square
- - Toggle Score HUD: Select
+# patch.bin
+ - Starts at 01E00000
+ - On/Off bytes at 000fffe0
+    - 000fffe0: Infinite Health/Moonjump
+	- 000fffe1: Mask Username
+	- 000fffe2: Hacked Keyboard
+	- 000fffe3: Free Cam
+	- 000fffe4: sp-music-to-mp
+	- 000fffe5: Follow Aimer v4
+	- 000fffe6: Force G^
+	- 000fffe7: Host Options
+	- 000fffe8: Vehicle Select
