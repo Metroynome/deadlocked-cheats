@@ -7,10 +7,14 @@ Patch.bin subroutine.
 	- 000fffe2: Hacked Keyboard
 	- 000fffe3: Free Cam
 	- 000fffe4: sp-music-to-mp
-	- 000fffe5: Follow Aimer v4
+	- 000fffe5: Follow Aimer
 	- 000fffe6: Force G^
 	- 000fffe7: Host Options
 	- 000fffe8: Vehicle Select
+	- 000fffe9: Form Party and Unkick
+	- 000fffea: Max Typing Limit
+	- 000fffeb: More Team Colors
+	- 000fffec: Infinite Chargeboot
 */
 
 #include <tamtypes.h>
@@ -841,6 +845,78 @@ void VehicleSelect()
 	return 1;
 }
 
+/*========================================================*\
+========                    000fffe9
+================      Form Party and Unkick
+========
+\*========================================================*/
+
+void FormPartyUnkick()
+{
+	if(*(u32*)0x00173aec == -1)
+	{
+		// Enable Form Party Options
+		*(u8*)0x01365724 = 0x4;
+		// Unkick
+		*(u32*)0x00759448 = 0;
+		*(u32*)0x0075945c = 0;
+		*(u32*)0x0075948c = 0;
+	}
+}
+
+/*========================================================*\
+========                 000fffea
+================      Max Typing Limit
+========
+\*========================================================*/
+void MaxTypingLimit()
+{
+	if(*(u32*)0x00173aec == -1)
+	{
+		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+		if ((pad->btns & (PAD_L1 | PAD_R1)) == 0)
+		{
+			*(u8*)0x0133d8d0 = 0x4F;
+			return;
+		}
+	}
+}
+
+/*========================================================*\
+========                  000fffeb
+================      More Team Colors
+========
+\*========================================================*/
+
+void MoreTeamColors()
+{
+	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+	if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+	{
+		*(u8*)0x013eec60 = 0xff;
+		*(u32*)0x013eebf0 = 0x01010101;
+	}
+}
+
+
+/*========================================================*\
+========                   000fffec
+================      Infinite Chargeboot
+========
+\*========================================================*/
+void InfiniteChargeboot()
+{
+	if (!gameIsIn())
+		return -1;
+	
+	Player * player = (Player*)0x00347aa0;
+	PadButtonStatus * pad = playerGetPad(player);
+	if ((pad->btns & (PAD_L2)) == 0)
+	{
+		player->TicksSinceStateChanged = 0x27;
+	}
+}
+
 int main(void)
 {
 	// R3 + R2/L3
@@ -857,9 +933,16 @@ int main(void)
 	if (*(u8*)0x000fffe6 == 1) ForceGUp();
 	// L2 + X: Change Team, Start: Ready Player
 	if (*(u8*)0x000fffe7 == 1) HostOptions();
+	// L1 + R1 
+	if (*(u8*)0x000fffea == 1) MaxTypingLimit();
+	// L2 + R2
+	if (*(u8*)0x000fffeb == 1) MoreTeamColors();
+	// Hold L2
+	if (*(u8*)0x000fffeb == 1) InfiniteChargeboot();
 	// Always Run
 	if (*(u8*)0x000fffe4 == 1) CampaignMusic();
 	if (*(u8*)0x000fffe8 == 1) VehicleSelect();
+	if (*(u8*)0x000fffe9 == 1) FormPartyUnkick();
 
 	return 1;
 }
