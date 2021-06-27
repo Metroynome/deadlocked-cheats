@@ -1,3 +1,8 @@
+# Metroynome's Cheats Backup
+This contains a copy (and backup) of dan's deadlocked-cheats.
+
+
+
 # deadlocked-cheats
 
 Sample project showing how to use libdl to create cheat codes for Ratchet: Deadlocked PS2.
