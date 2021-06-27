@@ -11,11 +11,20 @@ Patch.bin subroutine.
 	- 000fffe6: Force G^
 	- 000fffe7: Host Options
 	- 000fffe8: Vehicle Select
+	
+	The following are not added in CheatDevice.txt:
 	- 000fffe9: Form Party and Unkick
 	- 000fffea: Max Typing Limit
 	- 000fffeb: More Team Colors
 	- 000fffec: Infinite Chargeboot
 	- 000fffed: Render All
+	- 000fffee: Rapid Fire Weapons
+	- 000fffef: Walk Through Walls
+	- 000ffff0: Rapid Fire Vehicles
+	- 000ffff1: Lots of Deaths
+	- 000ffff2: No Respawn Timer
+	- 000ffff3: Walk Fast
+	- 000ffff4: AirWalk
 */
 
 #include <tamtypes.h>
@@ -854,7 +863,7 @@ void VehicleSelect()
 
 void FormPartyUnkick()
 {
-	if(!gameIsIn() && *(u32*)0x00173aec == -1)
+	if(!gameIsIn() && *(u32*)0x00173aec == -1 && *(u8*)0x01365724 != 0x4)
 	{
 		// Enable Form Party Options
 		*(u8*)0x01365724 = 0x4;
@@ -914,7 +923,9 @@ void InfiniteChargeboot()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if ((pad->btns & (PAD_L2)) == 0)
+		// I joker it this way because it will always load whenever I press L2
+		// if done with PAD_L2
+		if (pad->btns == 0xFEFF)
 		{
 			player->TicksSinceStateChanged = 0x27;
 		}
@@ -968,6 +979,173 @@ void RenderAll()
 	}
 }
 
+/*========================================================*\
+========                   000fffee
+================      Rapid Fire Weapons
+========
+\*========================================================*/
+
+void RapidFireWeapons()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_R3 | PAD_R1)) == 0 || (pad->btns & (PAD_R3 | PAD_R1 | PAD_L2)) == 0)
+		{
+			player->WeaponCooldownTimer = 0;
+		}
+	}
+}
+
+/*========================================================*\
+========                  000fffef
+================      Walk Through Walls
+========
+\*========================================================*/
+
+void WalkThroughWalls()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_L1 | PAD_LEFT)) == 0)
+		{
+			*(u32*)0x00347e40 = 0x22a3;
+		}
+		else if ((pad->btns & (PAD_L1 | PAD_RIGHT)) == 0)
+		{
+			*(u32*)0x00347e40 = 0;
+		}
+	}
+}
+
+/*========================================================*\
+========                   000ffff0
+================      Rapid Fire Vehicles
+========
+\*========================================================*/
+
+void RapidFireVehicles()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0)
+		{
+			*(u32*)0x00453C88 = 0xA2000316;
+			*(u32*)0x0045A444 = 0xA2400317;
+			*(u32*)0x00465AB0 = 0xA2800200;
+			*(u32*)0x00471D24 = 0xA28001F0;
+			*(u32*)0x00473630 = 0xA21401FA;
+			*(u32*)0x004737E8 = 0xA6000266;
+			*(u32*)0x0047EAD4 = 0xAE00030C;
+			*(u32*)0x0047CB50 = 0xA24202F1;
+		}
+		else if (*(u32*)0x00453C88 == 0xA2000316)
+		{
+			*(u32*)0x00453C88 = 0xA2020316;
+			*(u32*)0x0045A444 = 0xA2430317;
+			*(u32*)0x00465AB0 = 0xA2820200;
+			*(u32*)0x00471D24 = 0xA28301F0;
+			*(u32*)0x00473630 = 0xA20001FA;
+			*(u32*)0x004737E8 = 0xA6020266;
+			*(u32*)0x0047EAD4 = 0xAE03030C;
+			*(u32*)0x0047CB50 = 0xA24302F1;
+		}
+	}
+}
+
+/*========================================================*\
+========                 000ffff1
+================      Lots of Deaths
+========
+\*========================================================*/
+
+void LotsOfDeaths()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_L1 | PAD_UP)) == 0)
+		{
+			*(u32*)0x0034a074 = 0;
+		}
+	}
+}
+
+/*========================================================*\
+========                  000ffff2
+================      No Respawn Timer
+========
+\*========================================================*/
+
+void NoRespawnTimer()
+{
+	Player * player = (Player*)0x00347aa0;
+	PadButtonStatus * pad = playerGetPad(player);
+	if (gameIsIn() && pad->btns == 0xBFFF)
+	{
+		*(u16*)0x00347e52 = 0;
+	}
+}
+
+/*========================================================*\
+========              000ffff3
+================      Walk Fast
+========
+\*========================================================*/
+
+void WalkFast()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_R3 | PAD_LEFT)) == 0)
+		{
+			*(u32*)0x0034aa60 = 0x60f00000;
+		}
+		else if ((pad->btns & (PAD_R3 | PAD_RIGHT)) == 0)
+		{
+			*(u32*)0x0034aa60 = 0x3f800000;
+		}
+	}
+}
+
+/*========================================================*\
+========              000ffff4
+================      AirWalk
+========
+\*========================================================*/
+
+void AirWalk()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		//(0xFFFD || 0xF7FD || 0xBFFD || 0x7FFD || 0x6FFD)
+		if (pad->btns == 0xFFFD || pad->btns == 0xBFFD || pad->btns == 0x6FFD)
+		{
+			player->Airwalk = 0;
+		}
+		else if (pad->btns == 0xf7f9)
+		{
+			player->Airwalk = 0;
+			player->WeaponCooldownTimer = 0;
+		}
+		else if (pad->btns == 0xfefd)
+		{
+			player->Airwalk = 0;
+			player->TicksSinceStateChanged = 0x27;
+		}
+	}
+}
+
 int main(void)
 {
 	// R3 + R2/L3
@@ -985,17 +1163,31 @@ int main(void)
 	// L2 + X: Change Team, Start: Ready Player
 	if (*(u8*)0x000fffe7 == 0) HostOptions();
 	// L1 + R1
-	if (*(u8*)0x000fffea == 0) MaxTypingLimit();
+	if (*(u8*)0x000fffea == 0) MaxTypingLimit(); // Not updated in CheatDevice.txt
 	// L2 + R2
-	if (*(u8*)0x000fffeb == 0) MoreTeamColors();
+	if (*(u8*)0x000fffeb == 0) MoreTeamColors(); // Not updated in CheatDevice.txt
 	// Hold L2
-	if (*(u8*)0x000fffec == 0) InfiniteChargeboot();
+	if (*(u8*)0x000fffec == 0) InfiniteChargeboot(); // Not updated in CheatDevice.txt
 	// Select + Left/Right
-	if (*(u8*)0x000fffed == 0) RenderAll();
+	if (*(u8*)0x000fffed == 0) RenderAll(); // Not updated in CheatDevice.txt
+	// R3 + R1 or R3 + R1 + L2
+	if (*(u8*)0x000fffee == 0) RapidFireWeapons(); // Not updated in CheatDevice.txt
+	// L1 + Left/Right
+	if (*(u8*)0x000fffef == 0) WalkThroughWalls(); // Not updated in CheatDevice.txt
+	// Hold R3 + R1
+	if (*(u8*)0x000ffff0 == 0) RapidFireVehicles(); // Not updated in CheatDevice.txt
+	// L1 + Up
+	if (*(u8*)0x000ffff1 == 0) LotsOfDeaths(); // Not updated in CheatDevice.txt
+	// Press X
+	if (*(u8*)0x000ffff2 == 0) NoRespawnTimer(); // Not updated in CheatDevice.txt
+	// R3 + Left/Right
+	if (*(u8*)0x000ffff3 == 0) WalkFast(); // Not updated in CheatDevice.txt
+	// Hold L3
+	if (*(u8*)0x000ffff4 == 0) AirWalk(); // Not updated in CheatDevice.txt
 	// Always Run
 	if (*(u8*)0x000fffe4 == 0) CampaignMusic();
 	if (*(u8*)0x000fffe8 == 0) VehicleSelect();
-	if (*(u8*)0x000fffe9 == 0) FormPartyUnkick();
+	if (*(u8*)0x000fffe9 == 0) FormPartyUnkick(); // Not updated in CheatDevice.txt
 
 	return 1;
 }
