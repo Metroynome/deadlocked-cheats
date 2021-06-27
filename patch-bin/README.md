@@ -1,4 +1,4 @@
-# patch.bin
+# Patch.bin subroutine.
  - Starts at 01E00000
  - On/Off bytes at 000fffe0
     - 000fffe0: Infinite Health/Moonjump
@@ -6,7 +6,21 @@
 	- 000fffe2: Hacked Keyboard
 	- 000fffe3: Free Cam
 	- 000fffe4: sp-music-to-mp
-	- 000fffe5: Follow Aimer v4
+	- 000fffe5: Follow Aimer
 	- 000fffe6: Force G^
 	- 000fffe7: Host Options
 	- 000fffe8: Vehicle Select
+	
+	The following are not added in CheatDevice.txt:
+	- 000fffe9: Form Party and Unkick
+	- 000fffea: Max Typing Limit
+	- 000fffeb: More Team Colors
+	- 000fffec: Infinite Chargeboot
+	- 000fffed: Render All
+	- 000fffee: Rapid Fire Weapons
+	- 000fffef: Walk Through Walls
+	- 000ffff0: Rapid Fire Vehicles
+	- 000ffff1: Lots of Deaths
+	- 000ffff2: No Respawn Timer
+	- 000ffff3: Walk Fast
+	- 000ffff4: AirWalk
