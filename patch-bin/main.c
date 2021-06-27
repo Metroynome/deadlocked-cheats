@@ -15,6 +15,7 @@ Patch.bin subroutine.
 	- 000fffea: Max Typing Limit
 	- 000fffeb: More Team Colors
 	- 000fffec: Infinite Chargeboot
+	- 000fffed: Render All
 */
 
 #include <tamtypes.h>
@@ -853,11 +854,10 @@ void VehicleSelect()
 
 void FormPartyUnkick()
 {
-	if(*(u32*)0x00173aec == -1)
+	if(!gameIsIn() && *(u32*)0x00173aec == -1)
 	{
 		// Enable Form Party Options
 		*(u8*)0x01365724 = 0x4;
-		// Unkick
 		*(u32*)0x00759448 = 0;
 		*(u32*)0x0075945c = 0;
 		*(u32*)0x0075948c = 0;
@@ -869,9 +869,10 @@ void FormPartyUnkick()
 ================      Max Typing Limit
 ========
 \*========================================================*/
+
 void MaxTypingLimit()
 {
-	if(*(u32*)0x00173aec == -1)
+	if(!gameIsIn() && *(u32*)0x00173aec == -1)
 	{
 		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 		if ((pad->btns & (PAD_L1 | PAD_R1)) == 0)
@@ -890,59 +891,111 @@ void MaxTypingLimit()
 
 void MoreTeamColors()
 {
-	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+	if(!gameIsIn() && *(u32*)0x00173aec == -1)
 	{
-		*(u8*)0x013eec60 = 0xff;
-		*(u32*)0x013eebf0 = 0x01010101;
+		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+		if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+		{
+			*(u8*)0x013eec60 = 0xff;
+			*(u32*)0x013eebf0 = 0x01010101;
+		}
 	}
 }
-
 
 /*========================================================*\
 ========                   000fffec
 ================      Infinite Chargeboot
 ========
 \*========================================================*/
+
 void InfiniteChargeboot()
 {
-	if (!gameIsIn())
-		return -1;
-	
-	Player * player = (Player*)0x00347aa0;
-	PadButtonStatus * pad = playerGetPad(player);
-	if ((pad->btns & (PAD_L2)) == 0)
+	if (gameIsIn())
 	{
-		player->TicksSinceStateChanged = 0x27;
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_L2)) == 0)
+		{
+			player->TicksSinceStateChanged = 0x27;
+		}
+	}
+}
+
+/*========================================================*\
+========               000fffed
+================      Render All
+========
+\*========================================================*/
+
+void RenderAll()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		// if render function has not been modified, then do so.
+		if ((pad->btns & (PAD_SELECT | PAD_LEFT)) == 0 && *(u32*)0x00240b40 == 0)
+		{
+			// Copy Render Data and save it.
+			memcpy((u8*)0x00240b40, (u8*)0x00240A40, 0x280);
+
+			// Turn off render functions
+			*(u32*)0x004C0760 = 0x00000000;
+			*(u32*)0x004C0878 = 0x00000000;
+			*(u32*)0x004C09E0 = 0x00000000;
+			*(u32*)0x004C0A50 = 0x00000000;
+			*(u32*)0x004D7168 = 0x03e00008;
+			*(u32*)0x004D716C = 0x00000000;
+
+			// Set render data to -1.
+			memset((u8*)0x00240A40, 0xff, 0x280);
+		}
+		else if ((pad->btns & (PAD_SELECT | PAD_RIGHT)) == 0 && *(u32*)0x00240A40 == -1)
+		{
+			// If Off, turn functions back to normal.
+			*(u32*)0x004C0760 = 0x0C135C40;
+			*(u32*)0x004C0878 = 0x0C135BD8;
+			*(u32*)0x004C09E0 = 0x0C135C40;
+			*(u32*)0x004C0A50 = 0x0C135C40;
+			*(u32*)0x004D7168 = 0x78A20000;
+			*(u32*)0x004D716C = 0x20A50010;
+
+			// If off, restore render data.
+			memcpy((u8*)0x00240A40, (u8*)0x00240b40, 0x280);
+			// Set saved render data to 0.
+			memset((u8*)0x00240B40, 0x0, 0x280);
+		}
 	}
 }
 
 int main(void)
 {
 	// R3 + R2/L3
-	if (*(u8*)0x000fffe0 == 1) InfiniteHealthMoonjump();
+	if (*(u8*)0x000fffe0 == 0) InfiniteHealthMoonjump();
 	// L1 + R1 + L3/L1 + R1 + R3
-	if (*(u8*)0x000fffe3 == 1) FreeCam();
+	if (*(u8*)0x000fffe3 == 0) FreeCam();
 	// R3 + R2/L3 + R2
-	if (*(u8*)0x000fffe5 == 1) FollowAimer();
+	if (*(u8*)0x000fffe5 == 0) FollowAimer();
 	// L2 + R2 + Select
-	if (*(u8*)0x000fffe1 == 1) MaskUsername();
+	if (*(u8*)0x000fffe1 == 0) MaskUsername();
 	// Start + Select
-	if (*(u8*)0x000fffe2 == 1) HackedKeyboard();
+	if (*(u8*)0x000fffe2 == 0) HackedKeyboard();
 	// L3 + R3 + L1/L2
-	if (*(u8*)0x000fffe6 == 1) ForceGUp();
+	if (*(u8*)0x000fffe6 == 0) ForceGUp();
 	// L2 + X: Change Team, Start: Ready Player
-	if (*(u8*)0x000fffe7 == 1) HostOptions();
-	// L1 + R1 
-	if (*(u8*)0x000fffea == 1) MaxTypingLimit();
+	if (*(u8*)0x000fffe7 == 0) HostOptions();
+	// L1 + R1
+	if (*(u8*)0x000fffea == 0) MaxTypingLimit();
 	// L2 + R2
-	if (*(u8*)0x000fffeb == 1) MoreTeamColors();
+	if (*(u8*)0x000fffeb == 0) MoreTeamColors();
 	// Hold L2
-	if (*(u8*)0x000fffeb == 1) InfiniteChargeboot();
+	if (*(u8*)0x000fffec == 0) InfiniteChargeboot();
+	// Select + Left/Right
+	if (*(u8*)0x000fffed == 0) RenderAll();
 	// Always Run
-	if (*(u8*)0x000fffe4 == 1) CampaignMusic();
-	if (*(u8*)0x000fffe8 == 1) VehicleSelect();
-	if (*(u8*)0x000fffe9 == 1) FormPartyUnkick();
+	if (*(u8*)0x000fffe4 == 0) CampaignMusic();
+	if (*(u8*)0x000fffe8 == 0) VehicleSelect();
+	if (*(u8*)0x000fffe9 == 0) FormPartyUnkick();
 
 	return 1;
 }
