@@ -25,10 +25,21 @@ Patch.bin subroutine.
 	- 000ffff2: No Respawn Timer
 	- 000ffff3: Walk Fast
 	- 000ffff4: AirWalk
+	- 000ffff5: Flying Vehicles
+	- 000ffff6: Surfing Vehicles
+	- 000ffff7: Fast Vehicles
+	- 000ffff8: Respawn Anywhere
+	- 000ffff9: vSync
+	- 000fffea: All Alpha/Omega Mods
+	- 000fffeb: All Skill Points
+	- 000ffffc: Hacked Start Menu
+	- 000ffffd: Cheats Menu - Weapons
 */
 
 #include <tamtypes.h>
 #include <libdl/stdio.h>
+#include <libdl/graphics.h>
+#include <libdl/string.h>
 #include <libdl/game.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
@@ -36,6 +47,8 @@ Patch.bin subroutine.
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
 #include <libdl/ui.h>
+
+char Printed = 0;
 
 short Keys[][2] = {
 	// Offset, Data
@@ -1146,48 +1159,324 @@ void AirWalk()
 	}
 }
 
+/*========================================================*\
+========                 000ffff5
+================      Flying Vehicles
+========
+\*========================================================*/
+
+void FlyingVehicles()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if (player->Vehicle != 0)
+		{
+			if (pad->btns == 0xFFFD)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(float*)(Pointer + 0x258) = 2.0;
+			}
+			else if (pad->btns == 0xFFFB)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(float*)(Pointer + 0x258) = 0.00557899475098;
+			}
+		}
+	}
+}
+
+/*========================================================*\
+========                  000ffff6
+================      Surfing Vehicles
+========
+\*========================================================*/
+
+void SurfingVehicles()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if (player->Vehicle != 0)
+		{
+			// L2 + Up: On
+			if (pad->btns == 0xfeef)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(u8*)(Pointer + 0x304) = 1;
+			}
+			// L2 + Down: Off
+			else if (pad->btns == 0xFFFB)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(u8*)(Pointer + 0x258) = 0;
+			}
+		}
+	}
+}
+
+/*========================================================*\
+========                000ffff7
+================      Fast Vehicles
+========
+\*========================================================*/
+
+void FastVehicles()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if (player->Vehicle != 0)
+		{
+			// L2 + R2: Fast
+			if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(float*)(Pointer + 0x2f0) = 1.0;
+			}
+			// L2 + R1: Faster
+			else if ((pad->btns & (PAD_L2 | PAD_R1)) == 0)
+			{
+				void * Pointer = (void*)(*(u32*)0x0034a994);
+				*(float*)(Pointer + 0x2f0) = 2.0;
+			}
+		}
+	}
+}
+
+/*========================================================*\
+========                  000ffff8
+================      Respawn Anywhere
+========
+\*========================================================*/
+
+void RespawnAnywhere()
+{
+	if (gameIsIn())
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if ((pad->btns & (PAD_CIRCLE | PAD_SQUARE)) == 0)
+		{
+			player->PlayerState = 0x99;
+		}
+	}
+}
+
+/*========================================================*\
+========              000ffff9
+================      vSync
+========
+\*========================================================*/
+
+void vSync()
+{
+	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+	if ((pad->btns & (PAD_R3 | PAD_UP)) == 0 && *(u32*)0x00138dd0 != 0)
+	{
+		*(u32*)0x00138dd0 = 0;
+	}
+	else if ((pad->btns & (PAD_R3 | PAD_DOWN)) == 0 && *(u32*)0x00138dd0 == 0)
+	{
+		*(u32*)0x00138dd0 = 0x0c049c30;
+	}
+}
+
+/*========================================================*\
+========                      000ffffa
+================      All Omega and Alpha Mods
+========
+\*========================================================*/
+
+void OmegaAlphaMods()
+{
+	if (gameIsIn())
+	{
+		void * Pointer = (void*)(*(u32*)0x0034a184);
+		if(*(u32*)(Pointer + 0x20) != 0x63636300)
+		{
+			*(u32*)(Pointer + 0x20) = 0x63636300;
+			*(u32*)(Pointer + 0x24) = 0x63636363;
+			*(u32*)(Pointer + 0x28) = 0x00ff0063;
+		}
+	}
+}
+
+/*========================================================*\
+========                  000ffffb
+================      All Skill Points
+========
+\*========================================================*/
+
+void SkillPoints()
+{
+	if (gameIsIn() && *(u32*)0x00171BA8 == 0)
+	{
+		int num;
+		for(num = 0; num < 0xb; num++)
+		{
+			*(u32*)(0x00171BA8 + (num * 4)) = 0x00107FFF;
+		}
+	}
+}
+
+/*========================================================*\
+========                    000ffffd
+================      Cheats Menu - Weapons
+========
+\*========================================================*/
+
+void CheatsMenuWeapons()
+{
+	// No need to check if in game because it does that in HackedStartMenu()
+	*(u8*)0x00393740 = 0x00000010;
+	*(u8*)0x00393748 = 0x0000000b;
+	*(u16*)0x0039374c = 0x00000102;
+	*(u16*)0x00393750 = 0x000023b6;
+	*(u16*)0x00393760 = 0x00002626;
+	*(u16*)0x00393764 = 0x00002627;
+	*(u16*)0x00393768 = 0x00002622;
+	*(u16*)0x0039376c = 0x00002628;
+	*(u16*)0x00393770 = 0x00002624;
+	*(u16*)0x00393774 = 0x00002623;
+	*(u16*)0x00393778 = 0x0000262a;
+	*(u16*)0x0039377c = 0x00002625;
+	*(u16*)0x00393780 = 0x0000262e;
+	*(u16*)0x00393784 = 0x0000262d;
+	Player * player = (Player*)0x00347aa0;
+	switch(*(u8*)0x0021de40)
+	{
+		case 1:
+			player->ChangeWeaponHeldId = 0x2;
+			break;
+		case 2:
+			player->ChangeWeaponHeldId = 0x3;
+			break;
+		case 3:
+			player->ChangeWeaponHeldId = 0x4;
+			break;
+		case 4:
+			player->ChangeWeaponHeldId = 0x5;
+			break;
+		case 5:
+			player->ChangeWeaponHeldId = 0x6;
+			break;
+		case 6:
+			player->ChangeWeaponHeldId = 0x7;
+			break;
+		case 7:
+			player->ChangeWeaponHeldId = 0x8;
+			break;
+		case 8:
+			player->ChangeWeaponHeldId = 0xf;
+			break;
+		case 9:
+			player->ChangeWeaponHeldId = 0xd;
+			break;
+		case 10:
+			player->ChangeWeaponHeldId = 0xc;
+			break;
+	}
+}
+
+/*========================================================*\
+========                  000ffffc
+================      Hacked Start Menu
+========
+\*========================================================*/
+
+void HackedStartMenu(char OnOff)
+{
+	if (gameIsIn())
+	{
+		*(u16*)0x00560338 = 0x00001190;
+		*(u32*)0x003104c4 = 0x4954504f;
+		*(u32*)0x003104c8 = 0x00534e4f;
+		*(u16*)0x00560350 = 0x00001678;
+		*(u32*)0x00310504 = 0x41454843;
+		*(u32*)0x00310508 = 0x00005354;
+		*(u16*)0x00560368 = 0x00000fe0;
+		*(u32*)0x00310544 = 0x50414557;
+		*(u32*)0x00310548 = 0x00534e4f;
+		// Load this if Hacked Start Menu is On
+		if (*(u8*)0x000ffffd == OnOff) CheatsMenuWeapons(); // Not updated in CheatDevice.txt
+	}
+	// If not in game, set Remove Helmet cheat back off.
+	else if (*(u8*)0x0021de40 != 0)
+	{
+		*(u8*)0x0021de40 = 0;
+	}
+}
+
 int main(void)
 {
+	// if Music isn't loaded, don't load other codes.
+	// If going into Network Coniguration, you will need to go back to Start Menu to load patch.
+	if(*(u32*)0x001CF85C != 0x000F8D29)
+		return -1;
+
+	// OnOff is the value the toggle address' need to equal to be on or off.
+	// 0x01 = Only Codes via CheatDevice are on.
+	// 0x00 = All On if CheatDevice Wasn't ran.
+	char OnOff = 0x00;
+
 	// R3 + R2/L3
-	if (*(u8*)0x000fffe0 == 0) InfiniteHealthMoonjump();
+	if (*(u8*)0x000fffe0 == OnOff) InfiniteHealthMoonjump();
 	// L1 + R1 + L3/L1 + R1 + R3
-	if (*(u8*)0x000fffe3 == 0) FreeCam();
+	if (*(u8*)0x000fffe3 == OnOff) FreeCam();
 	// R3 + R2/L3 + R2
-	if (*(u8*)0x000fffe5 == 0) FollowAimer();
+	if (*(u8*)0x000fffe5 == OnOff) FollowAimer();
 	// L2 + R2 + Select
-	if (*(u8*)0x000fffe1 == 0) MaskUsername();
+	if (*(u8*)0x000fffe1 == OnOff) MaskUsername();
 	// Start + Select
-	if (*(u8*)0x000fffe2 == 0) HackedKeyboard();
+	if (*(u8*)0x000fffe2 == OnOff) HackedKeyboard();
 	// L3 + R3 + L1/L2
-	if (*(u8*)0x000fffe6 == 0) ForceGUp();
+	if (*(u8*)0x000fffe6 == OnOff) ForceGUp();
 	// L2 + X: Change Team, Start: Ready Player
-	if (*(u8*)0x000fffe7 == 0) HostOptions();
+	if (*(u8*)0x000fffe7 == OnOff) HostOptions();
 	// L1 + R1
-	if (*(u8*)0x000fffea == 0) MaxTypingLimit(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffea == OnOff) MaxTypingLimit(); // Not updated in CheatDevice.txt
 	// L2 + R2
-	if (*(u8*)0x000fffeb == 0) MoreTeamColors(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffeb == OnOff) MoreTeamColors(); // Not updated in CheatDevice.txt
 	// Hold L2
-	if (*(u8*)0x000fffec == 0) InfiniteChargeboot(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffec == OnOff) InfiniteChargeboot(); // Not updated in CheatDevice.txt
 	// Select + Left/Right
-	if (*(u8*)0x000fffed == 0) RenderAll(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffed == OnOff) RenderAll(); // Not updated in CheatDevice.txt
 	// R3 + R1 or R3 + R1 + L2
-	if (*(u8*)0x000fffee == 0) RapidFireWeapons(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffee == OnOff) RapidFireWeapons(); // Not updated in CheatDevice.txt
 	// L1 + Left/Right
-	if (*(u8*)0x000fffef == 0) WalkThroughWalls(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffef == OnOff) WalkThroughWalls(); // Not updated in CheatDevice.txt
 	// Hold R3 + R1
-	if (*(u8*)0x000ffff0 == 0) RapidFireVehicles(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff0 == OnOff) RapidFireVehicles(); // Not updated in CheatDevice.txt
 	// L1 + Up
-	if (*(u8*)0x000ffff1 == 0) LotsOfDeaths(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff1 == OnOff) LotsOfDeaths(); // Not updated in CheatDevice.txt
 	// Press X
-	if (*(u8*)0x000ffff2 == 0) NoRespawnTimer(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff2 == OnOff) NoRespawnTimer(); // Not updated in CheatDevice.txt
 	// R3 + Left/Right
-	if (*(u8*)0x000ffff3 == 0) WalkFast(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff3 == OnOff) WalkFast(); // Not updated in CheatDevice.txt
 	// Hold L3
-	if (*(u8*)0x000ffff4 == 0) AirWalk(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff4 == OnOff) AirWalk(); // Not updated in CheatDevice.txt
+	// Hold L3: High; or Hold R3: Float
+	if (*(u8*)0x000ffff5 == OnOff) FlyingVehicles(); // Not updated in CheatDevice.txt
+	// Hold L3 or R3
+	if (*(u8*)0x000ffff6 == OnOff) SurfingVehicles(); // Not updated in CheatDevice.txt
+	// L2 + R2: Fast; L2 + R1: Faster
+	if (*(u8*)0x000ffff7 == OnOff) FastVehicles(); // Not updated in CheatDevice.txt
+	// Circle + Square
+	if (*(u8*)0x000ffff8 == OnOff) RespawnAnywhere(); // Not updated in CheatDevice.txt
 	// Always Run
-	if (*(u8*)0x000fffe4 == 0) CampaignMusic();
-	if (*(u8*)0x000fffe8 == 0) VehicleSelect();
-	if (*(u8*)0x000fffe9 == 0) FormPartyUnkick(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000fffe4 == OnOff) CampaignMusic();
+	if (*(u8*)0x000fffe8 == OnOff) VehicleSelect();
+	if (*(u8*)0x000fffe9 == OnOff) FormPartyUnkick(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffff9 == OnOff) vSync(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffffa == OnOff) OmegaAlphaMods(); // Not updated in CheatDevice.txt
+	if (*(u8*)0x000ffffb == OnOff) SkillPoints(); // Not updated in CheatDevice.txt
+	// Hacked Start Menu loads Cheat Menu codes inside of it.
+	// No use to have cheat menu codes on if hacked start menu isn't.
+	if (*(u8*)0x000ffffc == OnOff) HackedStartMenu(OnOff); // Not updated in CheatDevice.txt
 
 	return 1;
 }

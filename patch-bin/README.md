@@ -24,3 +24,12 @@
 	- 000ffff2: No Respawn Timer
 	- 000ffff3: Walk Fast
 	- 000ffff4: AirWalk
+	- 000ffff5: Flying Vehicles
+	- 000ffff6: Surfing Vehicles
+	- 000ffff7: Fast Vehicles
+	- 000ffff8: Respawn Anywhere
+	- 000ffff9: vSync
+	- 000fffea: All Alpha/Omega Mods
+	- 000fffeb: All Skill Points
+	- 000ffffc: Hacked Start Menu
+	- 000ffffd: Cheats Menu - Weapons
