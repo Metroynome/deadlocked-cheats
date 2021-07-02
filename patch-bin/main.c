@@ -48,7 +48,6 @@ Patch.bin subroutine.
 #include <libdl/hud.h>
 #include <libdl/ui.h>
 
-char Printed = 0;
 
 short Keys[][2] = {
 	// Offset, Data
@@ -157,6 +156,12 @@ int Tracks[][2] = {
 	{0x32cfb, 0x332d2} // Defeat Gleemon Vox
 };
 
+// -1 = varify if 0x000fffff = 1, then all codes off, if 0, then all codes on.
+// 0 = All codes off
+// 1 = All codes on
+char _InitializeAllCodes = -1;
+
+char _InitializeAllCodes_Toggle = 0;
 char _InfiniteHealthMoonjump_Init = 0;
 char _MaskUsername_Init = 0;
 char _HackedKeyboard_Init = 0;
@@ -1235,7 +1240,7 @@ void FastVehicles()
 			if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
 			{
 				void * Pointer = (void*)(*(u32*)0x0034a994);
-				*(float*)(Pointer + 0x2f0) = 1.0;
+				*(float*)(Pointer + 0x2f0) = 0.5039062;
 			}
 			// L2 + R1: Faster
 			else if ((pad->btns & (PAD_L2 | PAD_R1)) == 0)
@@ -1415,7 +1420,33 @@ int main(void)
 {
 	// if Music isn't loaded, don't load other codes.
 	// If going into Network Coniguration, you will need to go back to Start Menu to load patch.
-	if(*(u32*)0x001CF85C != 0x000F8D29)
+	if (*(u32*)0x001CF85C != 0x000F8D29)
+		return -1;
+	
+	if (*(u8*)0x000fffff == 1 && _InitializeAllCodes == -1)
+	{
+		_InitializeAllCodes = 0;
+	}
+	else if (*(u8*)0x000fffff == 0 && _InitializeAllCodes == -1)
+	{
+		_InitializeAllCodes = 1;
+	}
+
+	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+	// L1 + L2 + R2 + Right + Down: Turn on/off all cheats
+	if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_RIGHT | PAD_DOWN)) == 0 && _InitializeAllCodes_Toggle == 0)
+	{
+		_InitializeAllCodes_Toggle = 1;
+		_InitializeAllCodes = !_InitializeAllCodes;
+	}
+	else if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_RIGHT | PAD_DOWN)) != 0)
+	{
+		_InitializeAllCodes_Toggle = 0;
+	}
+
+
+	// if not initialized.
+	if (_InitializeAllCodes != 1)
 		return -1;
 
 	// OnOff is the value the toggle address' need to equal to be on or off.
@@ -1467,11 +1498,13 @@ int main(void)
 	if (*(u8*)0x000ffff7 == OnOff) FastVehicles(); // Not updated in CheatDevice.txt
 	// Circle + Square
 	if (*(u8*)0x000ffff8 == OnOff) RespawnAnywhere(); // Not updated in CheatDevice.txt
+	// R3 + Up/Down
+	if (*(u8*)0x000ffff9 == OnOff) vSync(); // Not updated in CheatDevice.txt
+
 	// Always Run
 	if (*(u8*)0x000fffe4 == OnOff) CampaignMusic();
 	if (*(u8*)0x000fffe8 == OnOff) VehicleSelect();
 	if (*(u8*)0x000fffe9 == OnOff) FormPartyUnkick(); // Not updated in CheatDevice.txt
-	if (*(u8*)0x000ffff9 == OnOff) vSync(); // Not updated in CheatDevice.txt
 	if (*(u8*)0x000ffffa == OnOff) OmegaAlphaMods(); // Not updated in CheatDevice.txt
 	if (*(u8*)0x000ffffb == OnOff) SkillPoints(); // Not updated in CheatDevice.txt
 	// Hacked Start Menu loads Cheat Menu codes inside of it.

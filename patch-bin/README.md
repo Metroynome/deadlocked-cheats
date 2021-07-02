@@ -1,4 +1,7 @@
 # Patch.bin subroutine.
+	### if 0x000fffff = 0x01: Codes Off when ran
+	### if 0x000fffff = 0x00: Codes On when ran
+
  - Starts at 01E00000
  - On/Off bytes at 000fffe0
     - 000fffe0: Infinite Health/Moonjump
