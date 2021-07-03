@@ -198,6 +198,8 @@ char RenderAllData[0x280];
 \*========================================================*/
 void InfiniteHealthMoonjump()
 {
+	if (!_InitializeAllCodes)
+		return -1;
 
 	if (!gameIsIn())
 	{
@@ -227,7 +229,6 @@ void InfiniteHealthMoonjump()
 	if ((pad->btns & PAD_CROSS) == 0){
 		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -237,6 +238,9 @@ void InfiniteHealthMoonjump()
 \*========================================================*/
 void MaskUsername()
 {
+	if (!_InitializeAllCodes)
+		return -1;
+
 	if (gameIsIn())
 	{
 		_MaskUsername_Init = 0;
@@ -267,6 +271,9 @@ void MaskUsername()
 \*========================================================*/
 void HackedKeyboard()
 {
+	if (!_InitializeAllCodes)
+		return -1;
+
 	if(gameIsIn())
 	{
 		_HackedKeyboard_Init = 0;
@@ -300,7 +307,6 @@ void HackedKeyboard()
 			//printf("Key: 0x%x: 0x%x\n", ((u32)Pointer + Keys[a][0]), Keys[a][1]);
 		}
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -453,7 +459,7 @@ void FreeCam()
 	PadButtonStatus * pad = playerGetPad(player);
 	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 
-	if (!_FreeCam_Init)
+	if (!_FreeCam_Init && _InitializeAllCodes)
 	{
 		// Don't activate if player is in Vehicle
 		// Activate with L1 + R1 + L3
@@ -465,8 +471,8 @@ void FreeCam()
 	}
 	else if (_FreeCam_Init)
 	{
-		// Deactivate with L1 + R1 + R3
-		if ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0)
+		// Deactivate with L1 + R1 + R3 or _InitiateAllCodes == 0
+		if ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0 || !_InitializeAllCodes)
 		{
 			_FreeCam_Init = 0;
 			// Triange: Set Player Position to current Camera Position
@@ -580,9 +586,8 @@ void FreeCam()
 \*========================================================*/
 void CampaignMusic()
 {
-
 	// check to see if multiplayer tracks are loaded
-	if (*(u32*)0x001CF85C != 0x000F8D29)
+	if ((*(u32*)0x001CF85C != 0x000F8D29) || !_InitializeAllCodes)
 	{
 		_CampaignMusic_Init = 0;
 		return -1;
@@ -658,7 +663,6 @@ void CampaignMusic()
 			OriginalMusicVolume = 0;
 		}
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -668,7 +672,7 @@ void CampaignMusic()
 \*========================================================*/
 void FollowAimer()
 {
-	if (!gameIsIn())
+	if (!gameIsIn() || !_InitializeAllCodes)
 	{
 		_FollowAimer_Init = 0;
 		return -1;
@@ -698,7 +702,7 @@ void FollowAimer()
 \*========================================================*/
 void ForceGUp()
 {
-	if (gameIsIn())
+	if (gameIsIn() || !_InitializeAllCodes)
 	{
 		_ForceGUp_Init = 0;
 		return -1;
@@ -735,7 +739,7 @@ void ForceGUp()
 void HostOptions()
 {
 	// exit if in game or not in game lobby and not host
-	if (gameIsIn() || *(u32*)0x00173aec == -1 || *(u32*)0x001723b0 == 0)
+	if (gameIsIn() || (*(u32*)0x00173aec == -1) || (*(u32*)0x001723b0 == 0) || !_InitializeAllCodes)
 	{
 		_HostOptions_Init = 0;
 		_HostOptions_ReadyPlayer = 0;
@@ -780,8 +784,6 @@ void HostOptions()
 		_HostOptions_TeamColor = 0;
 		*(u32*)0x00172170 = 0;
 	}
-
-	return 1;
 }
 
 /*========================================================*\
@@ -841,7 +843,7 @@ void LoadVehicleSub()
 void VehicleSelect()
 {
 	// If not on Create Game menu or in game or in local play
-	if (*(u32*)0x00172194 == -1 || gameIsIn() || *(u32*)0x003434B8 != 0x136)
+	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136) || !_InitializeAllCodes)
 	{
 		_VehicleSelect_Init = 0;
 		return -1;
@@ -870,7 +872,6 @@ void VehicleSelect()
 		// Set Saved map to -1
 		SavedMap = -1;
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -881,13 +882,27 @@ void VehicleSelect()
 
 void FormPartyUnkick()
 {
-	if(!gameIsIn() && *(u32*)0x00173aec == -1 && *(u8*)0x01365724 != 0x4)
+	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && (*(u8*)0x01365724 != 0x4) && _InitializeAllCodes)
 	{
 		// Enable Form Party Options
-		*(u8*)0x01365724 = 0x4;
+		*(u8*)0x01365724 = 4;
+		*(u8*)0x013AB7AC = 4;
+		*(u8*)0x013AB80C = 4;
+		*(u8*)0x013AB86C = 4;
+		*(u8*)0x013AB8CC = 4;
+		// Enable Unkick
 		*(u32*)0x00759448 = 0;
 		*(u32*)0x0075945c = 0;
 		*(u32*)0x0075948c = 0;
+	}
+	else if (!gameIsIn() && (*(u32*)0x00173aec == -1) && (*(u8*)0x01365724 == 0x4) && !_InitializeAllCodes)
+	{
+		// Disable Form Party Options if All codes are off
+		*(u8*)0x01365724 = 1;
+		// Disable Unkick
+		*(u32*)0x00759448 = 0x0C1C668A;
+		*(u32*)0x0075945c = 0x10A0006A;
+		*(u32*)0x0075948c = 0x10690237;
 	}
 }
 
@@ -899,7 +914,7 @@ void FormPartyUnkick()
 
 void MaxTypingLimit()
 {
-	if(!gameIsIn() && *(u32*)0x00173aec == -1)
+	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && _InitializeAllCodes)
 	{
 		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 		if ((pad->btns & (PAD_L1 | PAD_R1)) == 0)
@@ -918,7 +933,7 @@ void MaxTypingLimit()
 
 void MoreTeamColors()
 {
-	if(!gameIsIn() && *(u32*)0x00173aec == -1)
+	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && _InitializeAllCodes)
 	{
 		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 		if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
@@ -937,7 +952,7 @@ void MoreTeamColors()
 
 void InfiniteChargeboot()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -963,7 +978,7 @@ void RenderAll()
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
 		// if render function has not been modified, then do so.
-		if ((pad->btns & (PAD_SELECT | PAD_LEFT)) == 0 && *(u32*)0x00240b40 == 0)
+		if ((pad->btns & (PAD_SELECT | PAD_LEFT)) == 0 && (*(u32*)0x00240b40 == 0) && _InitializeAllCodes)
 		{
 			// Copy Render Data and save it.
 			memcpy((u8*)0x00240b40, (u8*)0x00240A40, 0x280);
@@ -979,7 +994,7 @@ void RenderAll()
 			// Set render data to -1.
 			memset((u8*)0x00240A40, 0xff, 0x280);
 		}
-		else if ((pad->btns & (PAD_SELECT | PAD_RIGHT)) == 0 && *(u32*)0x00240A40 == -1)
+		else if (((pad->btns & (PAD_SELECT | PAD_RIGHT)) == 0 && *(u32*)0x00240A40 == -1) || (!_InitializeAllCodes && *(u32*)0x00240A40 == -1))
 		{
 			// If Off, turn functions back to normal.
 			*(u32*)0x004C0760 = 0x0C135C40;
@@ -1005,7 +1020,7 @@ void RenderAll()
 
 void RapidFireWeapons()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1028,11 +1043,11 @@ void WalkThroughWalls()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if ((pad->btns & (PAD_L1 | PAD_LEFT)) == 0)
+		if ((pad->btns & (PAD_L1 | PAD_LEFT)) == 0 && _InitializeAllCodes)
 		{
 			*(u32*)0x00347e40 = 0x22a3;
 		}
-		else if ((pad->btns & (PAD_L1 | PAD_RIGHT)) == 0)
+		else if ((pad->btns & (PAD_L1 | PAD_RIGHT)) == 0 || !_InitializeAllCodes)
 		{
 			*(u32*)0x00347e40 = 0;
 		}
@@ -1051,7 +1066,7 @@ void RapidFireVehicles()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0)
+		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0 && _InitializeAllCodes)
 		{
 			*(u32*)0x00453C88 = 0xA2000316;
 			*(u32*)0x0045A444 = 0xA2400317;
@@ -1062,7 +1077,7 @@ void RapidFireVehicles()
 			*(u32*)0x0047EAD4 = 0xAE00030C;
 			*(u32*)0x0047CB50 = 0xA24202F1;
 		}
-		else if (*(u32*)0x00453C88 == 0xA2000316)
+		else if ((*(u32*)0x00453C88 == 0xA2000316))
 		{
 			*(u32*)0x00453C88 = 0xA2020316;
 			*(u32*)0x0045A444 = 0xA2430317;
@@ -1084,7 +1099,7 @@ void RapidFireVehicles()
 
 void LotsOfDeaths()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1105,7 +1120,7 @@ void NoRespawnTimer()
 {
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
-	if (gameIsIn() && pad->btns == 0xBFFF)
+	if (gameIsIn() && pad->btns == 0xBFFF && _InitializeAllCodes)
 	{
 		*(u16*)0x00347e52 = 0;
 	}
@@ -1123,11 +1138,11 @@ void WalkFast()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if ((pad->btns & (PAD_R3 | PAD_LEFT)) == 0)
+		if ((pad->btns & (PAD_R3 | PAD_LEFT)) == 0 && _InitializeAllCodes)
 		{
 			*(u32*)0x0034aa60 = 0x60f00000;
 		}
-		else if ((pad->btns & (PAD_R3 | PAD_RIGHT)) == 0)
+		else if ((pad->btns & (PAD_R3 | PAD_RIGHT)) == 0 || (!_InitializeAllCodes && *(u32*)0x0034aa60 != 0x3f800000))
 		{
 			*(u32*)0x0034aa60 = 0x3f800000;
 		}
@@ -1142,7 +1157,7 @@ void WalkFast()
 
 void AirWalk()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1172,7 +1187,7 @@ void AirWalk()
 
 void FlyingVehicles()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1200,23 +1215,22 @@ void FlyingVehicles()
 
 void SurfingVehicles()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
 		if (player->Vehicle != 0)
 		{
+			void * Pointer = (void*)(*(u32*)0x0034a994);
 			// L2 + Up: On
 			if (pad->btns == 0xfeef)
 			{
-				void * Pointer = (void*)(*(u32*)0x0034a994);
 				*(u8*)(Pointer + 0x304) = 1;
 			}
 			// L2 + Down: Off
 			else if (pad->btns == 0xFFFB)
 			{
-				void * Pointer = (void*)(*(u32*)0x0034a994);
-				*(u8*)(Pointer + 0x258) = 0;
+				*(u8*)(Pointer + 0x304) = 0;
 			}
 		}
 	}
@@ -1230,7 +1244,7 @@ void SurfingVehicles()
 
 void FastVehicles()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1260,7 +1274,7 @@ void FastVehicles()
 
 void RespawnAnywhere()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1280,11 +1294,11 @@ void RespawnAnywhere()
 void vSync()
 {
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if ((pad->btns & (PAD_R3 | PAD_UP)) == 0 && *(u32*)0x00138dd0 != 0)
+	if ((pad->btns & (PAD_R3 | PAD_UP)) == 0 && (*(u32*)0x00138dd0 != 0) && _InitializeAllCodes)
 	{
 		*(u32*)0x00138dd0 = 0;
 	}
-	else if ((pad->btns & (PAD_R3 | PAD_DOWN)) == 0 && *(u32*)0x00138dd0 == 0)
+	else if (((pad->btns & (PAD_R3 | PAD_DOWN)) == 0 || !_InitializeAllCodes) && *(u32*)0x00138dd0 == 0)
 	{
 		*(u32*)0x00138dd0 = 0x0c049c30;
 	}
@@ -1298,7 +1312,7 @@ void vSync()
 
 void OmegaAlphaMods()
 {
-	if (gameIsIn())
+	if (gameIsIn() && _InitializeAllCodes)
 	{
 		void * Pointer = (void*)(*(u32*)0x0034a184);
 		if(*(u32*)(Pointer + 0x20) != 0x63636300)
@@ -1318,7 +1332,7 @@ void OmegaAlphaMods()
 
 void SkillPoints()
 {
-	if (gameIsIn() && *(u32*)0x00171BA8 == 0)
+	if (gameIsIn() && (*(u32*)0x00171BA8 == 0) && _InitializeAllCodes)
 	{
 		int num;
 		for(num = 0; num < 0xb; num++)
@@ -1397,17 +1411,26 @@ void HackedStartMenu(char OnOff)
 {
 	if (gameIsIn())
 	{
-		*(u16*)0x00560338 = 0x00001190;
-		*(u32*)0x003104c4 = 0x4954504f;
-		*(u32*)0x003104c8 = 0x00534e4f;
-		*(u16*)0x00560350 = 0x00001678;
-		*(u32*)0x00310504 = 0x41454843;
-		*(u32*)0x00310508 = 0x00005354;
-		*(u16*)0x00560368 = 0x00000fe0;
-		*(u32*)0x00310544 = 0x50414557;
-		*(u32*)0x00310548 = 0x00534e4f;
-		// Load this if Hacked Start Menu is On
-		if (*(u8*)0x000ffffd == OnOff) CheatsMenuWeapons(); // Not updated in CheatDevice.txt
+		if (_InitializeAllCodes)
+		{
+			*(u16*)0x00560338 = 0x1190;
+			*(u32*)0x003104c4 = 0x4954504f;
+			*(u32*)0x003104c8 = 0x00534e4f;
+			*(u16*)0x00560350 = 0x1678;
+			*(u32*)0x00310504 = 0x41454843;
+			*(u32*)0x00310508 = 0x00005354;
+			*(u16*)0x00560368 = 0x0fe0;
+			*(u32*)0x00310544 = 0x50414557;
+			*(u32*)0x00310548 = 0x00534e4f;
+			// Load this if Hacked Start Menu is On
+			if (*(u8*)0x000ffffd == OnOff) CheatsMenuWeapons(); // Not updated in CheatDevice.txt
+		}
+		else if (!_InitializeAllCodes && *(u16*)0x00560338 != 0x19A0)
+		{
+			*(u16*)0x00560338 = 0x19A0;
+			*(u16*)0x00560350 = 0x1A30;
+			*(u16*)0x00560368 = 0x1AD0;
+		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
 	else if (*(u8*)0x0021de40 != 0)
@@ -1423,11 +1446,11 @@ int main(void)
 	if (*(u32*)0x001CF85C != 0x000F8D29)
 		return -1;
 	
-	if (*(u8*)0x000fffff == 1 && _InitializeAllCodes == -1)
+	if ((*(u8*)0x000fffff == 1) && _InitializeAllCodes == -1)
 	{
 		_InitializeAllCodes = 0;
 	}
-	else if (*(u8*)0x000fffff == 0 && _InitializeAllCodes == -1)
+	else if ((*(u8*)0x000fffff == 0) && _InitializeAllCodes == -1)
 	{
 		_InitializeAllCodes = 1;
 	}
@@ -1443,11 +1466,6 @@ int main(void)
 	{
 		_InitializeAllCodes_Toggle = 0;
 	}
-
-
-	// if not initialized.
-	if (_InitializeAllCodes != 1)
-		return -1;
 
 	// OnOff is the value the toggle address' need to equal to be on or off.
 	// 0x01 = Only Codes via CheatDevice are on.
