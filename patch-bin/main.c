@@ -34,6 +34,7 @@ Patch.bin subroutine.
 	- 000fffeb: All Skill Points
 	- 000ffffc: Hacked Start Menu
 	- 000ffffd: Cheats Menu - Weapons
+	- 000ffffe: Lock On Fusion
 */
 
 #include <tamtypes.h>
@@ -155,7 +156,6 @@ int Tracks[][2] = {
 	// {0x3227f, 0x32735}, // Destroy the West Generator
 	{0x32cfb, 0x332d2} // Defeat Gleemon Vox
 };
-
 
 int CodeArea = 0x000fffa0; // Where users can check to see if codes are on or off
 char InitSettings = 0; // Settings for codes (Secondary Codes and such)
@@ -1429,6 +1429,8 @@ void HackedStartMenu(char Active)
 			*(u32*)0x00310544 = 0x50414557;
 			*(u32*)0x00310548 = 0x00534e4f;
 			// Load this if Hacked Start Menu is On
+			OmegaAlphaMods(*(u8*)(CodeArea + 0x1a)); // Not updated in CheatDevice.txt
+			SkillPoints(*(u8*)(CodeArea + 0x1b)); // Not updated in CheatDevice.txt
 			CheatsMenuWeapons(*(u8*)(CodeArea + 0x1d)); // Not updated in CheatDevice.txt
 		}
 		else if (!CheckInitCodes(Active) && *(u16*)0x00560338 != 0x19A0)
@@ -1442,6 +1444,31 @@ void HackedStartMenu(char Active)
 	else if (*(u8*)0x0021de40 != 0)
 	{
 		*(u8*)0x0021de40 = 0;
+	}
+}
+
+/*========================================================*\
+========                  000ffffe
+================      Lock On Fusion
+========
+\*========================================================*/
+void LockOnFusion(char Active)
+{
+	if (gameIsIn() && CheckInitCodes(Active))
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		// On: R2 + Up
+		if (pad->btns == 0xfdef)
+		{
+			*(u32*)0x0399cb0 = 0xffff1864;
+			*(u32*)0x0399d30 = 0x00405748;
+		}
+		else if (pad->btns == 0xfdbf)
+		{
+			*(u32*)0x0399cb0 = 0xffff1096;
+			*(u32*)0x0399d30 = 0x003f8ee0;
+		}
 	}
 }
 
@@ -1460,6 +1487,8 @@ int CheckInitCodes(char Active)
 	if (InitSettings == 0 || InitSettings == 1)
 	{
 		IsOn = 1;
+		if (Active == 2)
+			IsOn = -1;
 	}
 	else if (InitSettings == 2 || InitSettings == 3)
 	{
@@ -1477,6 +1506,10 @@ int CheckInitCodes(char Active)
 			{
 				IsOn = 1;
 			}
+		}
+		else if (Active == 2)
+		{
+			IsOn = -1;
 		}
 	}
 	return _InitializeAllCodes == IsOn;
@@ -1541,12 +1574,12 @@ int main(void)
 		_InitializeAllCodes = !_InitializeAllCodes;
 	}
 	// Secondary Codes: Start + Select
-	else if ((pad->btns & (PAD_START | PAD_SELECT)) == 0 && _InitializeAllCodes == 1 && _InitializeAllCodes_Toggle == 0)
+	else if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_LEFT | PAD_UP)) == 0 && _InitializeAllCodes == 1 && _InitializeAllCodes_Toggle == 0)
 	{
 		_InitializeAllCodes_Toggle = 1;
 		_InitializeAllCodes_Secondary_Active = !_InitializeAllCodes_Secondary_Active;
 	}
-	else if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_RIGHT | PAD_DOWN)) != 0 && (pad->btns & (PAD_START | PAD_SELECT)) != 0)
+	else if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_RIGHT | PAD_DOWN)) != 0 && (pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_LEFT | PAD_UP)) != 0)
 	{
 		_InitializeAllCodes_Toggle = 0;
 	}
@@ -1597,15 +1630,16 @@ int main(void)
 	RespawnAnywhere(*(u8*)(CodeArea + 0x18)); // Not updated in CheatDevice.txt
 	// R3 + Up/Down
 	vSync(*(u8*)(CodeArea + 0x19)); // Not updated in CheatDevice.txt
+	// R2 + Up/Down
+	LockOnFusion(*(u8*)(CodeArea + 0x1e)); // Not updated in CheatDevice.txt
 
 	// Always Run
 	CampaignMusic(*(u8*)(CodeArea + 0x04));
 	VehicleSelect(*(u8*)(CodeArea + 0x08));
 	FormPartyUnkick(*(u8*)(CodeArea + 0x09)); // Not updated in CheatDevice.txt
-	OmegaAlphaMods(*(u8*)(CodeArea + 0x1a)); // Not updated in CheatDevice.txt
-	SkillPoints(*(u8*)(CodeArea + 0x1b)); // Not updated in CheatDevice.txt
-	// Hacked Start Menu loads Cheat Menu codes inside of it.
-	// No use to have cheat menu codes on if hacked start menu isn't.
+	// Hacked Start Menu loads following codes inside:
+	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
+	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu(*(u8*)(CodeArea + 0x1c)); // Not updated in CheatDevice.txt
 
 	return 1;
