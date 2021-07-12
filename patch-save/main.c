@@ -1,4 +1,7 @@
 /*
+This is to test the MC Save feature.
+====================================
+
 Patch.bin subroutine.
  - Starts at 01E00000
  - On/Off bytes at 000fffe0
@@ -48,6 +51,13 @@ Patch.bin subroutine.
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
 #include <libdl/ui.h>
+
+#include <libdl/mc.h>
+#include <sifcmd.h>
+#include <iopheap.h>
+#include <iopcontrol.h>
+#include <sifrpc.h>
+#include <loadfile.h>
 
 
 short Keys[][2] = {
@@ -156,6 +166,10 @@ int Tracks[][2] = {
 	// {0x3227f, 0x32735}, // Destroy the West Generator
 	{0x32cfb, 0x332d2} // Defeat Gleemon Vox
 };
+
+// Memory Card fd
+int fd;
+char membuffer[256];
 
 int CodeArea = 0x000fffa0; // Where users can check to see if codes are on or off
 char InitSettings = 0; // Settings for codes (Secondary Codes and such)
@@ -739,6 +753,7 @@ void ForceGUp(char Active)
 ================      Host Options Logic
 ========
 \*========================================================*/
+
 void HostOptions(char Active)
 {
 	// exit if in game or not in game lobby and not host
@@ -794,6 +809,7 @@ void HostOptions(char Active)
 ================      Vehicle Select
 ========
 \*========================================================*/
+
 void LoadVehicleSub()
 {
 	asm __volatile__ (
@@ -881,6 +897,7 @@ void VehicleSelect(char Active)
 ================      Form Party and Unkick
 ========
 \*========================================================*/
+
 void FormPartyUnkick(char Active)
 {
 	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && (*(u8*)0x01365724 != 0x4) && CheckInitCodes(Active))
@@ -912,6 +929,7 @@ void FormPartyUnkick(char Active)
 ================      Max Typing Limit
 ========
 \*========================================================*/
+
 void MaxTypingLimit(char Active)
 {
 	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && CheckInitCodes(Active))
@@ -930,6 +948,7 @@ void MaxTypingLimit(char Active)
 ================      More Team Colors
 ========
 \*========================================================*/
+
 void MoreTeamColors(char Active)
 {
 	if(!gameIsIn() && CheckInitCodes(Active))
@@ -948,6 +967,7 @@ void MoreTeamColors(char Active)
 ================      Infinite Chargeboot
 ========
 \*========================================================*/
+
 void InfiniteChargeboot(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -968,6 +988,7 @@ void InfiniteChargeboot(char Active)
 ================      Render All
 ========
 \*========================================================*/
+
 void RenderAll(char Active)
 {
 	if (gameIsIn())
@@ -1014,6 +1035,7 @@ void RenderAll(char Active)
 ================      Rapid Fire Weapons
 ========
 \*========================================================*/
+
 void RapidFireWeapons(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1032,19 +1054,18 @@ void RapidFireWeapons(char Active)
 ================      Walk Through Walls
 ========
 \*========================================================*/
+
 void WalkThroughWalls(char Active)
 {
 	if (gameIsIn())
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		// PAD_L1 | PAD_LEFT
-		if (pad->btns == 0xFB7F && CheckInitCodes(Active))
+		if ((pad->btns & (PAD_L1 | PAD_LEFT)) == 0 && CheckInitCodes(Active))
 		{
 			*(u32*)0x00347e40 = 0x22a3;
 		}
-		// PAD_L1 | PAD_RIGHT
-		else if (pad->btns == 0xFBDF || !CheckInitCodes(Active))
+		else if ((pad->btns & (PAD_L1 | PAD_RIGHT)) == 0 || !CheckInitCodes(Active))
 		{
 			*(u32*)0x00347e40 = 0;
 		}
@@ -1056,6 +1077,7 @@ void WalkThroughWalls(char Active)
 ================      Rapid Fire Vehicles
 ========
 \*========================================================*/
+
 void RapidFireVehicles(char Active)
 {
 	if (gameIsIn())
@@ -1518,7 +1540,7 @@ int main(void)
 	// If going into Network Coniguration, you will need to go back to Start Menu to load patch.
 	if (*(u32*)0x001CF85C != 0x000F8D29)
 		return -1;
-
+	
 	if (_InitializeAllCodes == -1)
 	{
 		InitSettings = *(u8*)0x000fffff;
