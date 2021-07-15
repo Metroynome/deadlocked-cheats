@@ -2,39 +2,40 @@
 Patch.bin subroutine.
  - Starts at 01E00000
  - On/Off bytes at 000fffe0
-    - 000fffe0: Infinite Health/Moonjump
-	- 000fffe1: Mask Username
-	- 000fffe2: Hacked Keyboard
-	- 000fffe3: Free Cam
-	- 000fffe4: sp-music-to-mp
-	- 000fffe5: Follow Aimer
-	- 000fffe6: Force G^
-	- 000fffe7: Host Options
-	- 000fffe8: Vehicle Select
+    - Offset + 0x00: Infinite Health/Moonjump
+	- Offset + 0x01: Mask Username
+	- Offset + 0x02: Hacked Keyboard
+	- Offset + 0x03: Free Cam
+	- Offset + 0x04: sp-music-to-mp
+	- Offset + 0x05: Follow Aimer
+	- Offset + 0x06: Force G^
+	- Offset + 0x07: Host Options
+	- Offset + 0x08: Vehicle Select
 	
 	The following are not added in CheatDevice.txt:
-	- 000fffe9: Form Party and Unkick
-	- 000fffea: Max Typing Limit
-	- 000fffeb: More Team Colors
-	- 000fffec: Infinite Chargeboot
-	- 000fffed: Render All
-	- 000fffee: Rapid Fire Weapons
-	- 000fffef: Walk Through Walls
-	- 000ffff0: Rapid Fire Vehicles
-	- 000ffff1: Lots of Deaths
-	- 000ffff2: No Respawn Timer
-	- 000ffff3: Walk Fast
-	- 000ffff4: AirWalk
-	- 000ffff5: Flying Vehicles
-	- 000ffff6: Surfing Vehicles
-	- 000ffff7: Fast Vehicles
-	- 000ffff8: Respawn Anywhere
-	- 000ffff9: vSync
-	- 000fffea: All Alpha/Omega Mods
-	- 000fffeb: All Skill Points
-	- 000ffffc: Hacked Start Menu
-	- 000ffffd: Cheats Menu - Weapons
-	- 000ffffe: Lock On Fusion
+	- Offset + 0x09: Form Party and Unkick
+	- Offset + 0x0a: Max Typing Limit
+	- Offset + 0x0b: More Team Colors
+	- Offset + 0x0c: Infinite Chargeboot
+	- Offset + 0x0d: Render All
+	- Offset + 0x0e: Rapid Fire Weapons
+	- Offset + 0x0f: Walk Through Walls
+	- Offset + 0x10: Rapid Fire Vehicles
+	- Offset + 0x11: Lots of Deaths
+	- Offset + 0x12: No Respawn Timer
+	- Offset + 0x13: Walk Fast
+	- Offset + 0x14: AirWalk
+	- Offset + 0x15: Flying Vehicles
+	- Offset + 0x16: Surfing Vehicles
+	- Offset + 0x17: Fast Vehicles
+	- Offset + 0x18: Respawn Anywhere
+	- Offset + 0x19: vSync
+	- Offset + 0x1a: All Alpha/Omega Mods
+	- Offset + 0x1b: All Skill Points
+	- Offset + 0x1c: Hacked Start Menu
+	- Offset + 0x1d: Cheats Menu - Weapons
+	- Offset + 0x1e: Lock On Fusion
+	- Offset + 0x1f: Cheats Menu - End Game
 */
 
 #include <tamtypes.h>
@@ -198,7 +199,7 @@ char RenderAllData[0x280];
 int CheckInitCodes(char Active);
 
 /*========================================================*\
-========                       000fffe0
+========                       Offset + 0x00
 ================      Infinite Health/Moonjump Logic
 ========
 \*========================================================*/
@@ -236,7 +237,7 @@ void InfiniteHealthMoonjump(char Active)
 }
 
 /*========================================================*\
-========                   000fffe1
+========                   Offset + 0x01
 ================      Mask Username Logic
 ========
 \*========================================================*/
@@ -269,7 +270,7 @@ void MaskUsername(char Active)
 }
 
 /*========================================================*\
-========                     000fffe2
+========                     Offset + 0x02
 ================      Hacked Keyboard Logic
 ========
 \*========================================================*/
@@ -314,7 +315,7 @@ void HackedKeyboard(char Active)
 }
 
 /*========================================================*\
-========                 000fffe3
+========                 Offset + 0x03
 ================      Free Cam Logic
 ========
 \*========================================================*/
@@ -584,7 +585,7 @@ void FreeCam(char Active)
 }
 
 /*========================================================*\
-========                    000fffe4
+========                    Offset + 0x04
 ================      sp-music-to-mp Logic
 ========
 \*========================================================*/
@@ -670,7 +671,7 @@ void CampaignMusic(char Active)
 }
 
 /*========================================================*\
-========                   000fffe5
+========                   Offset + 0x05
 ================      Follow Aimer Logic
 ========
 \*========================================================*/
@@ -700,7 +701,7 @@ void FollowAimer(char Active)
 }
 
 /*========================================================*\
-========                 000fffe6
+========                 Offset + 0x06
 ================      Force G^ Logic
 ========
 \*========================================================*/
@@ -735,7 +736,7 @@ void ForceGUp(char Active)
 }
 
 /*========================================================*\
-========                  000fffe7
+========                  Offset + 0x07
 ================      Host Options Logic
 ========
 \*========================================================*/
@@ -790,7 +791,7 @@ void HostOptions(char Active)
 }
 
 /*========================================================*\
-========                 000fffe8
+========                 Offset + 0x08
 ================      Vehicle Select
 ========
 \*========================================================*/
@@ -877,7 +878,7 @@ void VehicleSelect(char Active)
 }
 
 /*========================================================*\
-========                    000fffe9
+========                    Offset + 0x09
 ================      Form Party and Unkick
 ========
 \*========================================================*/
@@ -908,7 +909,7 @@ void FormPartyUnkick(char Active)
 }
 
 /*========================================================*\
-========                 000fffea
+========                 Offset + 0x0a
 ================      Max Typing Limit
 ========
 \*========================================================*/
@@ -926,7 +927,7 @@ void MaxTypingLimit(char Active)
 }
 
 /*========================================================*\
-========                  000fffeb
+========                  Offset + 0x0b
 ================      More Team Colors
 ========
 \*========================================================*/
@@ -944,7 +945,7 @@ void MoreTeamColors(char Active)
 }
 
 /*========================================================*\
-========                   000fffec
+========                   Offset + 0x0c
 ================      Infinite Chargeboot
 ========
 \*========================================================*/
@@ -964,7 +965,7 @@ void InfiniteChargeboot(char Active)
 }
 
 /*========================================================*\
-========               000fffed
+========               Offset + 0x0d
 ================      Render All
 ========
 \*========================================================*/
@@ -1010,7 +1011,7 @@ void RenderAll(char Active)
 }
 
 /*========================================================*\
-========                   000fffee
+========                   Offset + 0x0e
 ================      Rapid Fire Weapons
 ========
 \*========================================================*/
@@ -1028,7 +1029,7 @@ void RapidFireWeapons(char Active)
 }
 
 /*========================================================*\
-========                  000fffef
+========                  Offset + 0x0f
 ================      Walk Through Walls
 ========
 \*========================================================*/
@@ -1052,7 +1053,7 @@ void WalkThroughWalls(char Active)
 }
 
 /*========================================================*\
-========                   000ffff0
+========                   Offset + 0x10
 ================      Rapid Fire Vehicles
 ========
 \*========================================================*/
@@ -1088,11 +1089,10 @@ void RapidFireVehicles(char Active)
 }
 
 /*========================================================*\
-========                 000ffff1
+========                 Offset + 0x11
 ================      Lots of Deaths
 ========
 \*========================================================*/
-
 void LotsOfDeaths(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1107,11 +1107,10 @@ void LotsOfDeaths(char Active)
 }
 
 /*========================================================*\
-========                  000ffff2
+========                  Offset + 0x12
 ================      No Respawn Timer
 ========
 \*========================================================*/
-
 void NoRespawnTimer(char Active)
 {
 	Player * player = (Player*)0x00347aa0;
@@ -1123,11 +1122,10 @@ void NoRespawnTimer(char Active)
 }
 
 /*========================================================*\
-========              000ffff3
+========              Offset + 0x13
 ================      Walk Fast
 ========
 \*========================================================*/
-
 void WalkFast(char Active)
 {
 	if (gameIsIn())
@@ -1146,11 +1144,10 @@ void WalkFast(char Active)
 }
 
 /*========================================================*\
-========              000ffff4
+========              Offset + 0x14
 ================      AirWalk
 ========
 \*========================================================*/
-
 void AirWalk(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1176,11 +1173,10 @@ void AirWalk(char Active)
 }
 
 /*========================================================*\
-========                 000ffff5
+========                 Offset + 0x15
 ================      Flying Vehicles
 ========
 \*========================================================*/
-
 void FlyingVehicles(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1204,11 +1200,10 @@ void FlyingVehicles(char Active)
 }
 
 /*========================================================*\
-========                  000ffff6
+========                  Offset + 0x16
 ================      Surfing Vehicles
 ========
 \*========================================================*/
-
 void SurfingVehicles(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1233,11 +1228,10 @@ void SurfingVehicles(char Active)
 }
 
 /*========================================================*\
-========                000ffff7
+========                Offset + 0x17
 ================      Fast Vehicles
 ========
 \*========================================================*/
-
 void FastVehicles(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1263,11 +1257,10 @@ void FastVehicles(char Active)
 }
 
 /*========================================================*\
-========                  000ffff8
+========                 Offset + 0x18
 ================      Respawn Anywhere
 ========
 \*========================================================*/
-
 void RespawnAnywhere(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1282,11 +1275,10 @@ void RespawnAnywhere(char Active)
 }
 
 /*========================================================*\
-========              000ffff9
+========              Offset + 0x19
 ================      vSync
 ========
 \*========================================================*/
-
 void vSync(char Active)
 {
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
@@ -1301,11 +1293,10 @@ void vSync(char Active)
 }
 
 /*========================================================*\
-========                      000ffffa
+========                   Offset + 0x1a
 ================      All Omega and Alpha Mods
 ========
 \*========================================================*/
-
 void OmegaAlphaMods(char Active)
 {
 	if (gameIsIn() && CheckInitCodes(Active))
@@ -1321,11 +1312,10 @@ void OmegaAlphaMods(char Active)
 }
 
 /*========================================================*\
-========                  000ffffb
+========               Offset + 0x1b
 ================      All Skill Points
 ========
 \*========================================================*/
-
 void SkillPoints(char Active)
 {
 	if (gameIsIn() && (*(u32*)0x00171BA8 == 0) && CheckInitCodes(Active))
@@ -1339,11 +1329,10 @@ void SkillPoints(char Active)
 }
 
 /*========================================================*\
-========                    000ffffd
+========                  Offset + 0x1d
 ================      Cheats Menu - Weapons
 ========
 \*========================================================*/
-
 void CheatsMenuWeapons(char Active)
 {
 	if (!CheckInitCodes(Active))
@@ -1401,7 +1390,28 @@ void CheatsMenuWeapons(char Active)
 }
 
 /*========================================================*\
-========                  000ffffc
+========                  Offset + 0x1f
+================      Cheats Menu - END GAME
+========
+\*========================================================*/
+ void CheatsMenuEndGame(char Active)
+ {
+	if (!CheckInitCodes(Active))
+		return -1;
+
+	// No need to check if in game because it does that in HackedStartMenu()
+	*(u8*)0x00393a88 = 0x20;
+	*(u16*)0x00393a94 = 0x014e;
+	switch(*(u8*)0x0021de50)
+	{
+		case 1:
+			gameEnd(4);
+			break;
+	}
+ }
+
+/*========================================================*\
+========                Offset + 0x1c
 ================      Hacked Start Menu
 ========
 \*========================================================*/
@@ -1421,9 +1431,10 @@ void HackedStartMenu(char Active)
 			*(u32*)0x00310544 = 0x50414557;
 			*(u32*)0x00310548 = 0x00534e4f;
 			// Load this if Hacked Start Menu is On
-			OmegaAlphaMods(*(u8*)(CodeArea + 0x1a)); // Not updated in CheatDevice.txt
-			SkillPoints(*(u8*)(CodeArea + 0x1b)); // Not updated in CheatDevice.txt
-			CheatsMenuWeapons(*(u8*)(CodeArea + 0x1d)); // Not updated in CheatDevice.txt
+			OmegaAlphaMods(*(u8*)(CodeArea + 0x1a));
+			SkillPoints(*(u8*)(CodeArea + 0x1b));
+			CheatsMenuWeapons(*(u8*)(CodeArea + 0x1d));
+			CheatsMenuEndGame(*(u8*)(CodeArea + 0x1f));
 		}
 		else if (!CheckInitCodes(Active) && *(u16*)0x00560338 != 0x19A0)
 		{
@@ -1436,11 +1447,12 @@ void HackedStartMenu(char Active)
 	else if (*(u8*)0x0021de40 != 0)
 	{
 		*(u8*)0x0021de40 = 0;
+		*(u8*)0x0021de50 = 0;
 	}
 }
 
 /*========================================================*\
-========                  000ffffe
+========              Offset + 0x1e
 ================      Lock On Fusion
 ========
 \*========================================================*/

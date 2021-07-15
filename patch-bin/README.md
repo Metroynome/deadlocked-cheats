@@ -1,38 +1,47 @@
 # Patch.bin subroutine.
-	### if 0x000fffff = 0x01: Codes Off when ran
-	### if 0x000fffff = 0x00: Codes On when ran
+## Patche.bin Settings:
+if 0x000FFFFF value equals following:
+ - 0x00 = all codes on, no secondary
+ - 0x01 = all codes off, no secondary
+ - 0x02 = all codes on, use secondary codes (Automatically off)
+ - 0x03 = all codes off, use secondary codes (Automatically off)
+
+Turn all Codes On/Off: L1 + L2 + R2 + Right + Down
+Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 
  - Starts at 01E00000
- - On/Off bytes at 000fffe0
-    - 000fffe0: Infinite Health/Moonjump
-	- 000fffe1: Mask Username
-	- 000fffe2: Hacked Keyboard
-	- 000fffe3: Free Cam
-	- 000fffe4: sp-music-to-mp
-	- 000fffe5: Follow Aimer
-	- 000fffe6: Force G^
-	- 000fffe7: Host Options
-	- 000fffe8: Vehicle Select
+ - Offset variable: int CodesArea
+    - Offset + 0x00: Infinite Health/Moonjump
+	- Offset + 0x01: Mask Username
+	- Offset + 0x02: Hacked Keyboard
+	- Offset + 0x03: Free Cam
+	- Offset + 0x04: sp-music-to-mp
+	- Offset + 0x05: Follow Aimer
+	- Offset + 0x06: Force G^
+	- Offset + 0x07: Host Options
+	- Offset + 0x08: Vehicle Select
 	
 	The following are not added in CheatDevice.txt:
-	- 000fffe9: Form Party and Unkick
-	- 000fffea: Max Typing Limit
-	- 000fffeb: More Team Colors
-	- 000fffec: Infinite Chargeboot
-	- 000fffed: Render All
-	- 000fffee: Rapid Fire Weapons
-	- 000fffef: Walk Through Walls
-	- 000ffff0: Rapid Fire Vehicles
-	- 000ffff1: Lots of Deaths
-	- 000ffff2: No Respawn Timer
-	- 000ffff3: Walk Fast
-	- 000ffff4: AirWalk
-	- 000ffff5: Flying Vehicles
-	- 000ffff6: Surfing Vehicles
-	- 000ffff7: Fast Vehicles
-	- 000ffff8: Respawn Anywhere
-	- 000ffff9: vSync
-	- 000fffea: All Alpha/Omega Mods
-	- 000fffeb: All Skill Points
-	- 000ffffc: Hacked Start Menu
-	- 000ffffd: Cheats Menu - Weapons
+	- Offset + 0x09: Form Party and Unkick
+	- Offset + 0x0a: Max Typing Limit
+	- Offset + 0x0b: More Team Colors
+	- Offset + 0x0c: Infinite Chargeboot
+	- Offset + 0x0d: Render All
+	- Offset + 0x0e: Rapid Fire Weapons
+	- Offset + 0x0f: Walk Through Walls
+	- Offset + 0x10: Rapid Fire Vehicles
+	- Offset + 0x11: Lots of Deaths
+	- Offset + 0x12: No Respawn Timer
+	- Offset + 0x13: Walk Fast
+	- Offset + 0x14: AirWalk
+	- Offset + 0x15: Flying Vehicles
+	- Offset + 0x16: Surfing Vehicles
+	- Offset + 0x17: Fast Vehicles
+	- Offset + 0x18: Respawn Anywhere
+	- Offset + 0x19: vSync
+	- Offset + 0x1a: All Alpha/Omega Mods
+	- Offset + 0x1b: All Skill Points
+	- Offset + 0x1c: Hacked Start Menu
+	- Offset + 0x1d: Cheats Menu - Weapons
+	- Offset + 0x1e: Lock On Fusion
+	- Offset + 0x1f: Cheats Menu - End Game
