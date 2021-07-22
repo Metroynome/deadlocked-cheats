@@ -36,6 +36,7 @@ Patch.bin subroutine.
 	- Offset + 0x1d: Cheats Menu - Weapons
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - End Game
+	- Offset + 0x20: Cheats Menu - Fusion Aimer
 */
 
 #include <tamtypes.h>
@@ -567,7 +568,7 @@ void FreeCam(char Active)
 	}
 
 	// Force Hold Wrench
-	player->ChangeWeaponHeldId = 1;
+	player->ChangeWeaponHeldId = 0;
 
 	// Fix Void fall bug.  This only needs to load if fallen in the void.
 	// Running any other time will cause the player to keep getting deaths if not in void.
@@ -1406,9 +1407,47 @@ void CheatsMenuWeapons(char Active)
 	{
 		case 1:
 			gameEnd(4);
+			*(u8*)0x0021de50 = 0;
 			break;
 	}
  }
+
+ /*========================================================*\
+========                  Offset + 0x20
+================      Cheats Menu - Fusion Aimer
+========
+\*=========================================================*/
+void CheatsMenuFusionAimer(char Active)
+{
+	if (!CheckInitCodes(Active))
+		return -1;
+	
+	// Use this is you want the pointer to be where the function is at
+	//*(u32*)0x00393668 = (u32)(&testing);
+
+	int CheatsAddress = 0x0021DE30;
+	int MyCheatAddress = 0x01BF0000;
+	int CheatID = MyCheatAddress + 0x0A;
+	// All cheats are loaded from here: 0x0021DE30
+	// the index of the cheat is then added to the above address.
+	*(u32*)0x00393650 = CheatID;
+	if (*(u32*)(CheatID + CheatsAddress) == 0x01 && *(u8*)0x0034A12C == 5)
+	{
+		*(u32*)0x004B3840 = 0x00000000;
+		*(u32*)0x004B3848 = 0x00000000;
+		*(u32*)0x0022DFD0 = 0x3F4CCCCD;
+		*(u32*)0x0022DFD4 = 0x40FFFFFF;
+		*(u32*)0x0022DFD8 = 0x00000003;
+		*(u32*)0x0022DFDC = 0x00000000;
+		*(u32*)0x0022DFF8 = 0x42200000;
+		*(u32*)0x0022DFFC = 0x42200000;
+	}
+	else
+	{
+		*(u32*)0x004B3840 = 0x10600059;
+		*(u32*)0x004B3848 = 0x18600050;
+	}
+}
 
 /*========================================================*\
 ========                Offset + 0x1c
@@ -1435,6 +1474,7 @@ void HackedStartMenu(char Active)
 			SkillPoints(*(u8*)(CodeArea + 0x1b));
 			CheatsMenuWeapons(*(u8*)(CodeArea + 0x1d));
 			CheatsMenuEndGame(*(u8*)(CodeArea + 0x1f));
+			CheatsMenuFusionAimer(*(u8*)(CodeArea + 0x20));
 		}
 		else if (!CheckInitCodes(Active) && *(u16*)0x00560338 != 0x19A0)
 		{
@@ -1444,7 +1484,7 @@ void HackedStartMenu(char Active)
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
-	else if (*(u8*)0x0021de40 != 0)
+	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de50 != 0)
 	{
 		*(u8*)0x0021de40 = 0;
 		*(u8*)0x0021de50 = 0;

@@ -45,3 +45,4 @@ Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 	- Offset + 0x1d: Cheats Menu - Weapons
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - End Game
+	- Offset + 0x20: Cheats Menu - Fusion Aimer
