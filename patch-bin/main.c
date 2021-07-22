@@ -593,7 +593,7 @@ void FreeCam(char Active)
 void CampaignMusic(char Active)
 {
 	// check to see if multiplayer tracks are loaded
-	if ((*(u32*)0x001CF85C != 0x000F8D29) || !CheckInitCodes(Active))
+	if ((*(u32*)0x001CF85C != 0x000F8D29))
 	{
 		_CampaignMusic_Init = 0;
 		return -1;
@@ -639,6 +639,29 @@ void CampaignMusic(char Active)
 	// If in game
 	if(gameIsIn())
 	{
+		// if Cheats are Active
+		if (CheckInitCodes(Active))
+		{
+			// if TRACK_MAX_RANGE doesn't equal TotalTracks
+			// This will only happen in game if all codes are turned off and back on.
+			if (*(u32*)0x0021EC0C != TotalTracks)
+			{
+				*(u32*)0x0021EC0C = TotalTracks;
+			}
+		}
+		else if (!CheckInitCodes(Active))
+		{
+			// Reset number of tracks to play to original 10.
+			if (*(u32*)0x0021EC0C != 0x0a)
+			{
+				*(u32*)0x0021EC0C = 0x0a;
+			}
+			// Reset music volume if not in game.
+			if(OriginalMusicVolume != 0){
+				*(u32*)0x00171D44 = OriginalMusicVolume;
+				OriginalMusicVolume = 0;
+			}
+		}
 		// if volume doesn't equal zero, save it.
 		if(OriginalMusicVolume == 0 && *(u32*)0x00171D44 != 0)
 		{
@@ -1400,7 +1423,6 @@ void CheatsMenuWeapons(char Active)
 	if (!CheckInitCodes(Active))
 		return -1;
 
-	// No need to check if in game because it does that in HackedStartMenu()
 	*(u8*)0x00393a88 = 0x20;
 	*(u16*)0x00393a94 = 0x014e;
 	switch(*(u8*)0x0021de50)
@@ -1430,7 +1452,7 @@ void CheatsMenuFusionAimer(char Active)
 	int CheatID = MyCheatAddress + 0x0A;
 	// All cheats are loaded from here: 0x0021DE30
 	// the index of the cheat is then added to the above address.
-	*(u32*)0x00393650 = CheatID;
+	*(u32*)0x00393650 = (u32)CheatID;
 	if (*(u32*)(CheatID + CheatsAddress) == 0x01 && *(u8*)0x0034A12C == 5)
 	{
 		*(u32*)0x004B3840 = 0x00000000;
@@ -1474,7 +1496,7 @@ void HackedStartMenu(char Active)
 			SkillPoints(*(u8*)(CodeArea + 0x1b));
 			CheatsMenuWeapons(*(u8*)(CodeArea + 0x1d));
 			CheatsMenuEndGame(*(u8*)(CodeArea + 0x1f));
-			CheatsMenuFusionAimer(*(u8*)(CodeArea + 0x20));
+			//CheatsMenuFusionAimer(*(u8*)(CodeArea + 0x20));
 		}
 		else if (!CheckInitCodes(Active) && *(u16*)0x00560338 != 0x19A0)
 		{
@@ -1484,10 +1506,9 @@ void HackedStartMenu(char Active)
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
-	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de50 != 0)
+	else if (*(u8*)0x0021de40 != 0)
 	{
 		*(u8*)0x0021de40 = 0;
-		*(u8*)0x0021de50 = 0;
 	}
 }
 
