@@ -35,7 +35,7 @@ Patch.bin subroutine.
 	- Offset + 0x1c: Hacked Start Menu
 	- Offset + 0x1d: Cheats Menu - Weapons
 	- Offset + 0x1e: Lock On Fusion
-	- Offset + 0x1f: Cheats Menu - End Game
+	- Offset + 0x1f: Cheats Menu - NEW GAME
 	- Offset + 0x20: Cheats Menu - Fusion Aimer
 */
 
@@ -628,7 +628,7 @@ void CampaignMusic(char Active)
 		Luckly the offset for the area before it's finilized area is the same for each map.
 	*/
 	// If not in main lobby, game lobby, ect.
-	if(MusicDataPointer != 0x01430700){
+	if(MusicDataPointer != 0x01430700 && CheckInitCodes(Active)){
 		// if Last Track doesn't equal TotalTracks
 		if(*(u32*)0x0021EC0C != TotalTracks){
 			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
