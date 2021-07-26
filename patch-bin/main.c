@@ -568,7 +568,7 @@ void FreeCam(char Active)
 	}
 
 	// Force Hold Wrench
-	player->ChangeWeaponHeldId = 0;
+	player->ChangeWeaponHeldId = 1;
 
 	// Fix Void fall bug.  This only needs to load if fallen in the void.
 	// Running any other time will cause the player to keep getting deaths if not in void.
