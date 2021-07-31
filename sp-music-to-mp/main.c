@@ -144,6 +144,11 @@ int main(void)
 		int TrackDuration = *(u32*)0x002069A4;
 		if (*(u32*)0x002069A0 <= 0)
 		{
+			/*
+				This part: (CurrentTrack != -1 && *(u32*)0x020698C != 0)
+				fixes a bug when switching tracks, and running the command
+				to set your own track or stop a track.
+			*/
 			if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (CurrentTrack != -1 && *(u32*)0x020698C != 0) && (TrackDuration <= 0x3000))
 			{
 				// This techinally cues track 1 (the shortest track) with no sound to play.
