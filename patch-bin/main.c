@@ -610,7 +610,6 @@ void CampaignMusic(char Active)
 	int MusicDataPointer = *(u32*)0x0021DA24; // This is more than just music data pointer, but it's what Im' using it for.
 	int CurrentTrack = *(u16*)0x00206990;
 	int NextAddress = 0;
-	int TRACK_RANGE_MAX = *(u32*)0x0021EC0C;
 	for(Map = 0; Map < AddedTracks; Map++)
 	{
 		*(u32*)(0x001CF940 + NextAddress) = Tracks[Map][0];
@@ -631,7 +630,7 @@ void CampaignMusic(char Active)
 	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700 && CheckInitCodes(Active)){
 		// if Last Track doesn't equal TotalTracks
-		if(TRACK_RANGE_MAX != TotalTracks){
+		if(*(u32*)0x0021EC0C != TotalTracks){
 			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
 			*(u16*)MusicFunctionData = AllTracks;
 		}
@@ -645,17 +644,17 @@ void CampaignMusic(char Active)
 		{
 			// if TRACK_MAX_RANGE doesn't equal TotalTracks
 			// This will only happen in game if all codes are turned off and back on.
-			if (TRACK_RANGE_MAX != TotalTracks)
+			if (*(u32*)0x0021EC0C != TotalTracks)
 			{
-				TRACK_RANGE_MAX = TotalTracks;
+				*(u32*)0x0021EC0C = TotalTracks;
 			}
 		}
 		else if (!CheckInitCodes(Active))
 		{
 			// Reset number of tracks to play to original 10.
-			if (TRACK_RANGE_MAX != 0x0a)
+			if (*(u32*)0x0021EC0C != 0x0a)
 			{
-				TRACK_RANGE_MAX = 0x0a;
+				*(u32*)0x0021EC0C = 0x0a;
 			}
 		}
 		int TrackDuration = *(u32*)0x002069A4;
