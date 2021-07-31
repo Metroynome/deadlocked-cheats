@@ -142,11 +142,14 @@ int main(void)
 	if(gameIsIn())
 	{
 		int TrackDuration = *(u32*)0x002069A4;
-		if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (TrackDuration <= 0x3000))
+		if (*(u32*)0x002069A0 <= 0)
 		{
-			// This techinally cues track 1 (the shortest track) with no sound to play.
-			// Doing this lets the current playing track to fade out.
-			musicTransitionTrack(0,0,0,0);
+			if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (CurrentTrack != -1 && *(u32*)0x020698C != 0) && (TrackDuration <= 0x3000))
+			{
+				// This techinally cues track 1 (the shortest track) with no sound to play.
+				// Doing this lets the current playing track to fade out.
+				musicTransitionTrack(0,0,0,0);
+			}
 		}
 	}
 	return 1;
