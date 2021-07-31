@@ -92,6 +92,7 @@ int Tracks[][2] = {
 
 int Active = 0;
 int Map;
+int PLAYING_TRACK = 0;
 
 int main(void)
 {
@@ -137,9 +138,24 @@ int main(void)
 			*(u16*)MusicFunctionData = AllTracks;
 		}
 	}
+	/*
+	Exmaple for choosing track
 
+	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
+	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
+	PadButtonStatus * pad = playerGetPad(player);
+	if ((pad->btns & (PAD_R3 | PAD_SELECT)) == 0 && PLAYING_TRACK == 0)
+	{
+		PLAYING_TRACK = 1;
+		musicPlayTrack(MUSIC_TRACK_GAME_LOBBY, 1);
+	}
+	else if (!(pad->btns & (PAD_R3 | PAD_SELECT)) == 0)
+	{
+		PLAYING_TRACK = 0;
+	}
+	*/
 	// If in game
-	if(gameIsIn())
+	if (gameIsIn())
 	{
 		int TrackDuration = *(u32*)0x002069A4;
 		if (*(u32*)0x002069A0 <= 0)
