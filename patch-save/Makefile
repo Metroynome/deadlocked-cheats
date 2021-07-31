@@ -3,8 +3,8 @@ EE_BIN_DIR = bin/
 
 EE_ELF = $(EE_BIN_DIR)patch-save.elf
 EE_BIN = $(EE_BIN_DIR)patch-save.bin
-EE_OBJS = main.o functions.o
-EE_LIBS = -ldl
+EE_OBJS = main.o rpc.o
+EE_LIBS = -ldl -lkernel
 ADDRESS = 01E00000
 
 EE_OBJS := $(EE_OBJS:%=$(EE_OBJS_DIR)%)
