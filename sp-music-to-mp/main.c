@@ -134,6 +134,10 @@ int main(void)
 	if(MusicDataPointer != 0x01430700){
 		// if Last Track doesn't equal TotalTracks
 		if(*(u32*)0x0021EC0C != TotalTracks){
+			// Commented because not needed but for documumentation.
+			// Changes TRACK_RANGE_MIN.
+			// int TRACK_RANGE_MIN = MusicDataPointer + 0x28A0D0;
+			// *(u16*)TRACK_RANGE_MIN = 0;
 			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
 			*(u16*)MusicFunctionData = AllTracks;
 		}
