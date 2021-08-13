@@ -28,12 +28,12 @@ int Tracks[][2] = {
 	{0x574c8, 0x57ab7}, // 
 	// Insomniac Museum
 	//{0x3c8af, 0x3c907}, // --Start
-	{0x3c95f, 0x3cf2f}, // 
+	{0x3c95f, 0x3cf2f}, // aka 0x1A
 	//{0x3d573, 0x3d5c2}, // --Start
-	{0x3d611, 0x3dbc2}, // 
+	//{0x3d611, 0x3dbc2}, // Online Lobby
 	// Starship Phoenix
 	//{0x26a2, 0x271d}, // --Start
-	{0x2798, 0x2d53}, // 
+	{0x2798, 0x2d53}, // Starship Phoenix
 	//{0x330e, 0x3366}, // Training Room Warm Up --Start
 	{0x33be, 0x398e}, // Training Room Warm Up
 	//{0x3f5e, 0x3fbc}, // Training Room --Start
@@ -44,16 +44,16 @@ int Tracks[][2] = {
 	//{0xb892, 0xb8ef}, // --Start
 	{0xb94c, 0xbf6d}, // 
 	//{0xc58e, 0xc5e0}, // --Start
-	{0xc632, 0xcbb0}, // 
+	//{0xc632, 0xcbb0}, // 
 	// Annihilation Nation
 	//{0x13792, 0x137c5}, // --Start
-	{0x137f8, 0x13b53}, // 
+	{0x137f8, 0x13b53}, // Online Lobby Theme
 	//{0x13eae, 0x13f05}, // --Start
-	{0x13f5c, 0x1453f}, // 
+	{0x13f5c, 0x1453f}, // ------Duplicate?
 	//{0x14b22, 0x14b76}, // --Start
-	{0x14bca, 0x1515b}, // 
+	//{0x14bca, 0x1515b}, // --------Duplicate
 	//{0x15794, 0x15d79}, // --Start
-	{0x1635e, 0x16376}, // 
+	//{0x1635e, 0x16376}, // Growl
 	// Aquatos
 	//{0x1ce6d, 0x1cec5}, // --Start
 	{0x1cf1d, 0x1d570}, // 
@@ -63,14 +63,14 @@ int Tracks[][2] = {
 	// Daxx
 	{0xea6c, 0xeac6}, // --Start
 	{0xeb20, 0xf0b8}, // 
-	{0x1036c, 0x103ba}, // --Start
-	{0x10408, 0x109cd}, // 
+	//{0x1036c, 0x103ba}, // --Start
+	//{0x10408, 0x109cd}, // --------Duplicate
 	// Obani Gemini
 	//{0x24a35, 0x24aa6}, // --Start
 	{0x24b17, 0x250ce}, // 
 	// Blackwater City
 	//{0x26eeb, 0x26f3f}, // --Start
-	{0x26f93, 0x27524}, // 
+	//{0x26f93, 0x27524}, // --------Duplicate
 	// Holostar Studios
 	{0x28e18, 0x293e8}, // 
 	// Obani Draco
@@ -81,9 +81,9 @@ int Tracks[][2] = {
 	// Zeldrin Starport
 	{0x21027, 0x21604}, // 
 	// Metropolis
-	{0x2c670, 0x2cd72}, // 
+	//{0x2c670, 0x2cd72}, // --------Duplicate
 	// Crash Site
-	{0x2d651, 0x2dc16}, // 
+	//{0x2d651, 0x2dc16}, // --------Duplicate
 	// Aradia
 	{0x2e301, 0x2e8f0}, // 
 	// Quark's Hideout
@@ -98,6 +98,7 @@ int Tracks[][2] = {
 int Active = 0;
 int Map;
 int PLAYING_TRACK = 0;
+int StartSound = 0;
 //int TRACK_RANGE_MAX = 0;
 
 int main(void)
@@ -135,12 +136,35 @@ int main(void)
 
 	//Exmaple for choosing track
 	PadButtonStatus * pad = (PadButtonStatus*)0x00225980;
-	if ((pad->btns & (PAD_R3 | PAD_SELECT)) == 0 && PLAYING_TRACK == 0)
+	// L3: Previous Sound
+	if ((pad->btns & PAD_L3) == 0 && PLAYING_TRACK == 0)
+	{
+		// Setting PLAYING_TRACK to 1 will make it so the current playing sound will play once.
+		PLAYING_TRACK = 1;
+		StartSound -= 0x1; // Subtract 1 from StartSound
+		musicPlayTrack(StartSound * 2, 1); // Play Sound
+		if (*(u16*)0x0022582E == 0x3) *(u16*)0x0022582E = 0x5;
+		//printf("Sound Byte: 0x%x\n", StartSound); // print ID of sound played.
+	}
+	// R3: Next Sound
+	if ((pad->btns & PAD_R3) == 0 && PLAYING_TRACK == 0)
 	{
 		PLAYING_TRACK = 1;
-		musicPlayTrack(4, 1);
+		StartSound += 0x1;
+		musicPlayTrack(StartSound * 2, 1);
+		if (*(u16*)0x0022582E == 0x3) *(u16*)0x0022582E = 0x5;
+		//printf("Sound Byte: 0x%x\n", StartSound);
 	}
-	else if (!(pad->btns & (PAD_R3 | PAD_SELECT)) == 0)
+	// Select: Replay Sound
+	if ((pad->btns & PAD_SELECT) == 0 && PLAYING_TRACK == 0)
+	{
+		PLAYING_TRACK = 1;
+		musicPlayTrack(StartSound * 2, 1);
+		if (*(u16*)0x0022582E == 0x3) *(u16*)0x0022582E = 0x5;
+		//printf("Sound Byte: 0x%x\n", StartSound);
+	}
+	// If neither of the above are pressed, PLAYING_TRACK = 0.
+	if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0 && !(pad->btns & PAD_CIRCLE) == 0)
 	{
 		PLAYING_TRACK = 0;
 	}

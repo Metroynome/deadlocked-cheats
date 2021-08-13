@@ -70,7 +70,11 @@ void musicPlayTrack(int TrackNumber, int KeepPlaying)
     {
         // Online Lobby
         case 0x00574F88:
-            musicPlayTrackAddress = 0x005BFA18;
+            musicPlayTrackAddress = 0x005BF920; //0x005C0B70 //0x005BF920; // 0x005BFA18 <-- First;
+            break;
+        // Outpost X12
+        case 0x0043A288:
+            musicPlayTrackAddress = 0x00489BD8;
             break;
     }
     ((void (*)(u32, u32, u16))musicPlayTrackAddress)(TrackNumber, KeepPlaying, 0x400);
