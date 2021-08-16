@@ -83,41 +83,43 @@ int Tracks[][2] = {
 	{0x10408, 0x109cd}, // 0x36: Daxx - Docks Area Miniboss
 	// ----Missing: Daxx - Weapons Facility
 	
-	// Obani Gemini
+	// Zygan System
 	//{0x24a35, 0x24aa6}, // Zygan System - Obani Gemini --Start
 	{0x24b17, 0x250ce}, // 0x38: Zygan System - Obani Gemini
 	// ----Missing: Zygan System - Obani Gemini Pollux
 	
-	// Blackwater City
+	// Rilgar
 	//{0x26eeb, 0x26f3f}, // Rilgar - Blackwater City --Start
 	{0x26f93, 0x27524}, // 0x3A: Rilgar - Blackwater City
+
 	// Holostar Studios
 	// ----Missing: Holostar Studios - Secret Agent Clank
 	// ----Missing: Holostar Studios - Giant Clank
 	{0x28e18, 0x293e8}, // 0x3C: Holostar Studios - Studio 42
 	// ----Missing: Holostar Studios 2 - Studio 41
 	
-	// Zygan System
+	// Zygan System/Obani Draco
 	//{0x35ef9, 0x35f4c}, // Zygan System - Obani Draco --Start
 	{0x35f9f, 0x365b6}, // 0x3E: Zygan System - Obani Draco
 	//{0x36bcd, 0x36bf6}, // Zygan System - Courtney Gears --Start
 	{0x36c1f, 0x3714b}, // 0x40: Zygan System - Courtney Gears
 	
-	// Joraal Nebula
+	// Joraal Nebula/Zeldrin Starport
 	{0x21027, 0x21604}, // 0x42: Joraal Nebula - Zeldrin Starport
 	// ----Missing: Joraal Nebula - Leviathan
 	// ----Missing: Joraal Nebula - Auto-Destruct Sequence
 	
-	// Kerwan
+	// Kerwan/Metropolis
 	{0x2c670, 0x2cd72}, // Kerwan - Metropolis --------Duplicate
 	// ----Missing: Kerwan - Operation Urban Storm
+
 	// Crash Site
 	{0x2d651, 0x2dc16}, // 0x48: Zeldrin - Crash Site --------Duplicate
 	
 	// Aridia
 	// ----Missing: Aridia - X12 Outpost
 	
-	// Quark's Hideout
+	// Thran Asteroid/Quark's Hideout
 	{0x2e301, 0x2e8f0}, // 0x4A: Thran Asteroid - Qwark's Hideout
 	// ----Missing: Thran Asteroid - Underground Caverns
 	{0x31544, 0x31abd}, // 
