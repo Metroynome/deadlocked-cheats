@@ -26,10 +26,13 @@ int ActiveTriangle = 0; // Is Triangle Held
 int ToggleHUD = 0; // Is Select Held
 int ShowEnterFreeCam = 0; // Is Enter Free Cam Message showing
 int ShowControlsPopup = 0; // Is Controls Message Showing
+int ToggleRenderAll = 0; // Is Render All on or off?
 VECTOR CameraPosition,
 		targetPos,
 		cameraPos,
 		delta;
+char RenderAllData[0x280];
+
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -98,12 +101,14 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// L2 = Move Down
 	if ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0)
 	{
-		v[2] = (pCos * -MOVE_SPEED);
+		//v[2] = (pCos * -MOVE_SPEED);
+		v[2] -= MOVE_SPEED;
 	}
 	// R2 = Move Up
 	if ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0)
 	{
-		v[2] = (pCos * MOVE_SPEED);
+		//v[2] = (pCos * MOVE_SPEED);
+		v[2] += MOVE_SPEED;
 	}
 	// R3: Select target for lock rotation
 	if ((pad->btns & PAD_R3) == 0)
@@ -136,11 +141,11 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10000006;
 
 	// deactivate hud
-	hud->Healthbar = 0;
-	hud->Minimap = 0;
-	hud->Weapons = 0;
-	hud->Popup = 1;
-	hud->NormalScoreboard = 1;
+	hud->Flags.Healthbar = 0;
+	hud->Flags.Minimap = 0;
+	hud->Flags.Weapons = 0;
+	hud->Flags.Popup = 0;
+	hud->Flags.NormalScoreboard = 0;
 }
 
 void deactivate(Player * player, PlayerHUDFlags * hud)
@@ -151,12 +156,26 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	// Don't let Camera go past death barrier
 	*(u32*)0x005F40DC = 0x10400006;
 
+	// Reset Render Data/Function
+	if (*(u32*)0x004D7168 == 0x03e00008)
+	{
+		*(u32*)0x004C0760 = 0x0C135C40;
+		*(u32*)0x004C0878 = 0x0C135BD8;
+		*(u32*)0x004C09E0 = 0x0C135C40;
+		*(u32*)0x004C0A50 = 0x0C135C40;
+		*(u32*)0x004D7168 = 0x78A20000;
+		*(u32*)0x004D716C = 0x20A50010;
+		// If off, grab RenderAllData and set it to render data.
+		memcpy((u8*)0x00240A40, RenderAllData, 0x280);
+	}
+	RenderAllData[0x280] = 0;
+
 	// reactivate hud
-	hud->Healthbar = 1;
-	hud->Minimap = 1;
-	hud->Weapons = 1;
-	hud->Popup = 1;
-	hud->NormalScoreboard = 1;
+	hud->Flags.Healthbar = 1;
+	hud->Flags.Minimap = 1;
+	hud->Flags.Weapons = 1;
+	hud->Flags.Popup = 1;
+	hud->Flags.NormalScoreboard = 1;
 }
 
 int main(void)
@@ -180,7 +199,7 @@ int main(void)
 		if (!ShowEnterFreeCam && !Active)
 		{
 			ShowEnterFreeCam = 1;
-			uiShowHelpPopup(player->LocalPlayerIndex, "Press \x13 to enter Spectate mode.  Press \x12 to enter Free Cam", 6 * 30);
+			uiShowHelpPopup(player->LocalPlayerIndex, "Press \x13 to enter Spectate mode.  Press \x12 to enter Free Cam", 6);
 		}
 		// Handle Activation/Deactivation
 		if ((pad->btns & PAD_TRIANGLE) == 0 && ActiveTriangle == 0)
@@ -223,7 +242,7 @@ int main(void)
 	if (!ShowControlsPopup)
 	{
 		ShowControlsPopup = 1;
-		uiShowHelpPopup(player->LocalPlayerIndex, "Controls: Move: \x18 Speed: \x14 (Fast)/\x15 (Slow) Height: \x16 (Down)/\x17 (Up) Toggle HUD: \x1E", 7 * 30);
+		uiShowHelpPopup(player->LocalPlayerIndex, "Controls: Move: \x18 Speed: \x14 (Fast)/\x15 (Slow) Height: \x16 (Down)/\x17 (Up) Toggle HUD: \x1E", 7);
 	}
 
 	// If Start isn't open, let inputs go through
@@ -258,6 +277,46 @@ int main(void)
 		else if ((pad->btns & PAD_SELECT) != 0)
 		{
 			ToggleHUD = 0;
+		}
+		// Square: Toggle Render All
+		if ((pad->btns & PAD_SQUARE) == 0 && ToggleRenderAll == 0)
+		{
+			ToggleRenderAll = 1;
+			
+			// if render function has not been modified, then do so.
+			if (*(u32*)0x004D7168 != 0x03e00008)
+			{
+				// Copy Render Data and save it.
+				memcpy(RenderAllData, (u8*)0x00240A40, 0x280);
+
+				// Turn off render functions
+				*(u32*)0x004C0760 = 0x00000000;
+				*(u32*)0x004C0878 = 0x00000000;
+				*(u32*)0x004C09E0 = 0x00000000;
+				*(u32*)0x004C0A50 = 0x00000000;
+				*(u32*)0x004D7168 = 0x03e00008;
+				*(u32*)0x004D716C = 0x00000000;
+
+				// Set render data to -1.
+				memset((u8*)0x00240A40, 0xff, 0x280);
+			}
+			else
+			{
+				// If Off, turn functions back to normal.
+				*(u32*)0x004C0760 = 0x0C135C40;
+				*(u32*)0x004C0878 = 0x0C135BD8;
+				*(u32*)0x004C09E0 = 0x0C135C40;
+				*(u32*)0x004C0A50 = 0x0C135C40;
+				*(u32*)0x004D7168 = 0x78A20000;
+				*(u32*)0x004D716C = 0x20A50010;
+
+				// If off, grab RenderAllData and set it to render data.
+				memcpy((u8*)0x00240A40, RenderAllData, 0x280);
+			}
+		}
+		else if (!(pad->btns & PAD_SQUARE) == 0)
+		{
+			ToggleRenderAll = 0;
 		}
 		// Handle All Movement Inputs
 		MovementInputs(player, pad);
