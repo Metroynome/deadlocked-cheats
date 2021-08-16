@@ -125,7 +125,7 @@ int Tracks[][2] = {
 	{0x234fc, 0x239a8}, // Refinery Ambush
 	{0x23f02, 0x243b8}, // Chains of Villainy, Scoring with the Blarg
 	// The Valix Belt
-	{0x1e907, 0x1ee45}, // DreadZone Training Course
+	// {0x1e907, 0x1ee45}, // DreadZone Training Course
 	{0x1f4a3, 0x1f9b3}, // Lost and Found, Time Extension!
 	{0x1ffe9, 0x204d6}, // Space Ace
 	{0x20a4b, 0x20f12}, // Power Up!
@@ -836,6 +836,8 @@ void LoadVehicleSub()
 		"_GoToLoop:"
 		"addiu  $a0, $a0, 0x4;"
 		"bgez   $v1, _Loop;"
+
+		// Nop secondary save function
 		"lui    $t0, 0x0072;"
 		"ori    $t0, $t0, 0xD854;"
 		"sw     $zero, 0x0($t0);"
@@ -871,6 +873,9 @@ void VehicleSelect(char Active)
 	{
 		// set our new subroutine address
 		*Vehicles = 0x0c000000 | ((u32)(&LoadVehicleSub) >> 2);
+
+		// Noping of the Secondary_save function is done in the assembly function
+		// I do it because I beleive it caused problems when noping it this if statement.
 	}
 	// if Vehicles are turned off.
 	if (VehiclesStatus == 0x3 && *(u32*)Secondary_Save != 0xA0400000)
