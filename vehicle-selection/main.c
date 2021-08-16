@@ -60,6 +60,10 @@ int main(void)
 	if (gameIsIn() || *(u32*)0x003434B8 != 0x136)
 	{
 		OnCreateGame = 0;
+		if (gameIsIn())
+		{
+			SavedMap = -1;
+		}
 		return -1;
 	}
 
@@ -98,6 +102,7 @@ int main(void)
 	{
 		// Reset secondary save function to normal
 		*(u32*)Secondary_Save = 0xA0400000;
+
 		// Set Saved map to -1
 		SavedMap = -1;
 	}
