@@ -1,4 +1,3 @@
-#include <libdl/game.h>
 #include "music.h"
 
 // void internal_musicPlayTrack_inGame(u64, u64, u64);
