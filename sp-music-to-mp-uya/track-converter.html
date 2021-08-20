@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <title>UYA/DL Track Converter</title>
+        <script type="text/javascript">
+        function Convert(){
+            let Sector = document.getElementById("Sector");
+            if(Sector.value !== ""){
+                let Game = Sector.options[Sector.selectedIndex].parentNode;
+                let Multiplayer = (Game.id == "DL") ? 0xF8D29 : 0xABD1;
+                //let Campaign = parseInt(document.getElementById("Level").value, 16);
+                let Campaign = parseInt(document.getElementById("Sector").value, 16);
+                let old = document.getElementById("old").value;
+                let Offset = Campaign - Multiplayer;
+                if(old.match(/  ([0-9a-zA-Z]{4,5}) - ([0-9a-zA-Z]{4,5}): (.*)/g)){
+                    old = old.replace(/(  [0-9a-zA-Z]{4,5}) - ([0-9a-zA-Z]{4,5}): (.*)([\r\n]?)/g, (match, a, b, c) => {
+                        if(c.match("--Start")){
+                            let First = (parseInt(a, 16) + Offset).toString(16);
+                            let Second = (parseInt(b, 16) + Offset).toString(16);
+                            let Name = c;
+                            //return "  " + First + " - " + Second + ": " + Name + "\n";
+                            return "// {0x" + First + ", 0x" + Second + "}, // " + Name + "\n";
+                        }else{
+                            let First = (parseInt(a, 16) + Offset).toString(16);
+                            let Second = (parseInt(b, 16) + Offset).toString(16);
+                            let Name = c;
+                            //return "  " + First + " - " + Second + ": " + Name + "\n";
+                            return "{0x" + First + ", 0x" + Second + "}, // " + Name + "\n";
+                        };
+                    });
+                };
+                document.getElementById("new").value = old;
+            };
+        };
+        </script>
+    </head>
+    <body style="width: 100%;">
+        <div height="50%" width="100%">
+            <textarea id="old" style="margin: 0px; width: 1246px; height: 215px;" placeholder="
+            How to use:
+            1. Enter Track Sectors's you want converted to Mutliplayer
+            2. Select which map the tracks are from
+            3. Convert!
+
+            NOTE:
+            UYA tracks use a custom track sector offset.
+            This means you will have to convert the original Multiplayer tracks using the sector offset.
+            That is why there is a 'Multiplayer' option under UYA.
+            "></textarea>
+        </div>
+        <div style="display: flex; width: 100%; padding: 10px; font-size: larger;">
+            <!-- <input type="text" id="Level" placeholder="Track Variable" style="width: 25%; margin: 0px 10px 0px -10px; padding: 10px;" /> -->
+            <select id="Sector" style="width: 25%; margin: 0px 10px 0px -10px; padding: 10px;">
+                <option value="" selected>Choose Planet</option>
+                <optgroup label="Up Your Arsenal" id="UYA">
+                    <option value="000BC2D1">Veldin</option>
+                    <option value="000BEF23">Florana</option>
+                    <option value="000C15C1">Starship Phoenix</option>
+                    <option value="000C9BB9">Marcadia</option>
+                    <option value="000D26B1">Annihilation Nation</option>
+                    <option value="000DBD8C">Aquatos</option>
+                    <option value="000DD34C">Tyrranosis</option>
+                    <option value="000CD98B">Daxx</option>
+                    <option value="000E3954">Obani Gemini </option>
+                    <option value="000E5E0A">Blackwater City</option>
+                    <option valye="000E7C87">Holostar Studios</option>
+                    <option value="000F4E18">Obani Draco</option>
+                    <option value="000DFE44">Zeldrin Starport</option>
+                    <option value="000EB4DF">Metropolis</option>
+                    <option value="000EC4F8">Crash Site</option>
+                    <option value="000ED176">Aridia</option>
+                    <option value="000F03B3">Quark's Hideout</option>
+                    <option value="000E9BF5">Koros</option>
+                    <option value="000F7133">Mylon - Command Center</option>
+                    <option value="000F2DFF">Mylon - Biobliterator</option>
+                    <option value="000FB7CE">Insomniac Museum</option>
+                    <option value="0010D8FB">Multiplayer</option>
+                </optgroup>
+                <optgroup label="Deadlocked" id="DL">
+                    <option value="0010321e">DreadZone Station</option>
+                    <option value="0010c0a9">Catacrom IV</option>
+                    <option value="0010EB3A">Sarathos</option>
+                    <option value="001114EF">Kronos</option>
+                    <option value="00113E9A">Shaar</option>
+                    <option value="0011AB8A">Orxon</option>
+                    <option value="001174DF">The Valix Belt</option>
+                    <option value="0011D5CB">Planet Torval</option>
+                    <option value="0012099E">Stygia</option>
+                    <option value="00123E4F">Maraxus</option>
+                    <option value="00127206">Ghost Station</option>
+                    <option value="00129AAF">DreadZone Station Interrior</option>
+                </optgroup>
+            </select>
+            <input type="button" value="CONVERT :D" style="width: 50%;" onclick="Convert();" />
+        </div>
+        <div height="50%" width="100%">
+            <textarea id="new" style="margin: 0px; width: 1246px; height: 215px;"></textarea>
+        </div>
+    </body>
+</html>
