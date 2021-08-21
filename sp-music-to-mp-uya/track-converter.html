@@ -13,16 +13,13 @@
                 let Offset = Campaign - Multiplayer;
                 if(old.match(/  ([0-9a-zA-Z]{4,5}) - ([0-9a-zA-Z]{4,5}): (.*)/g)){
                     old = old.replace(/(  [0-9a-zA-Z]{4,5}) - ([0-9a-zA-Z]{4,5}): (.*)([\r\n]?)/g, (match, a, b, c) => {
+                        let First = (parseInt(a, 16) + Offset).toString(16);
+                        let Second = (parseInt(b, 16) + Offset).toString(16);
+                        let Name = c;
                         if(c.match("--Start")){
-                            let First = (parseInt(a, 16) + Offset).toString(16);
-                            let Second = (parseInt(b, 16) + Offset).toString(16);
-                            let Name = c;
                             //return "  " + First + " - " + Second + ": " + Name + "\n";
                             return "// {0x" + First + ", 0x" + Second + "}, // " + Name + "\n";
                         }else{
-                            let First = (parseInt(a, 16) + Offset).toString(16);
-                            let Second = (parseInt(b, 16) + Offset).toString(16);
-                            let Name = c;
                             //return "  " + First + " - " + Second + ": " + Name + "\n";
                             return "{0x" + First + ", 0x" + Second + "}, // " + Name + "\n";
                         };
