@@ -101,7 +101,10 @@ void musicStopTrack(void)
     {
         // Online Lobby
         case 0x00574F88:
-           musicStopTrackAddress = 0x005BFDC8;
+            musicStopTrackAddress = 0x005BFDC8;
+            break;
+        case 0x0043A288:
+            musicStopTrackAddress = 0x00489F88;
             break;
     }
     ((void (*)())musicStopTrackAddress)();

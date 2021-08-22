@@ -95,7 +95,7 @@ int Tracks[][2] = {
 	// NOTE: Studio 42 doesn't convert with the track converter.  Gotta do it manually.
 	// ----Missing: Holostar Studios - Secret Agent Clank
 	// ----Missing: Holostar Studios - Giant Clank
-	{0xdd0ba, 0xdd112}, // Holostar Studios - Studio 42 --Start
+	// {0xdd0ba, 0xdd112}, // Holostar Studios - Studio 42 --Start
 	{0xdd16a, 0xdd73a}, // Holostar Studios - Studio 42
 	// ----Missing: Holostar Studios 2 - Studio 41
 
@@ -145,7 +145,46 @@ int Tracks[][2] = {
 int Map;
 short CurrentTrack = 0;
 short NextTrack = 0;
+//int SectorsWritten = 0; // Checks to see if the new sectors/tracks have been written
+
+int PLAYING_TRACK = 0;
 int StartSound = 0;
+
+void PrevNextSong()
+{
+	//Exmaple for choosing track
+	PadButtonStatus * pad = (PadButtonStatus*)0x00225980;
+	// L3: Previous Sound
+	if ((pad->btns & PAD_L3) == 0 && PLAYING_TRACK == 0)
+	{
+		// Setting PLAYING_TRACK to 1 will make it so the current playing sound will play once.
+		PLAYING_TRACK = 1;
+		StartSound -= 0x1; // Subtract 1 from StartSound
+		musicPlayTrack(StartSound * 2, 1); // Play Sound
+		//printf("Sound Byte: 0x%x\n", StartSound); // print ID of sound played.
+	}
+	// R3: Next Sound
+	if ((pad->btns & PAD_R3) == 0 && PLAYING_TRACK == 0)
+	{
+		PLAYING_TRACK = 1;
+		StartSound += 0x1;
+		musicPlayTrack(StartSound * 2, 1);
+		//printf("Sound Byte: 0x%x\n", StartSound);
+	}
+	// Select: Transition Track
+	if ((pad->btns & PAD_SELECT) == 0 && PLAYING_TRACK == 0)
+	{
+		PLAYING_TRACK = 1;
+		musicTransitionTrack(0,0,0,0);
+		//printf("Sound Byte: 0x%x\n", StartSound);
+	}
+	// If neither of the above are pressed, PLAYING_TRACK = 0.
+	if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0 && !(pad->btns & PAD_CIRCLE) == 0)
+	{
+		PLAYING_TRACK = 0;
+	}
+}
+
 
 int main(void)
 {
@@ -182,47 +221,16 @@ int main(void)
 		}
 	}
 
-	// //Exmaple for choosing track
-	// PadButtonStatus * pad = (PadButtonStatus*)0x00225980;
-	// // L3: Previous Sound
-	// if ((pad->btns & PAD_L3) == 0 && PLAYING_TRACK == 0)
-	// {
-	// 	// Setting PLAYING_TRACK to 1 will make it so the current playing sound will play once.
-	// 	PLAYING_TRACK = 1;
-	// 	StartSound -= 0x1; // Subtract 1 from StartSound
-	// 	musicPlayTrack(StartSound * 2, 1); // Play Sound
-	// 	//printf("Sound Byte: 0x%x\n", StartSound); // print ID of sound played.
-	// }
-	// // R3: Next Sound
-	// if ((pad->btns & PAD_R3) == 0 && PLAYING_TRACK == 0)
-	// {
-	// 	PLAYING_TRACK = 1;
-	// 	StartSound += 0x1;
-	// 	musicPlayTrack(StartSound * 2, 1);
-	// 	//printf("Sound Byte: 0x%x\n", StartSound);
-	// }
-	// // Select: Transition Track
-	// if ((pad->btns & PAD_SELECT) == 0 && PLAYING_TRACK == 0)
-	// {
-	// 	PLAYING_TRACK = 1;
-	// 	musicTransitionTrack(0,0,0,0);
-	// 	//musicPlayTrack(StartSound * 2, 1);
-	// 	//printf("Sound Byte: 0x%x\n", StartSound);
-	// }
-	// // If neither of the above are pressed, PLAYING_TRACK = 0.
-	// if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0 && !(pad->btns & PAD_CIRCLE) == 0)
-	// {
-	// 	PLAYING_TRACK = 0;
-	// }
+	PrevNextSong();
 
 	// if music !== 0 and TRACK_RANGE_MIN == 4 (TRACK_RANGE_MIN will only equal 4 in game)
 	if (musicIsLoaded() && TRACK_RANGE_MIN == 4)
 	{
 		short Track = *(u16*)0x00225828; // Next Track to play  // In Deadlocked this is the CurrentTrack.  In UYA this is the next playing track.
-		short Status = *(u16*)0x0022582E; // 8 = Start of game, 4 = Playing, 5 = Next Qued Track
+		short Status = *(u16*)0x0022582E; // 8 = Start of game, 4 = Playing, 5 = Next cued Track
 		short Status2 = *(u16*)0x00225838; // 0x2 = Currently playing, 0x3 = Transitioning track, 0xA = Switching to Next Track.
 		// If Status is 8 and both Current Track and Next Track equal zero
-		if (Status == 8 && CurrentTrack == 0 && NextTrack == 0)
+		if (Status == 8 && CurrentTrack == 0 && NextTrack == 0 && Track != -1)
 		{
 			// Set CurrentTrack to Track.  This will make it so we know which was is currently playing.
 			// The game automatically sets the track variable to the next track to play after the music starts.
