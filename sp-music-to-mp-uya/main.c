@@ -142,11 +142,10 @@ int Tracks[][2] = {
 	// {0xf1963, 0xf1f14}, // Online Lobby
 };
 
-int Active = 0;
 int Map;
-int PLAYING_TRACK = 0;
+short CurrentTrack = 0;
+short NextTrack = 0;
 int StartSound = 0;
-//int TRACK_RANGE_MAX = 0;
 
 int main(void)
 {
@@ -163,7 +162,6 @@ int main(void)
 	int AllTracks = DefaultMultiplayerTracks + AddedTracks;
 	// Fun fact: The math for TotalTracks is exactly how the assembly is.  Didn't mean to do it that way.  (Minus the AddedTracks part)
 	int TotalTracks = (DefaultMultiplayerTracks - TRACK_RANGE_MIN + 1) + AddedTracks;
-	int NextTrack = *(u16*)0x00225828; // In Deadlocked this is the CurrentTrack.  In UYA this is the next playing track.
 	int NextAddress = 0;
 	
 	// We overwrite all the data from multiplayer tracks due to also changing the track sector.
@@ -220,11 +218,38 @@ int main(void)
 	// if music !== 0 and TRACK_RANGE_MIN == 4 (TRACK_RANGE_MIN will only equal 4 in game)
 	if (musicIsLoaded() && TRACK_RANGE_MIN == 4)
 	{
-		int TrackDuration = *(u32*)0x0022583C;
-		// 
-		if (NextTrack != -1 && (TrackDuration <= 0x3000) && *(u16*)0x0022582E == 0x4)
+		short Track = *(u16*)0x00225828; // Next Track to play  // In Deadlocked this is the CurrentTrack.  In UYA this is the next playing track.
+		short Status = *(u16*)0x0022582E; // 8 = Start of game, 4 = Playing, 5 = Next Qued Track
+		short Status2 = *(u16*)0x00225838; // 0x2 = Currently playing, 0x3 = Transitioning track, 0xA = Switching to Next Track.
+		// If Status is 8 and both Current Track and Next Track equal zero
+		if (Status == 8 && CurrentTrack == 0 && NextTrack == 0)
 		{
-			// This techinally cues track 1 (the shortest track) with no sound to play.
+			// Set CurrentTrack to Track.  This will make it so we know which was is currently playing.
+			// The game automatically sets the track variable to the next track to play after the music starts.
+			CurrentTrack = Track;
+		}
+		// If Status is 4 (meaning music starts playing) and only NextTrack is zero.
+		else if (Status == 4 && NextTrack == 0)
+		{
+			// Set NextTrack to Track value.
+			NextTrack = Track;
+		}
+		// If NextTrack does not equal the Track, that means that the song has switched.
+		// So we have to move the NextTrack value into the CurrentTrack value, because it is now
+		// playing that track.  Then we set the NextTrack to the Track value.
+		else if (NextTrack != Track)
+		{
+			CurrentTrack = NextTrack;
+			NextTrack = Track;
+		}
+		int TrackDuration = *(u32*)0x0022583C;
+		// If CurrentTrack is ger than the default Multiplayer tracks
+		// and if CurrentTrack does not equal -1
+		// and if the track duration is below 0x3000
+		// and if Status2 is 2, or Current Playing
+		if ((CurrentTrack > DefaultMultiplayerTracks * 2) && CurrentTrack != -1 && (TrackDuration <= 0x3000) && Status2 == 2)
+		{
+			// This technically cues track 1 (the shortest track) with no sound to play.
 			// Doing this lets the current playing track to fade out.
 			musicTransitionTrack(0,0,0,0);
 		}
