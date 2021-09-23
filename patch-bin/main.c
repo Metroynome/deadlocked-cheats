@@ -253,7 +253,7 @@ void MaskUsername(char Active)
 		return -1;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if((pad->btns & (PAD_L2 | PAD_R2 | PAD_SELECT)) == 0)
+	if((pad->btns & (PAD_L2 | PAD_R2 | PAD_START)) == 0)
 	{
 		_MaskUsername_Init = 1;
 	}
@@ -286,7 +286,7 @@ void HackedKeyboard(char Active)
 		return -1;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if ((pad->btns & (PAD_START | PAD_SELECT)) == 0)
+	if ((pad->btns & (PAD_START | PAD_L2)) == 0)
 	{
 		_HackedKeyboard_Init = 1;
 	}
@@ -972,7 +972,8 @@ void InfiniteChargeboot(char Active)
 		PadButtonStatus * pad = playerGetPad(player);
 		// I joker it this way because it will always load whenever I press L2
 		// if done with PAD_L2
-		if (pad->btns == 0xFEFF)
+		// This is used to see if a certain byte is set. If so joker with L1 + L2, if not, just use L2.
+		if (pad->btns == ((*(u8*)(CodeArea - 0x01) == 1) ? 0xFAFF : 0xFEFF))
 		{
 			player->TicksSinceStateChanged = 0x27;
 		}
@@ -1110,7 +1111,7 @@ void RapidFireVehicles(char Active)
 \*========================================================*/
 void LotsOfDeaths(char Active)
 {
-	if (gameIsIn() && CheckInitCodes(Active))
+	if (gameIsIn() && CheckInitCodes(Active) && _FreeCam_Init == 0)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1510,7 +1511,7 @@ void HackedStartMenu(char Active)
 \*========================================================*/
 void LockOnFusion(char Active)
 {
-	if (gameIsIn() && CheckInitCodes(Active))
+	if (gameIsIn() && CheckInitCodes(Active) && _FreeCam_Init == 0)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1520,6 +1521,7 @@ void LockOnFusion(char Active)
 			*(u32*)0x0399cb0 = 0xffff1864;
 			*(u32*)0x0399d30 = 0x00405748;
 		}
+		// Off: R2 + Down
 		else if (pad->btns == 0xfdbf)
 		{
 			*(u32*)0x0399cb0 = 0xffff1096;
@@ -1629,7 +1631,7 @@ int main(void)
 		_InitializeAllCodes_Toggle = 1;
 		_InitializeAllCodes = !_InitializeAllCodes;
 	}
-	// Secondary Codes: Start + Select
+	// Secondary Codes: L1 + L2 + R2 + Left + Up
 	else if ((pad->btns & (PAD_L1 | PAD_L2 | PAD_R2 | PAD_LEFT | PAD_UP)) == 0 && _InitializeAllCodes == 1 && _InitializeAllCodes_Toggle == 0)
 	{
 		_InitializeAllCodes_Toggle = 1;
@@ -1642,9 +1644,9 @@ int main(void)
 
 	// R3 + R2/L3
 	InfiniteHealthMoonjump(*(u8*)(CodeArea + 0x00));
-	// L2 + R2 + Select
+	// L2 + R2 + Start
 	MaskUsername(*(u8*)(CodeArea + 0x01));
-	// Start + Select
+	// Start + L2
 	HackedKeyboard(*(u8*)(CodeArea + 0x02));
 	// L1 + R1 + L3/L1 + R1 + R3
 	FreeCam(*(u8*)(CodeArea + 0x03));
