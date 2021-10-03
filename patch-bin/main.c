@@ -1091,7 +1091,7 @@ void RapidFireVehicles(char Active)
 			*(u32*)0x0047CB50 = 0xA24202F1;
 			*(u32*)0x003BF0F8 = 0x24020000;
 		}
-		else if ((*(u32*)0x00453C88 == 0xA2000316))
+		else if ((*(u32*)0x00453C7C == 0x24020000))
 		{
 			*(u32*)0x00453C7C = 0x24020004;
 			*(u32*)0x0045A440 = 0x2403003C;
@@ -1133,7 +1133,7 @@ void NoRespawnTimer(char Active)
 {
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
-	if (gameIsIn() && pad->btns == 0xBFFF && CheckInitCodes(Active))
+	if (gameIsIn() && pad->btns == 0xBFFF && _FreeCam_Init == 0 && CheckInitCodes(Active))
 	{
 		*(u16*)0x00347e52 = 0;
 	}
