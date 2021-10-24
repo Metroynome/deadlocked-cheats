@@ -52,7 +52,6 @@ Patch.bin subroutine.
 #include <libdl/ui.h>
 #include <libdl/music.h>
 
-
 short Keys[][2] = {
 	// Offset, Data
 	{0x0918, 0x0008},
@@ -198,6 +197,7 @@ VECTOR CameraPosition,
 char RenderAllData[0x280];
 
 int CheckInitCodes(char Active);
+int GetActiveUIPointer(u8 UI);
 
 /*========================================================*\
 ========                       Offset + 0x00
@@ -899,27 +899,52 @@ void VehicleSelect(char Active)
 \*========================================================*/
 void FormPartyUnkick(char Active)
 {
-	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && (*(u8*)0x01365724 != 0x4) && CheckInitCodes(Active))
+	if(!gameIsIn() && (*(u32*)0x00173aec == -1))
 	{
-		// Enable Form Party Options
-		*(u8*)0x01365724 = 4;
-		*(u8*)0x013AB7AC = 4;
-		*(u8*)0x013AB80C = 4;
-		*(u8*)0x013AB86C = 4;
-		*(u8*)0x013AB8CC = 4;
-		// Enable Unkick
-		*(u32*)0x00759448 = 0;
-		*(u32*)0x0075945c = 0;
-		*(u32*)0x0075948c = 0;
-	}
-	else if (!gameIsIn() && (*(u32*)0x00173aec == -1) && (*(u8*)0x01365724 == 0x4) && !CheckInitCodes(Active))
-	{
-		// Disable Form Party Options if All codes are off
-		*(u8*)0x01365724 = 1;
-		// Disable Unkick
-		*(u32*)0x00759448 = 0x0C1C668A;
-		*(u32*)0x0075945c = 0x10A0006A;
-		*(u32*)0x0075948c = 0x10690237;
+		if (CheckInitCodes(Active))
+		{
+			int ActiveUI = GetActiveUIPointer(UIP_ONLINE_LOBBY);
+			if (ActiveUI != 0)
+			{
+				//if ((*(u8*)0x01365724 != 0x4))
+				if (*(u8*)((u32)ActiveUI + 0x2EE4) != 0x4)
+				{
+					// Enable Form Party Options
+					*(u8*)((u32)ActiveUI + 0x2EE4) = 0x4;
+
+					// Enable all Form Party Options if not Host
+					// - Different ActiveUI
+					// *(u8*)0x01365724 = 4;
+					// *(u8*)0x013AB7AC = 4;
+					// *(u8*)0x013AB80C = 4;
+					// *(u8*)0x013AB86C = 4;
+					// *(u8*)0x013AB8CC = 4;
+
+					// Enable Unkick
+					// - Different ActiveUI
+					// *(u32*)0x00759448 = 0;
+					// *(u32*)0x0075945c = 0;
+					// *(u32*)0x0075948c = 0;
+				}
+			}
+		}
+		else if(!CheckInitCodes(Active))
+		{
+			int ActiveUI = GetActiveUIPointer(UIP_ONLINE_LOBBY);
+			if (ActiveUI != 0)
+			{
+				if (*(u8*)((u32)ActiveUI + 0x2EE4) == 0x4)
+				{
+					// Disable Form Party Options if All codes are off
+					*(u8*)((u32)ActiveUI + 0x2EE4) = 1;
+				}
+				// Disable Unkick
+				// - Different ActiveUI
+				// *(u32*)0x00759448 = 0x0C1C668A;
+				// *(u32*)0x0075945c = 0x10A0006A;
+				// *(u32*)0x0075948c = 0x10690237;
+			}
+		}
 	}
 }
 
@@ -1573,6 +1598,22 @@ int CheckInitCodes(char Active)
 		}
 	}
 	return _InitializeAllCodes == IsOn;
+}
+
+int GetActiveUIPointer(u8 UI)
+{
+	int UI_POINTERS = 0x011C7064;
+	int Pointer = (*(u32*)((u32)UI_POINTERS + (UI * 0x4)));
+	void *ActiveUIPointer = (void*)(*(u32*)0x011C7108);
+	if (ActiveUIPointer == Pointer)
+	{
+		return Pointer;
+		// return printf("Pointer: %p\n", Pointer);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /*========================================================*\
