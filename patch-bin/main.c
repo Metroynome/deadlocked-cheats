@@ -758,16 +758,17 @@ void HostOptions(char Active)
 
 	_HostOptions_Init = 1;
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;	
-	int Selection = *(u32*)0x013C9310 - 0xa;
+	//int Selection = *(u32*)0x013C9310 - 0xa;
+	int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
 	void * Pointer = (void*)(*(u32*)0x0021dfe8);
 	int ReadyStatus = ((u32)Pointer + 0x10e);
-	if ((pad->btns & PAD_START) == 0 && Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+	if ((pad->btns & PAD_SELECT) == 0 && Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
 	{
 		_HostOptions_ReadyPlayer = 1;
 		*(u8*)((u32)ReadyStatus + Selection) = (*(u8*)((u32)ReadyStatus + Selection) == 0x06) ? 0x00 : 0x06;
 		//printf("host value: 0x%x\n", ((u32)ReadyStatus + Selection));
 	}
-	else if (!(pad->btns & PAD_START) == 0 && _HostOptions_ReadyPlayer)
+	else if (!(pad->btns & PAD_SELECT) == 0 && _HostOptions_ReadyPlayer)
 	{
 		_HostOptions_ReadyPlayer = 0;
 	}
@@ -776,7 +777,7 @@ void HostOptions(char Active)
 	if ((pad->btns & (PAD_L2)) == 0 && Selection <= 0x9 && !_HostOptions_TeamColor)
 	{
 		_HostOptions_TeamColor = 1;
-		*(u32*)0x00172170 = *(u32*)0x013C9310 - 0xa;
+		*(u32*)0x00172170 = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
 		//printf("host value: 0x%x\n", Selection);
 	}
 	// if Change Team/Color Menu is open
@@ -927,6 +928,13 @@ void FormPartyUnkick(char Active)
 					// *(u32*)0x0075948c = 0;
 				}
 			}
+			if (*(u32*)0x0075948c != 0)
+			{
+				// Enable Unkick
+				*(u32*)0x00759448 = 0;
+				*(u32*)0x0075945c = 0;
+				*(u32*)0x0075948c = 0;
+			}
 		}
 		else if(!CheckInitCodes(Active))
 		{
@@ -938,11 +946,13 @@ void FormPartyUnkick(char Active)
 					// Disable Form Party Options if All codes are off
 					*(u8*)((u32)ActiveUI + 0x2EE4) = 1;
 				}
+			}
+			if (*(u32*)0x0075948c == 0)
+			{
 				// Disable Unkick
-				// - Different ActiveUI
-				// *(u32*)0x00759448 = 0x0C1C668A;
-				// *(u32*)0x0075945c = 0x10A0006A;
-				// *(u32*)0x0075948c = 0x10690237;
+				*(u32*)0x00759448 = 0x0C1C668A;
+				*(u32*)0x0075945c = 0x10A0006A;
+				*(u32*)0x0075948c = 0x10690237;
 			}
 		}
 	}
@@ -960,7 +970,9 @@ void MaxTypingLimit(char Active)
 		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 		if ((pad->btns & (PAD_L1 | PAD_R1)) == 0)
 		{
-			*(u8*)0x0133d8d0 = 0x4F;
+			int TypingLimit = (*(u32*)((u32)0x011C7064 + (UIP_KEYBOARD * 0x4))) + 0x350;
+			//*(u8*)0x0133d8d0 = 0x4F;
+			*(u8*)TypingLimit = 0x4F;
 			return;
 		}
 	}
@@ -975,11 +987,18 @@ void MoreTeamColors(char Active)
 {
 	if(!gameIsIn() && CheckInitCodes(Active))
 	{
-		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-		if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+		int ChangeSkinTeamArea = GetActiveUIPointer(UIP_CHANGE_SKIN_TEAM);
+		if (ChangeSkinTeamArea != 0)
 		{
-			*(u8*)0x013eec60 = 0xff;
-			*(u32*)0x013eebf0 = 0x01010101;
+			PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+			if ((pad->btns & (PAD_L2 | PAD_R2)) == 0)
+			{
+				//int ChangeSkinTeamArea = (*(u32*)((u32)0x011C7064 + (UIP_CHANGE_SKIN_TEAM * 0x4)));
+				int AllowTeams = ChangeSkinTeamArea + 0x370;
+				int Colors = ChangeSkinTeamArea + 0x2E0;
+				*(u32*)AllowTeams = 0x01010101;
+				*(u8*)Colors = 0xff;
+			}
 		}
 	}
 }
