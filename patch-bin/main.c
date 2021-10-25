@@ -253,7 +253,7 @@ void MaskUsername(char Active)
 		return -1;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if((pad->btns & (PAD_L2 | PAD_R2 | PAD_START)) == 0)
+	if((pad->btns & (PAD_L2 | PAD_R2 | PAD_SELECT)) == 0)
 	{
 		_MaskUsername_Init = 1;
 	}
@@ -264,10 +264,10 @@ void MaskUsername(char Active)
 	if (!_MaskUsername_Init)
 		return 0;
 
-	if (*(u8*)0x0017225e != 0 && *(u8*)0x0133D804 != 0){
-		memcpy((u8*)0x0017225e, (u8*)0x0133D804, 0xe);
+	int Mask = (*(u32*)((u32)0x011C7064 + (UIP_KEYBOARD * 0x4))) + 0x284;
+	if (*(u8*)0x0017225e != 0 && *(u8*)Mask != 0){
+		memcpy((u8*)0x0017225e, (u8*)Mask, 0xe);
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -286,7 +286,7 @@ void HackedKeyboard(char Active)
 		return -1;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if ((pad->btns & (PAD_START | PAD_L2)) == 0)
+	if ((pad->btns & (PAD_SELECT | PAD_L2)) == 0)
 	{
 		_HackedKeyboard_Init = 1;
 	}
@@ -903,6 +903,7 @@ void FormPartyUnkick(char Active)
 	{
 		if (CheckInitCodes(Active))
 		{
+			// Online Lobby, show Form Party option
 			int ActiveUI = GetActiveUIPointer(UIP_ONLINE_LOBBY);
 			if (ActiveUI != 0)
 			{
@@ -914,7 +915,6 @@ void FormPartyUnkick(char Active)
 
 					// Enable all Form Party Options if not Host
 					// - Different ActiveUI
-					// *(u8*)0x01365724 = 4;
 					// *(u8*)0x013AB7AC = 4;
 					// *(u8*)0x013AB80C = 4;
 					// *(u8*)0x013AB86C = 4;
