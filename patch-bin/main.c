@@ -866,10 +866,12 @@ void VehicleSelect(char Active)
 	_VehicleSelect_Init = 1;
 	// Load Vehicle Subroutine address
 	u32 * Vehicles = (u32*)0x00719E24;
+	// Get Create Game UI Pointer
+	int CreateGameUIP = (*(u32*)((u32)0x011C7064 + (UIP_CREATE_GAME * 0x4)));
 	// Check to see if vehicles are on or off
-	VehiclesStatus = *(u32*)0x012C23B4;
+	VehiclesStatus = *(u32*)((u32)CreateGameUIP + 0x1B860);
 	// Save current selected map
-	CurrentMap = *(u8*)0x012AA254;
+	CurrentMap = *(u8*)((u32)CreateGameUIP + 0x3700);
 	// Secondary Save Function for Online
 	Secondary_Save = 0x0072D854;
 	// if vehicles subroutine address = original
@@ -1582,19 +1584,22 @@ void LockOnFusion(char Active)
 \*========================================================*/
 void DNASSkip(char Active)
 {
-	int DNASFunc = *(u32*)0x00718e5c;
+	int DNASFunc = 0x00718e5c;
 	if (CheckInitCodes(Active))
 	{
-		if (DNASFunc != 0x0c1d4f1a)
-			DNASFunc == 0x0c1d4f1a;
+		if (*(u32*)DNASFunc != 0x0c1d4f1a)
+		{
+			*(u32*)DNASFunc == 0x0c1d4f1a;
+		}
 	}
 	else
 	{
-		if (DNASFunc == 0x0c1d4f1a)
-			DNASFunc == 0x0c1cc33c;	
+		if (*(u32*)DNASFunc == 0x0c1d4f1a)
+		{
+			*(u32*)DNASFunc == 0x0c1cc33c;
+		}
 	}
 }
-
 
 /*========================================================*\
 ========              Checks to see if code is supposed to
@@ -1779,6 +1784,7 @@ int main(void)
 	LockOnFusion(*(u8*)(CodeArea + 0x1e));
 
 	// Always Run
+	DNASSkip(*(u8*)(CodeArea + 0x21));
 	CampaignMusic(*(u8*)(CodeArea + 0x04));
 	VehicleSelect(*(u8*)(CodeArea + 0x08));
 	FormPartyUnkick(*(u8*)(CodeArea + 0x09));
@@ -1786,7 +1792,6 @@ int main(void)
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu(*(u8*)(CodeArea + 0x1c));
-	DNASSkip(*(u8*)(CodeArea + 0x21));
 
 	return 1;
 }
