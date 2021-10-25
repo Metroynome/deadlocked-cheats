@@ -20,12 +20,11 @@ Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 	- Offset + 0x06: Force G^
 	- Offset + 0x07: Host Options
 	- Offset + 0x08: Vehicle Select
-	
-	The following are not added in CheatDevice.txt:
 	- Offset + 0x09: Form Party and Unkick
 	- Offset + 0x0a: Max Typing Limit
 	- Offset + 0x0b: More Team Colors
 	- Offset + 0x0c: Infinite Chargeboot
+		- If 0x000fff9f == 0x1, Joker is L2 + L1
 	- Offset + 0x0d: Render All
 	- Offset + 0x0e: Rapid Fire Weapons
 	- Offset + 0x0f: Walk Through Walls
@@ -46,3 +45,4 @@ Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - NEW GAME
 	- Offset + 0x20: Cheats Menu - Fusion Aimer
+	- Offset + 0x21: DNAS Skip

@@ -11,8 +11,6 @@ Patch.bin subroutine.
 	- Offset + 0x06: Force G^
 	- Offset + 0x07: Host Options
 	- Offset + 0x08: Vehicle Select
-	
-	The following are not added in CheatDevice.txt:
 	- Offset + 0x09: Form Party and Unkick
 	- Offset + 0x0a: Max Typing Limit
 	- Offset + 0x0b: More Team Colors
@@ -37,6 +35,7 @@ Patch.bin subroutine.
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - NEW GAME
 	- Offset + 0x20: Cheats Menu - Fusion Aimer
+	- Offset + 0x21: DNAS Skip
 */
 
 #include <tamtypes.h>
@@ -1577,6 +1576,27 @@ void LockOnFusion(char Active)
 }
 
 /*========================================================*\
+========              Offset + 0x21
+================      DNAS Skip
+========
+\*========================================================*/
+void DNASSkip(char Active)
+{
+	int DNASFunc = *(u32*)0x00718e5c;
+	if (CheckInitCodes(Active))
+	{
+		if (DNASFunc != 0x0c1d4f1a)
+			DNASFunc == 0x0c1d4f1a;
+	}
+	else
+	{
+		if (DNASFunc == 0x0c1d4f1a)
+			DNASFunc == 0x0c1cc33c;	
+	}
+}
+
+
+/*========================================================*\
 ========              Checks to see if code is supposed to
 ================      be on or off.
 ========
@@ -1619,6 +1639,11 @@ int CheckInitCodes(char Active)
 	return _InitializeAllCodes == IsOn;
 }
 
+/*========================================================*\
+========              Grabs the Active Pointer
+================      if true: returns Pointer
+========              if false: returns zero
+\*========================================================*/
 int GetActiveUIPointer(u8 UI)
 {
 	int UI_POINTERS = 0x011C7064;
@@ -1719,48 +1744,49 @@ int main(void)
 	// L2 + X: Change Team, Start: Ready Player
 	HostOptions(*(u8*)(CodeArea + 0x07));
 	// L1 + R1
-	MaxTypingLimit(*(u8*)(CodeArea + 0x0a)); // Not updated in CheatDevice.txt
+	MaxTypingLimit(*(u8*)(CodeArea + 0x0a));
 	// L2 + R2
-	MoreTeamColors(*(u8*)(CodeArea + 0x0b)); // Not updated in CheatDevice.txt
+	MoreTeamColors(*(u8*)(CodeArea + 0x0b));
 	// Hold L2
-	InfiniteChargeboot(*(u8*)(CodeArea + 0x0c)); // Not updated in CheatDevice.txt
+	InfiniteChargeboot(*(u8*)(CodeArea + 0x0c));
 	// Select + Left/Right
-	RenderAll(*(u8*)(CodeArea + 0x0d)); // Not updated in CheatDevice.txt
+	RenderAll(*(u8*)(CodeArea + 0x0d));
 	// R3 + R1 or R3 + R1 + L2
-	RapidFireWeapons(*(u8*)(CodeArea + 0x0e)); // Not updated in CheatDevice.txt
+	RapidFireWeapons(*(u8*)(CodeArea + 0x0e));
 	// L1 + Left/Right
-	WalkThroughWalls(*(u8*)(CodeArea + 0x0f)); // Not updated in CheatDevice.txt
+	WalkThroughWalls(*(u8*)(CodeArea + 0x0f));
 	// Hold R3 + R1
-	RapidFireVehicles(*(u8*)(CodeArea + 0x10)); // Not updated in CheatDevice.txt
+	RapidFireVehicles(*(u8*)(CodeArea + 0x10));
 	// L1 + Up
-	LotsOfDeaths(*(u8*)(CodeArea + 0x11)); // Not updated in CheatDevice.txt
+	LotsOfDeaths(*(u8*)(CodeArea + 0x11));
 	// Press X
-	NoRespawnTimer(*(u8*)(CodeArea + 0x12)); // Not updated in CheatDevice.txt
+	NoRespawnTimer(*(u8*)(CodeArea + 0x12));
 	// R3 + Left/Right
-	WalkFast(*(u8*)(CodeArea + 0x13)); // Not updated in CheatDevice.txt
+	WalkFast(*(u8*)(CodeArea + 0x13));
 	// Hold L3
-	AirWalk(*(u8*)(CodeArea + 0x14)); // Not updated in CheatDevice.txt
+	AirWalk(*(u8*)(CodeArea + 0x14));
 	// Hold L3: High; or Hold R3: Float
-	FlyingVehicles(*(u8*)(CodeArea + 0x15)); // Not updated in CheatDevice.txt
+	FlyingVehicles(*(u8*)(CodeArea + 0x15));
 	// Hold L3 or R3
-	SurfingVehicles(*(u8*)(CodeArea + 0x16)); // Not updated in CheatDevice.txt
+	SurfingVehicles(*(u8*)(CodeArea + 0x16));
 	// L2 + R2: Fast; L2 + R1: Faster
-	FastVehicles(*(u8*)(CodeArea + 0x17)); // Not updated in CheatDevice.txt
+	FastVehicles(*(u8*)(CodeArea + 0x17));
 	// Circle + Square
-	RespawnAnywhere(*(u8*)(CodeArea + 0x18)); // Not updated in CheatDevice.txt
+	RespawnAnywhere(*(u8*)(CodeArea + 0x18));
 	// R3 + Up/Down
-	vSync(*(u8*)(CodeArea + 0x19)); // Not updated in CheatDevice.txt
+	vSync(*(u8*)(CodeArea + 0x19));
 	// R2 + Up/Down
-	LockOnFusion(*(u8*)(CodeArea + 0x1e)); // Not updated in CheatDevice.txt
+	LockOnFusion(*(u8*)(CodeArea + 0x1e));
 
 	// Always Run
 	CampaignMusic(*(u8*)(CodeArea + 0x04));
 	VehicleSelect(*(u8*)(CodeArea + 0x08));
-	FormPartyUnkick(*(u8*)(CodeArea + 0x09)); // Not updated in CheatDevice.txt
+	FormPartyUnkick(*(u8*)(CodeArea + 0x09));
 	// Hacked Start Menu loads following codes inside:
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
-	HackedStartMenu(*(u8*)(CodeArea + 0x1c)); // Not updated in CheatDevice.txt
+	HackedStartMenu(*(u8*)(CodeArea + 0x1c));
+	DNASSkip(*(u8*)(CodeArea + 0x21));
 
 	return 1;
 }
