@@ -65,24 +65,32 @@ SETTING UP
 Patch.bin:
 ----------
 Download the patch.bin file.  It contains the main code needed to run.
+
 The "patch.bin" file replaces your current patch.bin file in your Ratchet: Deadlocked save.
+
 It's location: mc0:/BASCUS-97465RATCHET/
+
 
 OPL Cheat File
 --------------
 The OPL Cheat file is named "SCUS_974.65.cht"
 
 You can edit this in Notepad or any other text edit program.
+
 This file contains the patch.bin settings listed below.
+
 This file is optional, but if not there, all the codes will be loaded and ran.
+
 The file lets you choose if you want a to have a secondary list aside from the main list.
 
+
 Once you set up the cheat file how you would like it, copy it to where your OPL settings are.
+
 The file is located in your main OPL Folder in a folder called CHT
-	mc0:/OPL/CHT
-	mc1:/OPL/CHT
-	mass:/OPL/CHT or mass:/CHT
-	hdd0:/+OPL/CHT
+	 - mc0:/OPL/CHT
+	 - mc1:/OPL/CHT
+	 - mass:/OPL/CHT or mass:/CHT
+	 - hdd0:/+OPL/CHT
 The file may not be already there.
 
 How to Enable Cheats in OPL
@@ -101,29 +109,31 @@ How to Enable Cheats in OPL
 ONCE GAME IS STARTED
 --------------------
 When you start the game, go to Multiplayer.  This is when the patch.bin file loads.
+
 Once Multiplayer is loaded, you're cheats will be activated.
 
 You can turn the codes On/Off by pressing: L1 + L2 + R2 + Right + Down
+
 If you use the secondary list, you can turn those On/Off by pressing: L1 + L2 + R2 + Left + Up
 
 ================================
 
 Patch.bin Code Setting
 -----------------------
-0 = All Codes On by default
-1 = All Codes Off by default
-2 = All codes On by default
-     - Use Secondary Codes (Automatically off)
-3 = All Codes Off by defult
-     - Use Secondary Codes (Automatically off)
+ - 0 = All Codes On by default
+ - 1 = All Codes Off by default
+ - 2 = All codes On by default
+      - Use Secondary Codes (Automatically off)
+ - 3 = All Codes Off by defult
+      - Use Secondary Codes (Automatically off)
 
-Main Code Setting
-000fffff 00000000
+	Main Code Setting
+	000fffff 00000000
 
 ===============================
 
-Turn all codes On/Off: L1 + L2 + R2 + Right + Down
-Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
+ - Turn all codes On/Off: L1 + L2 + R2 + Right + Down
+ - Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 
 ===============================
 
@@ -136,9 +146,9 @@ The Secondary code list can't turn on unless the main code list is activated fir
 
 The following is for setting which code list each code is on.
 
-0 = Main Code List
-1 = Secondary Code List
-2 = Disable Code (Also works if Main Setting is set to 0 or 1)
+ - 0 = Main Code List
+ - 1 = Secondary Code List
+ - 2 = Disable Code (Also works if Main Setting is set to 0 or 1)
 
 	Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
 	000fffa0 00000000
@@ -213,5 +223,5 @@ The following is for setting which code list each code is on.
 
 Misc Codes
 ----------------
-Infinite Chargeboot Set to L2 + L1
-000fff9f 00000000
+	Infinite Chargeboot Set to L2 + L1
+	000fff9f 00000000
