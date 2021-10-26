@@ -150,6 +150,7 @@ The following is for setting which code list each code is on.
  - 1 = Secondary Code List
  - 2 = Disable Code (Also works if Main Setting is set to 0 or 1)
 
+
 	Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
 	000fffa0 00000000
 	Mask Username (L2 + R2 + Select)
