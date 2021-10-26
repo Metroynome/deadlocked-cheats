@@ -209,7 +209,7 @@ void InfiniteHealthMoonjump(char Active)
 	if (!gameIsIn() || !CheckInitCodes(Active))
 	{
 		_InfiniteHealthMoonjump_Init = 0;
-		return -1;
+		return;
 	}
 
 	// Handle On/Off Button Press
@@ -226,7 +226,7 @@ void InfiniteHealthMoonjump(char Active)
 
 	// Handle On/Off
 	if(!_InfiniteHealthMoonjump_Init)
-		return 0;
+		return;
 
 	// Player Health is always max.
 	player->Health = PLAYER_MAX_HEALTH;
@@ -244,12 +244,12 @@ void InfiniteHealthMoonjump(char Active)
 void MaskUsername(char Active)
 {
 	if (!CheckInitCodes(Active))
-		return -1;
+		return;
 
 	if (gameIsIn())
 	{
 		_MaskUsername_Init = 0;
-		return -1;
+		return;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 	if((pad->btns & (PAD_L2 | PAD_R2 | PAD_SELECT)) == 0)
@@ -261,7 +261,7 @@ void MaskUsername(char Active)
 		_MaskUsername_Init = 0;
 	}
 	if (!_MaskUsername_Init)
-		return 0;
+		return;
 
 	int Mask = (*(u32*)((u32)0x011C7064 + (UIP_KEYBOARD * 0x4))) + 0x284;
 	if (*(u8*)0x0017225e != 0 && *(u8*)Mask != 0){
@@ -277,12 +277,12 @@ void MaskUsername(char Active)
 void HackedKeyboard(char Active)
 {
 	if (!CheckInitCodes(Active))
-		return -1;
+		return;
 
 	if(gameIsIn())
 	{
 		_HackedKeyboard_Init = 0;
-		return -1;
+		return;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 	if ((pad->btns & (PAD_SELECT | PAD_L2)) == 0)
@@ -295,7 +295,7 @@ void HackedKeyboard(char Active)
 	}
 
 	if(!_HackedKeyboard_Init)
-		return 0;
+		return;
 
 	void * Pointer = (void*)(*(u32*)0x011C70B4);
 	int KeyboardCheck = ((u32)Pointer + 0x230);
@@ -456,7 +456,7 @@ void FreeCam(char Active)
 	if (!gameIsIn())
 	{
 		_FreeCam_Init = 0;
-		return -1;
+		return;
 	}
 
 	// Get Local Player
@@ -494,7 +494,7 @@ void FreeCam(char Active)
 	}
 	
 	if (!_FreeCam_Init)
-		return 0;
+		return;
 
 	// If start isn't open, let inputs go through.
 	if ((*(u32*)0x00347E58) == 0)
@@ -580,8 +580,8 @@ void FreeCam(char Active)
 	// fix death camera lock
 	player->CameraPitchMin = 1.48353;
 	player->CameraPitchMax = -1.22173;
-	
-	return 1;
+
+	return;
 }
 
 /*========================================================*\
@@ -595,7 +595,7 @@ void CampaignMusic(char Active)
 	if ((*(u32*)0x001CF85C != 0x000F8D29))
 	{
 		_CampaignMusic_Init = 0;
-		return -1;
+		return;
 	}
 
 	_CampaignMusic_Init = 1;
@@ -684,7 +684,7 @@ void FollowAimer(char Active)
 	if (!gameIsIn() || !CheckInitCodes(Active))
 	{
 		_FollowAimer_Init = 0;
-		return -1;
+		return;
 	}
 
 	Player * player = (Player*)0x00347aa0;
@@ -698,10 +698,9 @@ void FollowAimer(char Active)
 		_FollowAimer_Init = 0;
 	}
 	if (!_FollowAimer_Init)
-		return 0;
+		return;
 
 	memcpy((u8*)0x0034A9A4, (u8*)0x00349520, 0xc);
-	return 1;
 }
 
 /*========================================================*\
@@ -714,7 +713,7 @@ void ForceGUp(char Active)
 	if (gameIsIn() || !CheckInitCodes(Active))
 	{
 		_ForceGUp_Init = 0;
-		return -1;
+		return;
 	}
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 	if ((pad->btns & (PAD_L3 | PAD_R3 | PAD_L1)) == 0 || (pad->btns & (PAD_L3 | PAD_R3 | PAD_L2)) == 0)
@@ -727,7 +726,7 @@ void ForceGUp(char Active)
 	}
 
 	if (!_ForceGUp_Init)
-		return 0;
+		return;
 
 	void * GameSettings = (void*)(*(u32*)0x0021dfe8);
 	if (*(u32*)GameSettings != 0)
@@ -736,7 +735,6 @@ void ForceGUp(char Active)
 		if ((pad->btns & (PAD_L3 | PAD_R3 | PAD_L1)) == 0) memset((u8*)GreenUp, 0x06, 0x9);
 		if ((pad->btns & (PAD_L3 | PAD_R3 | PAD_L2)) == 0) memset((u8*)GreenUp, 0x00, 0x9);
 	}
-	return 1;
 }
 
 /*========================================================*\
@@ -752,20 +750,25 @@ void HostOptions(char Active)
 		_HostOptions_Init = 0;
 		_HostOptions_ReadyPlayer = 0;
 		_HostOptions_TeamColor = 0;
-		return -1;
+		return;
 	}
 
 	_HostOptions_Init = 1;
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;	
 	//int Selection = *(u32*)0x013C9310 - 0xa;
-	int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
-	void * Pointer = (void*)(*(u32*)0x0021dfe8);
-	int ReadyStatus = ((u32)Pointer + 0x10e);
-	if ((pad->btns & PAD_SELECT) == 0 && Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+	// Updated Selection freezes when loading screen shows.
+	// Needs fixing.
+	if ((pad->btns & PAD_SELECT) == 0 && !gameIsIn())
 	{
-		_HostOptions_ReadyPlayer = 1;
-		*(u8*)((u32)ReadyStatus + Selection) = (*(u8*)((u32)ReadyStatus + Selection) == 0x06) ? 0x00 : 0x06;
-		//printf("host value: 0x%x\n", ((u32)ReadyStatus + Selection));
+		int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+		void * Pointer = (void*)(*(u32*)0x0021dfe8);
+		int ReadyStatus = ((u32)Pointer + 0x10e);
+		if (Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+		{
+			_HostOptions_ReadyPlayer = 1;
+			*(u8*)((u32)ReadyStatus + Selection) = (*(u8*)((u32)ReadyStatus + Selection) == 0x06) ? 0x00 : 0x06;
+			//printf("host value: 0x%x\n", ((u32)ReadyStatus + Selection));
+		}
 	}
 	else if (!(pad->btns & PAD_SELECT) == 0 && _HostOptions_ReadyPlayer)
 	{
@@ -773,11 +776,16 @@ void HostOptions(char Active)
 	}
 
 	// Change Team/Color Logic
-	if ((pad->btns & (PAD_L2)) == 0 && Selection <= 0x9 && !_HostOptions_TeamColor)
+	if ((pad->btns & (PAD_L2)) == 0 && !gameIsIn())
 	{
-		_HostOptions_TeamColor = 1;
-		*(u32*)0x00172170 = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
-		//printf("host value: 0x%x\n", Selection);
+		int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+		if (Selection <= 0x9 && !_HostOptions_TeamColor)
+		{
+			_HostOptions_TeamColor = 1;
+			*(u32*)0x00172170 = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+			//*(u32*)0x00172170 = *(u32*)0x013C9310 - 0xa;
+			//printf("host value: 0x%x\n", Selection);
+		}
 	}
 	// if Change Team/Color Menu is open
 	else if ((*(u32*)0x003434B8 == 0x259 || *(u32*)0x003434B8 == 0x261) && _HostOptions_TeamColor)
@@ -860,7 +868,7 @@ void VehicleSelect(char Active)
 		{
 			SavedMap = -1;
 		}
-		return -1;
+		return;
 	}
 
 	_VehicleSelect_Init = 1;
@@ -1399,7 +1407,7 @@ void SkillPoints(char Active)
 void CheatsMenuWeapons(char Active)
 {
 	if (!CheckInitCodes(Active))
-		return -1;
+		return;
 
 	// No need to check if in game because it does that in HackedStartMenu()
 	*(u8*)0x00393740 = 0x00000010;
@@ -1459,17 +1467,17 @@ void CheatsMenuWeapons(char Active)
 \*========================================================*/
  void CheatsMenuEndGame(char Active)
  {
-	if (!CheckInitCodes(Active))
-		return -1;
-
-	*(u8*)0x00393a88 = 0x20;
-	*(u16*)0x00393a94 = 0x014e;
-	switch(*(u8*)0x0021de50)
+	if (CheckInitCodes(Active))
 	{
-		case 1:
-			gameEnd(4);
-			*(u8*)0x0021de50 = 0;
-			break;
+		*(u8*)0x00393a88 = 0x20;
+		*(u16*)0x00393a94 = 0x014e;
+		switch(*(u8*)0x0021de50)
+		{
+			case 1:
+				gameEnd(4);
+				*(u8*)0x0021de50 = 0;
+				break;
+		}
 	}
  }
 
@@ -1481,7 +1489,7 @@ void CheatsMenuWeapons(char Active)
 void CheatsMenuFusionAimer(char Active)
 {
 	if (!CheckInitCodes(Active))
-		return -1;
+		return;
 	
 	// Use this is you want the pointer to be where the function is at
 	//*(u32*)0x00393668 = (u32)(&testing);
@@ -1584,19 +1592,19 @@ void LockOnFusion(char Active)
 \*========================================================*/
 void DNASSkip(char Active)
 {
-	int DNASFunc = 0x00718e5c;
+	int DNASFunc = *(u32*)0x00718e5c;
 	if (CheckInitCodes(Active))
 	{
-		if (*(u32*)DNASFunc != 0x0c1d4f1a)
+		if (DNASFunc != 0x0c1d4f1a)
 		{
-			*(u32*)DNASFunc == 0x0c1d4f1a;
+			DNASFunc = 0x0c1d4f1a;
 		}
 	}
-	else
+	else if (!CheckInitCodes(Active))
 	{
-		if (*(u32*)DNASFunc == 0x0c1d4f1a)
+		if (DNASFunc == 0x0c1d4f1a)
 		{
-			*(u32*)DNASFunc == 0x0c1cc33c;
+			DNASFunc = 0x0c1cc33c;
 		}
 	}
 }
@@ -1653,7 +1661,7 @@ int GetActiveUIPointer(u8 UI)
 {
 	int UI_POINTERS = 0x011C7064;
 	int Pointer = (*(u32*)((u32)UI_POINTERS + (UI * 0x4)));
-	void *ActiveUIPointer = (void*)(*(u32*)0x011C7108);
+	int ActiveUIPointer = (*(u32*)0x011C7108);
 	if (ActiveUIPointer == Pointer)
 	{
 		return Pointer;
@@ -1784,7 +1792,6 @@ int main(void)
 	LockOnFusion(*(u8*)(CodeArea + 0x1e));
 
 	// Always Run
-	DNASSkip(*(u8*)(CodeArea + 0x21));
 	CampaignMusic(*(u8*)(CodeArea + 0x04));
 	VehicleSelect(*(u8*)(CodeArea + 0x08));
 	FormPartyUnkick(*(u8*)(CodeArea + 0x09));
@@ -1792,6 +1799,8 @@ int main(void)
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu(*(u8*)(CodeArea + 0x1c));
+	// DNAS Skip currently no worky :(
+	DNASSkip(*(u8*)(CodeArea + 0x21));
 
 	return 1;
 }
