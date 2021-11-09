@@ -58,7 +58,7 @@ int main(void)
 	// This is where all the functions for the game are kept.
 	void * GameplayFilePointer = (void*)(*(u32*)0x01FFFD00);
     PadButtonStatus * pad = (PadButtonStatus*)0x00225980;
-	// If pointer doesn't equel  Online Lobby Pointer, proceed.
+	// If pointer doesn't equel Online Lobby Pointer, proceed.
 	if (GameplayFilePointer != 0x00574F88)
 	{
         if (*(u8*)0x00248B90 == 0x1)
