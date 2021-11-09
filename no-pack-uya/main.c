@@ -56,7 +56,7 @@ int main(void)
 	// Grab GameplayFile Pointer.
 	// This is where all the functions for the game are kept.
 	void * GameplayFilePointer = (void*)(*(u32*)0x01FFFD00);
-	// If pointer doesn't equel  Online Lobby Pointer, proceed.
+	// If pointer doesn't equel Online Lobby Pointer, proceed.
 	if (GameplayFilePointer != 0x00574F88)
 	{
 		// Check which Level we are on.  Function returns the address of the Weapon Pack function.
