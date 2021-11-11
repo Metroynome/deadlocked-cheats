@@ -706,8 +706,8 @@ void CampaignMusic(char Active)
 	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700){
 		// if Last Track doesn't equal TotalTracks
-		if(*(u32*)0x0021EC0C != TotalTracks){
-			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
+		int MusicFunctionData = MusicDataPointer + 0x28A0D4;
+		if(*(u32*)0x0021EC0C != TotalTracks && *(u16*)MusicFunctionData != AllTracks){
 			*(u16*)MusicFunctionData = AllTracks;
 		}
 	}
