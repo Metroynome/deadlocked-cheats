@@ -35,7 +35,6 @@ Patch.bin subroutine.
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - NEW GAME
 	- Offset + 0x20: Cheats Menu - Fusion Aimer
-	- Offset + 0x21: DNAS Skip
 */
 
 #include <tamtypes.h>
@@ -161,7 +160,7 @@ short Keys[][2] = {
 int CodeArea = 0x01e0efa0; // Where users can check to see if codes are on or off
 int InitSettings = 0; // Settings for codes (Secondary Codes and such)
 
-// -1 = varify if 0x000fffff = 1
+// -1 = varify if InitSettings = 1
 // 0 = All codes off
 // 1 = All codes on
 char _InitializeAllCodes = -1;
@@ -1744,7 +1743,8 @@ int main(void)
 		InitSettings = *(u8*)0x01e0efff;
 		switch(InitSettings)
 		{
-			/*	_InitializeAllCodes
+			/*	
+				_InitializeAllCodes
 					- These are the normal codes to run.  Either on or off.
 					0 = All Codes Off
 					1 = All Codes On

@@ -45,7 +45,6 @@ Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 	- Offset + 0x1e: Lock On Fusion
 	- Offset + 0x1f: Cheats Menu - NEW GAME
 	- Offset + 0x20: Cheats Menu - Fusion Aimer
-	- Offset + 0x21: DNAS Skip
 
 
 
