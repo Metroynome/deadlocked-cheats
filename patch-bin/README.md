@@ -1,6 +1,6 @@
 # Patch.bin subroutine.
 ## Patche.bin Settings:
-if 0x000FFFFF value equals following:
+if 0x01e0efff value equals following:
  - 0x00 = all codes on, no secondary
  - 0x01 = all codes off, no secondary
  - 0x02 = all codes on, use secondary codes (Automatically off)
@@ -24,7 +24,7 @@ Turn all Secondary Codes On/Off: L1 + L2 + R2 + Left + Up
 	- Offset + 0x0a: Max Typing Limit
 	- Offset + 0x0b: More Team Colors
 	- Offset + 0x0c: Infinite Chargeboot
-		- If 0x000fff9f == 0x1, Joker is L2 + L1
+		- If 0x01e0ef9f == 0x1, Joker is L2 + L1
 	- Offset + 0x0d: Render All
 	- Offset + 0x0e: Rapid Fire Weapons
 	- Offset + 0x0f: Walk Through Walls
@@ -127,7 +127,7 @@ Patch.bin Code Setting
     - Use Secondary Codes (Automatically off)
 
 Main Code Setting
-000fffff 00000000`
+01e0efff 00000000`
 
 ===============================
 
@@ -150,75 +150,75 @@ The following is for setting which code list each code is on.
 2 = Disable Code (Also works if Main Setting is set to 0 or 1)
 
 Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
-000fffa0 00000000
+01e0efa0 00000000
 Mask Username (L2 + R2 + Select)
-000fffa1 00000000
+01e0efa1 00000000
 Hacked Keyboard (Start + Select)
-000fffa2 00000000
+01e0efa2 00000000
 Free Cam (L1 + R1 + L3/L1 + R1 + R3)
-000fffa3 00000000
+01e0efa3 00000000
 sp-music-to-mp
-000fffa4 00000000
+01e0efa4 00000000
 Follow Aimer ({L3} + {R1} or {L3} + {L2})
-000fffa5 00000000
+01e0efa5 00000000
 Force G^ (L3 + R3 + L1/L3 + R3 + L2)
-000fffa6 00000000
+01e0efa6 00000000
 Host Options (L2 + X: Change Team, Start: Ready Player)
-000fffa7 00000000
+01e0efa7 00000000
 Vehicle Select
-000fffa8 00000000
+01e0efa8 00000000
 Form Party and Unkick
-000fffa9 00000000
+01e0efa9 00000000
 Max Typing Limit (L1 + R1)
-000fffaa 00000000
+01e0efaa 00000000
 More Team Colors (L2 + R2)
-000fffab 00000000
+01e0efab 00000000
 Infinite Chargeboot (Hold L2)
-000fffac 00000000
+01e0efac 00000000
 Render All (Select + Left/Select + Right)
-000fffad 00000000
+01e0efad 00000000
 Rapid Fire Weapons (R3 + R1 or R3 + R1 + L2)
-000fffae 00000000
+01e0efae 00000000
 Walk Through Walls (L1 + Left/L1 + Right)
-000fffaf 00000000
+01e0efaf 00000000
 Rapid Fire Vehicles (Hold R3 + R1)
-000fffb0 00000000
+01e0efb0 00000000
 Lots of Deaths (L1 + Up)
-000fffb1 00000000
+01e0efb1 00000000
 No Respawn Timer (Press X)
-000fffb2 00000000
+01e0efb2 00000000
 Walk Fast (R3 + Left/R3 + Right)
-000fffb3 00000000
+01e0efb3 00000000
 AirWalk (Hold L3)
-000fffb4 00000000
+01e0efb4 00000000
 Flying Vehicles (Hold L3: High; or Hold R3: Float)
-000fffb5 00000000
+01e0efb5 00000000
 Surfing Vehicles (L2 + Up/L2 + Down)
-000fffb6 00000000
+01e0efb6 00000000
 Fast Vehicles (L2 + R2: Fast; L2 + R1: Faster)
-000fffb7 00000000
+01e0efb7 00000000
 Respawn Anywhere (Circle + Square)
-000fffb8 00000000
+01e0efb8 00000000
 vSync (R3 + Up/ R3 + Down)
-000fffb9 00000000
+01e0efb9 00000000
 All Alpha/Omega Mods
-000fffba 00000000
+01e0efba 00000000
 All Skill Points
-000fffbb 00000000
+01e0efbb 00000000
 Hacked Start Menu
-000fffbc 00000000
+01e0efbc 00000000
 Cheats Menu - Weapons
-000fffbd 00000000
+01e0efbd 00000000
 Lock On Fusion (R2 + Up/R2 + Down)
-000fffbe 00000000
+01e0efbe 00000000
 Cheats Menu - New Game
-000fffbf 00000000
+01e0efbf 00000000
 Cheats Menu - Fusion Aimer
-000fffc0 00000000`
+01e0efc0 00000000`
 
 ===============================
 
 Misc Codes
 ----------------
 `Infinite Chargeboot Set to L2 + L1
-000fff9f 00000000`
+01e0ef9f 00000000`
