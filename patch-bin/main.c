@@ -159,7 +159,7 @@ short Keys[][2] = {
 // };
 
 int CodeArea = 0x01e0efa0; // Where users can check to see if codes are on or off
-int InitSettingsAddr = 0x01e0efff; // Settings for codes (Secondary Codes and such)
+int InitSettings = 0; // Settings for codes (Secondary Codes and such)
 
 // -1 = varify if 0x000fffff = 1
 // 0 = All codes off
@@ -199,6 +199,7 @@ VECTOR CameraPosition,
 char RenderAllData[0x280];
 
 int CheckInitCodes(char Active);
+int GetActiveUIPointer(u8 UI);
 void internal_wadGetSectors(u64, u64, u64);
 
 /*========================================================*\
@@ -1706,6 +1707,27 @@ int CheckInitCodes(char Active)
 }
 
 /*========================================================*\
+========              Grabs the Active Pointer
+================      if true: returns Pointer
+========              if false: returns zero
+\*========================================================*/
+int GetActiveUIPointer(u8 UI)
+{
+	int UI_POINTERS = 0x011C7064;
+	int Pointer = (*(u32*)((u32)UI_POINTERS + (UI * 0x4)));
+	int ActiveUIPointer = (*(u32*)0x011C7108);
+	if (ActiveUIPointer == Pointer)
+	{
+		return Pointer;
+		// return printf("Pointer: %p\n", Pointer);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+/*========================================================*\
 ========              
 ================      main function
 ========
@@ -1719,7 +1741,7 @@ int main(void)
 
 	if (_InitializeAllCodes == -1)
 	{
-		char InitSettings = *(u8*)InitSettingsAddr;
+		InitSettings = *(u8*)0x01e0efff;
 		switch(InitSettings)
 		{
 			/*	_InitializeAllCodes
