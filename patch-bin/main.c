@@ -158,8 +158,9 @@ short Keys[][2] = {
 // 	{0x32cfb, 0x332d2} // Defeat Gleemon Vox
 // };
 
-int CodeArea = 0x000fffa0; // Where users can check to see if codes are on or off
-char InitSettings = 0; // Settings for codes (Secondary Codes and such)
+int CodeArea = 0x01e0efa0; // Where users can check to see if codes are on or off
+int InitSettingsAddr = 0x01e0efff; // Settings for codes (Secondary Codes and such)
+
 // -1 = varify if 0x000fffff = 1
 // 0 = All codes off
 // 1 = All codes on
@@ -1663,30 +1664,6 @@ void LockOnFusion(char Active)
 }
 
 /*========================================================*\
-========              Offset + 0x21
-================      DNAS Skip
-========
-\*========================================================*/
-void DNASSkip(char Active)
-{
-	int DNASFunc = *(u32*)0x00718e5c;
-	if (CheckInitCodes(Active))
-	{
-		if (DNASFunc != 0x0c1d4f1a)
-		{
-			DNASFunc = 0x0c1d4f1a;
-		}
-	}
-	else if (!CheckInitCodes(Active))
-	{
-		if (DNASFunc == 0x0c1d4f1a)
-		{
-			DNASFunc = 0x0c1cc33c;
-		}
-	}
-}
-
-/*========================================================*\
 ========              Checks to see if code is supposed to
 ================      be on or off.
 ========
@@ -1764,7 +1741,7 @@ int main(void)
 
 	if (_InitializeAllCodes == -1)
 	{
-		InitSettings = *(u8*)0x000fffff;
+		char InitSettings = *(u8*)InitSettingsAddr;
 		switch(InitSettings)
 		{
 			/*	_InitializeAllCodes
@@ -1876,8 +1853,6 @@ int main(void)
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu(*(u8*)(CodeArea + 0x1c));
-	// DNAS Skip currently no worky :(
-	DNASSkip(*(u8*)(CodeArea + 0x21));
 
 	return 1;
 }

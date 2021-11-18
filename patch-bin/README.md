@@ -215,9 +215,7 @@ Lock On Fusion (R2 + Up/R2 + Down)
 Cheats Menu - New Game
 000fffbf 00000000
 Cheats Menu - Fusion Aimer
-000fffc0 00000000
-DNAS Skip
-000fffc1 00000000`
+000fffc0 00000000`
 
 ===============================
 
