@@ -199,7 +199,6 @@ VECTOR CameraPosition,
 char RenderAllData[0x280];
 
 int CheckInitCodes(char Active);
-int GetActiveUIPointer(u8 UI);
 void internal_wadGetSectors(u64, u64, u64);
 
 /*========================================================*\
@@ -1704,27 +1703,6 @@ int CheckInitCodes(char Active)
 		}
 	}
 	return _InitializeAllCodes == IsOn;
-}
-
-/*========================================================*\
-========              Grabs the Active Pointer
-================      if true: returns Pointer
-========              if false: returns zero
-\*========================================================*/
-int GetActiveUIPointer(u8 UI)
-{
-	int UI_POINTERS = 0x011C7064;
-	int Pointer = (*(u32*)((u32)UI_POINTERS + (UI * 0x4)));
-	int ActiveUIPointer = (*(u32*)0x011C7108);
-	if (ActiveUIPointer == Pointer)
-	{
-		return Pointer;
-		// return printf("Pointer: %p\n", Pointer);
-	}
-	else
-	{
-		return 0;
-	}
 }
 
 /*========================================================*\
