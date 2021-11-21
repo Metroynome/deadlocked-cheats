@@ -13,7 +13,6 @@ This is to test the MC Save feature.
 
 
 int Started = 0;
-//char membuffer[256];
 char * file = "/BASCUS-97465RATCHET/patch.bin";
 const char test[] = "RAWRS NOOBZORS";
 
@@ -28,21 +27,21 @@ void Open()
 		/*
 			Modes:
 			Read: 1
-			Write: 2?
+			Write: 2
 		*/
 		McOpen(0, 0, file, 2);
 		McSync(0, NULL, &fd);
-		if (fd > 0)
+		if (fd >= 0)
 		{
 			printf("\nOpened file");
 		}
 		// fd, offset, origin (start)
-		// McSeek(fd, 0xd0, 0x0);
-		// McSync(0, NULL, &fd);
-		// if (fd > 0)
-		// {
-		// 	printf("\nRead bytes: %x", fd);
-		// }
+		McSeek(fd, 0xd0, 0x0);
+		McSync(0, NULL, &fd);
+		if (fd > 0)
+		{
+			printf("\nRead bytes: %x", fd);
+		}
 		McWrite(fd, &test, sizeof(test));
 		McSync(0, NULL, &fd);
 		if (fd >= 0)
@@ -58,44 +57,6 @@ void Open()
 	}
 }
 
-// void Seek()
-// {
-// 	if (Started == 1){
-// 		// fd, offset, origin (start)
-// 		McSeek(fd, 0x40, 0x0);
-// 		McSync(0, NULL, &fd);
-// 		if (fd > 0)
-// 		{
-// 			printf("Read bytes: %x\n", fd);
-// 		}
-// 		Started = 2;
-// 	}
-// }
-
-// void Write()
-// {
-// 	if (Started == 2){
-// 		// fd, offset, origin (start)
-// 		McWrite(fd, &test, 0x15);
-// 		McSync(0, NULL, &fd);
-// 		if (fd > 0)
-// 		{
-// 			printf("Wrote bytes: %x\n", fd);
-// 		}
-// 		Started = 3;
-// 	}
-// 	Close();
-// }
-
-// void Close()
-// {
-// 	if (Started == 3)
-// 	{
-// 		McClose(fd);
-// 		printf("File Closed!\n");
-// 	}
-// }
-
 int main(void)
 {
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
@@ -104,9 +65,6 @@ int main(void)
 		Started = 0;
 		Open();
 	}
-	// if ((pad->btns & (PAD_R3)) == 0)
-	// {
-	// 	Seek();
-	// }
+
 	return 1;
 }
