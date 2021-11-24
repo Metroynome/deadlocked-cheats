@@ -1732,9 +1732,9 @@ int main(void)
 
 	// R3 + R2/L3
 	InfiniteHealthMoonjump(*(u8*)(CodeArea + 0x00));
-	// L2 + R2 + Start
+	// L2 + R2 + Select
 	MaskUsername(*(u8*)(CodeArea + 0x01));
-	// Start + L2
+	// Select + L2
 	HackedKeyboard(*(u8*)(CodeArea + 0x02));
 	// L1 + R1 + L3/L1 + R1 + R3
 	FreeCam(*(u8*)(CodeArea + 0x03));
