@@ -469,7 +469,7 @@ void drawFrame(void)
   gfxScreenSpaceBox(frameX, frameY, frameW, frameTitleH, colorRed);
 
   // title
-  gfxScreenSpaceText(0.5 * SCREEN_WIDTH, (frameY + frameTitleH * 0.5) * SCREEN_HEIGHT, 1, 1, colorText, "Patch Config", -1, 4);
+  gfxScreenSpaceText(0.5 * SCREEN_WIDTH, (frameY + frameTitleH * 0.5) * SCREEN_HEIGHT, 1, 1, colorText, "Mod Menu", -1, 4);
 
   // footer bg
   gfxScreenSpaceBox(frameX, frameY + frameH - frameFooterH, frameW, frameFooterH, colorRed);
@@ -658,7 +658,7 @@ void onMenuUpdate(int inGame)
 			navTab(-1);
 		}
 		// close
-		else if (padGetButtonUp(0, PAD_TRIANGLE) > 0 || padGetButtonDown(0, PAD_R3) > 0)
+		else if (padGetButtonUp(0, PAD_TRIANGLE) > 0 || padGetButtonDown(0, PAD_R3 | PAD_L3) > 0)
 		{
 			configMenuDisable();
 		}
@@ -668,12 +668,12 @@ void onMenuUpdate(int inGame)
 		if (uiGetActive() == UI_ID_ONLINE_MAIN_MENU)
 		{
 			// render message
-			gfxScreenSpaceBox(0.1, 0.75, 0.4, 0.05, colorOpenBg);
-			gfxScreenSpaceText(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.775, 1, 1, 0x80FFFFFF, "\x1f Open Mod Menu", -1, 4);
+			gfxScreenSpaceBox(0.1, 0.855, 0.4, 0.05, colorOpenBg);
+			gfxScreenSpaceText(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.855, 1, 1, 0x80FFFFFF, "\x18 + \x19 Open Mod Menu", -1, 4);
 		}
 
 		// check for pad input
-		if (padGetButtonDown(0, PAD_R3) > 0)
+		if (padGetButtonDown(0, PAD_R3 | PAD_L3) > 0)
 		{
 			configMenuEnable();
 		}
