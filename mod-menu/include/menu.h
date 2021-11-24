@@ -3,7 +3,9 @@
 
 typedef struct PatchConfig
 {
-  char enableSingleplayerMusic;
+  char enableInfiniteHealthMoonjump;
+  char enableMaskUsername;
+  char enableHackedKeyboard;
 } PatchConfig_t;
 
 enum ActionType

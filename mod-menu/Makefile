@@ -3,7 +3,7 @@ EE_BIN_DIR = bin/
 
 EE_ELF = $(EE_BIN_DIR)mod-menu.elf
 EE_BIN = $(EE_BIN_DIR)mod-menu.bin
-EE_OBJS = main.o
+EE_OBJS = main.o menu.o
 EE_LIBS = -ldl -lkernel
 ADDRESS = 01E00000
 
