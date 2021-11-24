@@ -10,7 +10,7 @@ ADDRESS = 01E00000
 EE_OBJS := $(EE_OBJS:%=$(EE_OBJS_DIR)%)
 EE_INCS := -I../../include -I$(PS2SDK)/ports/include
 EE_LDFLAGS = -fno-builtin -nostdlib -nostartfiles -L. -L../../lib -L$(PS2SDK)/ports/lib
-EE_CFLAGS := -D_PROGRAM_ENTRY=0x$(ADDRESS)
+EE_CFLAGS := -D_PROGRAM_ENTRY=0x$(ADDRESS) -D_CONFIG
 
 ifeq ($(filter debug,$(MAKECMDGOALS)),debug)
     EE_CFLAGS := $(EE_CFLAGS) -DDEBUG

@@ -21,6 +21,9 @@ SECTIONS {
 #endif
 		_ftext = . ;
 		*(.text)
+#ifdef _CONFIG
+		KEEP(*(.config))
+#endif
 		*(.text.*)
 		*(.gnu.linkonce.t*)
 	}

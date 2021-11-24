@@ -6,7 +6,6 @@
 #include <libdl/color.h>
 #include <libdl/string.h>
 #include <libdl/game.h>
-#include <libdl/map.h>
 #include <libdl/gamesettings.h>
 #include "include/config.h"
 
@@ -635,50 +634,50 @@ void onMenuUpdate(int inGame)
 
   if (isConfigMenuActive)
   {
-    // prevent pad from affecting menus
-    padDisableInput();
+		// prevent pad from affecting menus
+		padDisableInput();
 
-    // draw
-    if (padGetButton(0, PAD_L3) <= 0)
-    {
-      // draw frame
-      drawFrame();
+		// draw
+		if (padGetButton(0, PAD_L3) <= 0)
+		{
+			// draw frame
+			drawFrame();
 
-      // draw tab
-      drawTab(tab);
-    }
+			// draw tab
+			drawTab(tab);
+		}
 
-    // nav tab right
-    if (padGetButtonDown(0, PAD_R1) > 0)
-    {
-      navTab(1);
-    }
-    // nav tab left
-    else if (padGetButtonDown(0, PAD_L1) > 0)
-    {
-      navTab(-1);
-    }
-    // close
-    else if (padGetButtonUp(0, PAD_TRIANGLE) > 0 || padGetButtonDown(0, PAD_R3) > 0)
-    {
-      configMenuDisable();
-    }
-  }
-  else if (!inGame)
-  {
-    if (uiGetActive() == UI_ID_ONLINE_MAIN_MENU)
-    {
-      // render message
-      gfxScreenSpaceBox(0.1, 0.75, 0.4, 0.05, colorOpenBg);
-      gfxScreenSpaceText(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.775, 1, 1, 0x80FFFFFF, "\x1f Open Config Menu", -1, 4);
-    }
+		// nav tab right
+		if (padGetButtonDown(0, PAD_R1) > 0)
+		{
+			navTab(1);
+		}
+		// nav tab left
+		else if (padGetButtonDown(0, PAD_L1) > 0)
+		{
+			navTab(-1);
+		}
+		// close
+		else if (padGetButtonUp(0, PAD_TRIANGLE) > 0 || padGetButtonDown(0, PAD_R3) > 0)
+		{
+			configMenuDisable();
+		}
+	}
+	else if (!inGame)
+  	{
+		if (uiGetActive() == UI_ID_ONLINE_MAIN_MENU)
+		{
+			// render message
+			gfxScreenSpaceBox(0.1, 0.75, 0.4, 0.05, colorOpenBg);
+			gfxScreenSpaceText(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.775, 1, 1, 0x80FFFFFF, "\x1f Open Mod Menu", -1, 4);
+		}
 
 		// check for pad input
 		if (padGetButtonDown(0, PAD_R3) > 0)
 		{
-      configMenuEnable();
+			configMenuEnable();
 		}
-  }
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -800,7 +799,8 @@ void configMenuEnable(void)
 void onOnlineMenu(void)
 {
 	// call normal draw routine
-	((void (*)(void))0x00707F28)();
+	// Original
+	//((void (*)(void))0x00707F28)();
 
 	// settings
 	onConfigOnlineMenu();
@@ -812,10 +812,19 @@ int main(void)
 	dlPreUpdate();
 
 	// Hook menu loop
-	*(u32*)0x00594CB8 = 0x0C000000 | ((u32)(&onOnlineMenu) / 4);
+	// Orignial
+	// if (*(u32*)0x00594CBC == 0)
+	// 	*(u32*)0x00594CB8 = 0x0C000000 | ((u32)(&onOnlineMenu) / 4);
+
+	// if (*(u32*)0x00594CBC == 0)
+		// This one Only Activaes when a menu is closing.
+		//*(u32*)0x00707FE8 = 0x0C000000 | ((u32)(&onOnlineMenu) / 4);
+
+	if (*(u32*)0x00594CBC == 0)
+		*(u32*)0x0061E1B4 = 0x08000000 | ((u32)(&onOnlineMenu) / 4);
 
 	// Call this last
 	dlPostUpdate();
 
-	return 1;
+	return 0;
 }
