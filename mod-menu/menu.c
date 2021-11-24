@@ -8,6 +8,7 @@
 #include <libdl/game.h>
 #include <libdl/gamesettings.h>
 #include "include/menu.h"
+#include <libdl/mc.h>
 
 #define LINE_HEIGHT         (0.05)
 #define LINE_HEIGHT_3_2     (0.075)
@@ -16,6 +17,9 @@
 int isConfigMenuActive = 0;
 int selectedTabItem = 0;
 u32 padPointer = 0;
+
+//Save location
+char * file = "/BASCUS-97465RATCHET/patch.bin";
 
 // Config
 extern PatchConfig_t config;
@@ -66,21 +70,70 @@ void menuStateAlwaysEnabledHandler(TabElem_t* tab, MenuElem_t* element, int* sta
 void menuLabelStateHandler(TabElem_t* tab, MenuElem_t* element, int* state);
 
 void tabDefaultStateHandler(TabElem_t* tab, int * state);
+void SaveConfig(TabElem_t* tab, MenuElem_t* element);
 
 void navMenu(TabElem_t* tab, int direction, int loop);
 void navTab(int direction);
 
-// general tab menu items
-MenuElem_t menuElementsGeneral[] = {
+MenuElem_ListData_t dataInfiniteChargeboot = {
+    &config.enableInfiniteChargeboot,
+    NULL,
+    3,
+    {
+      "Off",
+      "Troy's",
+      "Ethan's",
+    }
+};
+
+// In Game Codes
+MenuElem_t menuElementsInGame[] = {
+  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
+  { "Free Cam", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
+  // { "Singleplayer Music", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
+  { "Follow Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFollowAimer },
+  { "Infinite Chargeboot", listActionHandler, menuStateAlwaysEnabledHandler, &dataInfiniteChargeboot },
+  { "Render All", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRenderAll },
+  { "Rapid Fire Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFireWeapons },
+  { "Walk Through Walls", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkThroughWalls },
+  { "Rapid Fire Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFireVehicles },
+  { "Lots of Deaths", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLotsOfDeaths },
+  { "No Respawn Timer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableNoRespawnTimer },
+  { "Walk Fast", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkFast },
+  { "Airwalk", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableAirwalk },
+  { "Flying Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFlyingVehicles },
+  { "Surfing Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSurfingVehicles },
+  { "Fast Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFastVehicles },
+  { "Respawn Anywhere", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRespawnAnywhere },
+  { "Disable vSync", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
+  { "Have All Omega and Alpha Mods", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableOmegaAlphaMods },
+  { "Have All Skill Points", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSkillPoints },
+  { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
+  { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
+  // { "Cheats Menu: Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuFusionAimer },
+  { "Hacked Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
+  { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion }
+
+};
+
+MenuElem_t menuElementsInLobby[] = {
+  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Mask Username", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
-  { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard }
+  { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
+  { "Force G^", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
+  { "Host Options", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHostOptions },
+  { "Vehicle Select", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVehicleSelect },
+  { "Form Party and Unkick", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFormPartyUnkick },
+  { "Max Typing Limit", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaxTypingLimit },
+  { "More Team Colors", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMoreTeamColors }
 
 };
 
 // tab items
 TabElem_t tabElements[] = {
-  { "General", tabDefaultStateHandler, menuElementsGeneral, sizeof(menuElementsGeneral)/sizeof(MenuElem_t) }
+  { "In Game", tabDefaultStateHandler, menuElementsInGame, sizeof(menuElementsInGame)/sizeof(MenuElem_t) },
+  { "In Lobby", tabDefaultStateHandler, menuElementsInLobby, sizeof(menuElementsInLobby)/sizeof(MenuElem_t) }
 };
 
 const int tabsCount = sizeof(tabElements)/sizeof(TabElem_t);
@@ -794,4 +847,37 @@ void configMenuEnable(void)
   tabElements[selectedTabItem].stateHandler(&tabElements[selectedTabItem], &state);
   if ((state & ELEMENT_SELECTABLE) == 0 || (state & ELEMENT_VISIBLE) == 0)
     selectedTabItem = 0;
+}
+
+void SaveConfig(TabElem_t* tab, MenuElem_t* element)
+{
+  // Close menu when saving
+  configMenuDisable();
+
+  int fd;
+  // was original 0x10000, which is the whole file, but we actually don't need it.
+  // I do apply a buffer just in case if we need it, but probably wont.
+  char copy[0x1200];
+  // Port, Slot, Path, Mode
+  /*
+    Modes:
+    Read: 1
+    Write: 2
+  */
+  McOpen(0, 0, file, 2);
+  McSync(0, NULL, &fd);
+  // if (fd >= 0)
+  // {
+  //   printf("\nOpened file");
+  // }
+  memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
+  //sprintf(&copy[0xc00], &test); // string[offset], new data
+  McWrite(fd, &copy, 0x1200); // fd, data, size
+  McClose(fd);
+  McSync(0, NULL, &fd);
+  uiShowOkDialog("Save File", "File has been saved! :D");
+  // if (fd >= 0)
+  // {
+  // 	printf("\nFile Closed!");
+  // }
 }
