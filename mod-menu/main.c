@@ -13,9 +13,16 @@
 #include <libdl/dl.h>
 #include "include/menu.h"
 
+void onConfigOnlineMenu(void);
+void onConfigGameMenu(void);
+void configMenuEnable(void);
+void configMenuDisable(void);
+int GetActiveUIPointer(u8 UI);
+void internal_wadGetSectors(u64, u64, u64);
+
 // config
 PatchConfig_t config __attribute__((section(".config"))) = {
-    NULL, // Save Config
+    // NULL, // Save Config
 	0, // Infinite Health/Moonjump
     0, // Mask Username
     0, // Hacked Keyboard
@@ -81,6 +88,11 @@ int lastMenuInvokedTime = 0;
 int lastGameState = 0;
 int isInStaging = 0;
 
+const char ModMenuStr[] = "MOD MENU";
+const char HackedStartMenuOptions[] = "OPTIONS";
+const char HackedStartMenuCheats[] = "CHEATS";
+const char HackedStartMenuWeapons[] = "WEAPONS";
+
 char _InfiniteHealthMoonjump_Init = 0;
 char _MaskUsername_Init = 0;
 char _HackedKeyboard_Init = 0;
@@ -110,12 +122,6 @@ VECTOR CameraPosition,
 		delta;
 char RenderAllData[0x280];
 
-void onConfigOnlineMenu(void);
-void onConfigGameMenu(void);
-void configMenuDisable(void);
-int GetActiveUIPointer(u8 UI);
-void internal_wadGetSectors(u64, u64, u64);
-
 /*========================================================*\
 ========
 ================      Infinite Health/Moonjump Logic
@@ -124,7 +130,7 @@ void internal_wadGetSectors(u64, u64, u64);
 void InfiniteHealthMoonjump()
 {
 
-	if (!gameIsIn() || !&config.enableInfiniteHealthMoonjump)
+	if (!gameIsIn() || !config.enableInfiniteHealthMoonjump)
 	{
 		_InfiniteHealthMoonjump_Init = 0;
 		return;
@@ -161,7 +167,7 @@ void InfiniteHealthMoonjump()
 \*========================================================*/
 void MaskUsername()
 {
-	if (!&config.enableMaskUsername)
+	if (!config.enableMaskUsername)
 		return;
 
 	if (gameIsIn())
@@ -382,7 +388,7 @@ void FreeCam()
 	PadButtonStatus * pad = playerGetPad(player);
 	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 
-	if (!_FreeCam_Init && &config.enableFreeCam)
+	if (!_FreeCam_Init && config.enableFreeCam)
 	{
 		// Don't activate if player is in Vehicle
 		// Activate with L1 + R1 + L3
@@ -395,7 +401,7 @@ void FreeCam()
 	else if (_FreeCam_Init)
 	{
 		// Deactivate with L1 + R1 + R3 or _InitiateAllCodes == 0
-		if ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0 || !&config.enableFreeCam)
+		if ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0 || !config.enableFreeCam)
 		{
 			_FreeCam_Init = 0;
 			// Triange: Set Player Position to current Camera Position
@@ -631,7 +637,7 @@ void CampaignMusic()
 	if(gameIsIn())
 	{
 		// if Cheats are Active
-		if (&config.enableSingleplayerMusic)
+		if (config.enableSingleplayerMusic)
 		{
 			// if TRACK_MAX_RANGE doesn't equal TotalTracks
 			// This will only happen in game if all codes are turned off and back on.
@@ -640,7 +646,7 @@ void CampaignMusic()
 				*(u32*)0x0021EC0C = TotalTracks;
 			}
 		}
-		else if (!&config.enableSingleplayerMusic)
+		else if (!config.enableSingleplayerMusic)
 		{
 			// Reset number of tracks to play to original 10.
 			if (*(u32*)0x0021EC0C != 0x0a)
@@ -673,7 +679,7 @@ void CampaignMusic()
 \*========================================================*/
 void FollowAimer()
 {
-	if (!gameIsIn() || !&config.enableFollowAimer)
+	if (!gameIsIn() || !config.enableFollowAimer)
 	{
 		_FollowAimer_Init = 0;
 		return;
@@ -702,7 +708,7 @@ void FollowAimer()
 \*========================================================*/
 void ForceGUp()
 {
-	if (gameIsIn() || !&config.enableForceGUp)
+	if (gameIsIn() || !config.enableForceGUp)
 	{
 		_ForceGUp_Init = 0;
 		return;
@@ -737,7 +743,7 @@ void ForceGUp()
 void HostOptions()
 {
 	// exit if in game or not in game lobby and not host
-	if (gameIsIn() || (*(u32*)0x00173aec == -1) || (*(u32*)0x001723b0 == 0) || !&config.enableHostOptions)
+	if (gameIsIn() || (*(u32*)0x00173aec == -1) || (*(u32*)0x001723b0 == 0) || !config.enableHostOptions)
 	{
 		_HostOptions_Init = 0;
 		_HostOptions_ReadyPlayer = 0;
@@ -853,7 +859,7 @@ void LoadVehicleSub()
 void VehicleSelect()
 {
 	// If not on Create Game menu or in game or in local play
-	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136) || !&config.enableVehicleSelect)
+	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136) || !config.enableVehicleSelect)
 	{
 		_VehicleSelect_Init = 0;
 		if (gameIsIn())
@@ -903,7 +909,7 @@ void FormPartyUnkick()
 {
 	if(!gameIsIn() && (*(u32*)0x00173aec == -1))
 	{
-		if (&config.enableFormPartyUnkick)
+		if (config.enableFormPartyUnkick)
 		{
 			// Online Lobby, show Form Party option
 			int ActiveUI = GetActiveUIPointer(UIP_ONLINE_LOBBY);
@@ -937,7 +943,7 @@ void FormPartyUnkick()
 				*(u32*)0x0075948c = 0;
 			}
 		}
-		else if(!&config.enableFormPartyUnkick)
+		else if(!config.enableFormPartyUnkick)
 		{
 			int ActiveUI = GetActiveUIPointer(UIP_ONLINE_LOBBY);
 			if (ActiveUI != 0)
@@ -966,7 +972,7 @@ void FormPartyUnkick()
 \*========================================================*/
 void MaxTypingLimit()
 {
-	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && &config.enableMaxTypingLimit)
+	if(!gameIsIn() && (*(u32*)0x00173aec == -1) && config.enableMaxTypingLimit)
 	{
 		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
 		if ((pad->btns & (PAD_L1 | PAD_R1)) == 0)
@@ -986,7 +992,7 @@ void MaxTypingLimit()
 \*========================================================*/
 void MoreTeamColors()
 {
-	if(!gameIsIn() && &config.enableMoreTeamColors)
+	if(!gameIsIn() && config.enableMoreTeamColors)
 	{
 		int ChangeSkinTeamArea = GetActiveUIPointer(UIP_CHANGE_SKIN_TEAM);
 		if (ChangeSkinTeamArea != 0)
@@ -1011,14 +1017,14 @@ void MoreTeamColors()
 \*========================================================*/
 void InfiniteChargeboot()
 {
-	if (gameIsIn() && &config.enableInfiniteChargeboot != 0)
+	if (gameIsIn() && config.enableInfiniteChargeboot != 0)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
 		// I joker it this way because it will always load whenever I press L2
 		// if done with PAD_L2
 		// This is used to see if a certain byte is set. If so joker with L1 + L2, if not, just use L2.
-		if (pad->btns == ((&config.enableInfiniteChargeboot == 2) ? 0xFAFF : 0xFEFF))
+		if (pad->btns == ((config.enableInfiniteChargeboot == 2) ? 0xFAFF : 0xFEFF))
 		{
 			player->TicksSinceStateChanged = 0x27;
 		}
@@ -1037,7 +1043,7 @@ void RenderAll()
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
 		// if render function has not been modified, then do so.
-		if ((pad->btns & (PAD_SELECT | PAD_LEFT)) == 0 && (*(u32*)0x00240b40 == 0) && &config.enableRenderAll)
+		if ((pad->btns & (PAD_SELECT | PAD_LEFT)) == 0 && (*(u32*)0x00240b40 == 0) && config.enableRenderAll)
 		{
 			// Copy Render Data and save it.
 			memcpy((u8*)0x00240b40, (u8*)0x00240A40, 0x280);
@@ -1053,7 +1059,7 @@ void RenderAll()
 			// Set render data to -1.
 			memset((u8*)0x00240A40, 0xff, 0x280);
 		}
-		else if (((pad->btns & (PAD_SELECT | PAD_RIGHT)) == 0 && *(u32*)0x00240A40 == -1) || (!&config.enableRenderAll && *(u32*)0x00240A40 == -1))
+		else if (((pad->btns & (PAD_SELECT | PAD_RIGHT)) == 0 && *(u32*)0x00240A40 == -1) || (!config.enableRenderAll && *(u32*)0x00240A40 == -1))
 		{
 			// If Off, turn functions back to normal.
 			*(u32*)0x004C0760 = 0x0C135C40;
@@ -1078,7 +1084,7 @@ void RenderAll()
 \*========================================================*/
 void RapidFireWeapons()
 {
-	if (gameIsIn() && &config.enableRapidFireWeapons)
+	if (gameIsIn() && config.enableRapidFireWeapons)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1101,12 +1107,12 @@ void WalkThroughWalls()
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
 		// PAD_L1 | PAD_LEFT
-		if (pad->btns == 0xFB7F && &config.enableWalkThroughWalls)
+		if (pad->btns == 0xFB7F && config.enableWalkThroughWalls)
 		{
 			*(u32*)0x00347e40 = 0x22a3;
 		}
 		// PAD_L1 | PAD_RIGHT
-		else if (pad->btns == 0xFBDF || !&config.enableWalkThroughWalls)
+		else if (pad->btns == 0xFBDF || !config.enableWalkThroughWalls)
 		{
 			*(u32*)0x00347e40 = 0;
 		}
@@ -1124,7 +1130,7 @@ void RapidFireVehicles()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0 && &config.enableRapidFireVehicles)
+		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0 && config.enableRapidFireVehicles)
 		{
 			*(u32*)0x00453C7C = 0x24020000;
 			*(u32*)0x0045A440 = 0x24030000;
@@ -1158,7 +1164,7 @@ void RapidFireVehicles()
 \*========================================================*/
 void LotsOfDeaths()
 {
-	if (gameIsIn() && &config.enableLotsOfDeaths && _FreeCam_Init == 0)
+	if (gameIsIn() && config.enableLotsOfDeaths && _FreeCam_Init == 0)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1178,7 +1184,7 @@ void NoRespawnTimer()
 {
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
-	if (gameIsIn() && pad->btns == 0xBFFF && _FreeCam_Init == 0 && &config.enableNoRespawnTimer)
+	if (gameIsIn() && pad->btns == 0xBFFF && _FreeCam_Init == 0 && config.enableNoRespawnTimer)
 	{
 		*(u16*)0x00347e52 = 0;
 	}
@@ -1195,11 +1201,11 @@ void WalkFast()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if ((pad->btns & (PAD_R3 | PAD_LEFT)) == 0 && &config.enableWalkFast)
+		if ((pad->btns & (PAD_R3 | PAD_LEFT)) == 0 && config.enableWalkFast)
 		{
 			*(u32*)0x0034aa60 = 0x60f00000;
 		}
-		else if ((pad->btns & (PAD_R3 | PAD_RIGHT)) == 0 || (!&config.enableWalkFast && *(u32*)0x0034aa60 != 0x3f800000))
+		else if ((pad->btns & (PAD_R3 | PAD_RIGHT)) == 0 || (!config.enableWalkFast && *(u32*)0x0034aa60 != 0x3f800000))
 		{
 			*(u32*)0x0034aa60 = 0x3f800000;
 		}
@@ -1213,7 +1219,7 @@ void WalkFast()
 \*========================================================*/
 void AirWalk()
 {
-	if (gameIsIn() && &config.enableAirwalk)
+	if (gameIsIn() && config.enableAirwalk)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1242,7 +1248,7 @@ void AirWalk()
 \*========================================================*/
 void FlyingVehicles()
 {
-	if (gameIsIn() && &config.enableFlyingVehicles)
+	if (gameIsIn() && config.enableFlyingVehicles)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1269,7 +1275,7 @@ void FlyingVehicles()
 \*========================================================*/
 void SurfingVehicles()
 {
-	if (gameIsIn() && &config.enableSurfingVehicles)
+	if (gameIsIn() && config.enableSurfingVehicles)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1297,7 +1303,7 @@ void SurfingVehicles()
 \*========================================================*/
 void FastVehicles()
 {
-	if (gameIsIn() && &config.enableFastVehicles)
+	if (gameIsIn() && config.enableFastVehicles)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1326,7 +1332,7 @@ void FastVehicles()
 \*========================================================*/
 void RespawnAnywhere()
 {
-	if (gameIsIn() && &config.enableRespawnAnywhere)
+	if (gameIsIn() && config.enableRespawnAnywhere)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1345,11 +1351,11 @@ void RespawnAnywhere()
 void vSync()
 {
 	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-	if ((pad->btns & (PAD_R3 | PAD_UP)) == 0 && (*(u32*)0x00138dd0 != 0) && &config.enableVSync)
+	if ((pad->btns & (PAD_R3 | PAD_UP)) == 0 && (*(u32*)0x00138dd0 != 0) && config.enableVSync)
 	{
 		*(u32*)0x00138dd0 = 0;
 	}
-	else if (((pad->btns & (PAD_R3 | PAD_DOWN)) == 0 || !&config.enableVSync) && *(u32*)0x00138dd0 == 0)
+	else if (((pad->btns & (PAD_R3 | PAD_DOWN)) == 0 || !config.enableVSync) && *(u32*)0x00138dd0 == 0)
 	{
 		*(u32*)0x00138dd0 = 0x0c049c30;
 	}
@@ -1362,7 +1368,7 @@ void vSync()
 \*========================================================*/
 void OmegaAlphaMods()
 {
-	if (gameIsIn() && &config.enableOmegaAlphaMods)
+	if (gameIsIn() && config.enableOmegaAlphaMods)
 	{
 		void * Pointer = (void*)(*(u32*)0x0034a184);
 		if(*(u32*)(Pointer + 0x20) != 0x63636300)
@@ -1381,7 +1387,7 @@ void OmegaAlphaMods()
 \*========================================================*/
 void SkillPoints()
 {
-	if (gameIsIn() && (*(u32*)0x00171BA8 == 0) && &config.enableSkillPoints)
+	if (gameIsIn() && (*(u32*)0x00171BA8 == 0) && config.enableSkillPoints)
 	{
 		int num;
 		for(num = 0; num < 0xb; num++)
@@ -1398,7 +1404,7 @@ void SkillPoints()
 \*========================================================*/
 void CheatsMenuWeapons()
 {
-	if (!&config.enableCheatsMenuWeapons)
+	if (!config.enableCheatsMenuWeapons)
 		return;
 
 	// No need to check if in game because it does that in HackedStartMenu()
@@ -1459,7 +1465,7 @@ void CheatsMenuWeapons()
 \*========================================================*/
  void CheatsMenuEndGame()
  {
-	if (&config.enableCheatsMenuEndGame)
+	if (config.enableCheatsMenuEndGame)
 	{
 		*(u8*)0x00393a88 = 0x20;
 		*(u16*)0x00393a94 = 0x014e;
@@ -1480,7 +1486,7 @@ void CheatsMenuWeapons()
 \*=========================================================*/
 void CheatsMenuFusionAimer()
 {
-	if (!&config.enableCheatsMenuFusionAimer)
+	if (!config.enableCheatsMenuFusionAimer)
 		return;
 	
 	// Use this is you want the pointer to be where the function is at
@@ -1515,21 +1521,41 @@ void CheatsMenuFusionAimer()
 ================      Hacked Start Menu
 ========
 \*========================================================*/
+void SwapJalOptions(long a0, u8 a3)
+{
+	((void (*)(long, u32, u32, u8))0x005600F8)(a0, &HackedStartMenuOptions, 0x00561190, a3);
+}
+void SwapJalCheats(long a0, u8 a3)
+{
+	((void (*)(long, u32, u32, u8))0x005600F8)(a0, &HackedStartMenuCheats, 0x00561678, a3);
+}
+void SwapJalWeapons(long a0, u8 a3)
+{
+	((void (*)(long, u32, u32, u8))0x005600F8)(a0, &HackedStartMenuWeapons, 0x00560fe0, a3);
+}
 void HackedStartMenu()
 {
 	if (gameIsIn())
 	{
-		if (&config.enableHackedStartMenu)
+		if (config.enableHackedStartMenu)
 		{
-			*(u16*)0x00560338 = 0x1190;
-			*(u32*)0x003104c4 = 0x4954504f;
-			*(u32*)0x003104c8 = 0x00534e4f;
-			*(u16*)0x00560350 = 0x1678;
-			*(u32*)0x00310504 = 0x41454843;
-			*(u32*)0x00310508 = 0x00005354;
-			*(u16*)0x00560368 = 0x0fe0;
-			*(u32*)0x00310544 = 0x50414557;
-			*(u32*)0x00310548 = 0x00534e4f;
+			if (*(u32*)0x00560340 == 0x0C15803E)
+				*(u32*)0x00560340 = 0x0c000000 | ((u32)(&SwapJalOptions) / 4);
+
+			if (*(u32*)0x00560358 == 0x0C15803E)
+				*(u32*)0x00560358 = 0x0c000000 | ((u32)(&SwapJalCheats) / 4);
+
+			if (*(u32*)0x00560370 == 0x0C15803E)
+				*(u32*)0x00560370 = 0x0c000000 | ((u32)(&SwapJalWeapons) / 4);
+			// *(u16*)0x00560338 = 0x1190;
+			// *(u32*)0x003104c4 = 0x4954504f;
+			// *(u32*)0x003104c8 = 0x00534e4f;
+			// *(u16*)0x00560350 = 0x1678;
+			// *(u32*)0x00310504 = 0x41454843;
+			// *(u32*)0x00310508 = 0x00005354;
+			// *(u16*)0x00560368 = 0x0fe0;
+			// *(u32*)0x00310544 = 0x50414557;
+			// *(u32*)0x00310548 = 0x00534e4f;
 			// Load this if Hacked Start Menu is On
 			OmegaAlphaMods();
 			SkillPoints();
@@ -1537,11 +1563,14 @@ void HackedStartMenu()
 			CheatsMenuEndGame();
 			//CheatsMenuFusionAimer(*(u8*)(CodeArea + 0x20));
 		}
-		else if (!&config.enableHackedStartMenu && *(u16*)0x00560338 != 0x19A0)
+		else if (!config.enableHackedStartMenu && *(u32*)0x00560340 != 0x0C15803E)
 		{
-			*(u16*)0x00560338 = 0x19A0;
-			*(u16*)0x00560350 = 0x1A30;
-			*(u16*)0x00560368 = 0x1AD0;
+			*(u32*)0x00560340 = 0x0C15803E;
+			*(u32*)0x00560358 = 0x0C15803E;
+			*(u32*)0x00560370 = 0x0C15803E;
+			// *(u16*)0x00560338 = 0x19A0;
+			// *(u16*)0x00560350 = 0x1A30;
+			// *(u16*)0x00560368 = 0x1AD0;
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
@@ -1558,7 +1587,7 @@ void HackedStartMenu()
 \*========================================================*/
 void LockOnFusion()
 {
-	if (gameIsIn() && &config.enableLockOnFusion && _FreeCam_Init == 0)
+	if (gameIsIn() && config.enableLockOnFusion && _FreeCam_Init == 0)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
@@ -1598,92 +1627,132 @@ int GetActiveUIPointer(u8 UI)
 	}
 }
 
-void onOnlineMenu(void)
+void onStartMenu(void)
 {
-	onConfigOnlineMenu();
+	// call start menu back callback
+	((void (*)(long))0x00560E30)(0);
+	
+	// open config
+	configMenuEnable();
+}
+
+void StartMenuSwapJal(long a0, u8 a3)
+{
+	// Force Start Menu to swap Vibration with Mod Menu
+	/*
+		a0: Unkown
+		a1: String
+		a2: Function Pointer
+		a3: Unkown
+	*/
+	((void (*)(long, u32, u32, u8))0x005600F8)(a0, &ModMenuStr, &onStartMenu, a3);
 }
 
 int main(void)
 {
+	if (*(u32*)0x001CF85C != 0x000F8D29)
+		return;
+
 	// Call this first
 	dlPreUpdate();
 
-    // R3 + R2/L3
-    InfiniteHealthMoonjump();
-	// L2 + R2 + Select
-	MaskUsername();
-	// Select + L2
-	HackedKeyboard();
-    // L1 + R1 + L3/L1 + R1 + R3
-	FreeCam();
-	// R3 + R2/L3 + R2
-	FollowAimer();
-	// L3 + R3 + L1/L2
-	ForceGUp();
-	// L2 + X: Change Team, Start: Ready Player
-	HostOptions();
-	// L1 + R1
-	MaxTypingLimit();
-	// L2 + R2
-	MoreTeamColors();
-	// Hold L2
-	InfiniteChargeboot();
-	// Select + Left/Right
-	RenderAll();
-	// R3 + R1 or R3 + R1 + L2
-	RapidFireWeapons();
-	// L1 + Left/Right
-	WalkThroughWalls();
-	// Hold R3 + R1
-	RapidFireVehicles();
-	// L1 + Up
-	LotsOfDeaths();
-	// Press X
-	NoRespawnTimer();
-	// R3 + Left/Right
-	WalkFast();
-	// Hold L3
-	AirWalk();
-	// Hold L3: High; or Hold R3: Float
-	FlyingVehicles();
-	// Hold L3 or R3
-	SurfingVehicles();
-	// L2 + R2: Fast; L2 + R1: Faster
-	FastVehicles();
-	// Circle + Square
-	RespawnAnywhere();
-	// R3 + Up/Down
-	vSync();
-	// R2 + Up/Down
-	LockOnFusion();
+    // // R3 + R2/L3
+    // InfiniteHealthMoonjump();
+	// // L2 + R2 + Select
+	// MaskUsername();
+	// // Select + L2
+	// HackedKeyboard();
+    // // L1 + R1 + L3/L1 + R1 + R3
+	// FreeCam();
+	// // R3 + R2/L3 + R2
+	// FollowAimer();
+	// // L3 + R3 + L1/L2
+	// ForceGUp();
+	// // L2 + X: Change Team, Start: Ready Player
+	// HostOptions();
+	// // L1 + R1
+	// MaxTypingLimit();
+	// // L2 + R2
+	// MoreTeamColors();
+	// // Hold L2
+	// InfiniteChargeboot();
+	// // Select + Left/Right
+	// RenderAll();
+	// // R3 + R1 or R3 + R1 + L2
+	// RapidFireWeapons();
+	// // L1 + Left/Right
+	// WalkThroughWalls();
+	// // Hold R3 + R1
+	// RapidFireVehicles();
+	// // L1 + Up
+	// LotsOfDeaths();
+	// // Press X
+	// NoRespawnTimer();
+	// // R3 + Left/Right
+	// WalkFast();
+	// // Hold L3
+	// AirWalk();
+	// // Hold L3: High; or Hold R3: Float
+	// FlyingVehicles();
+	// // Hold L3 or R3
+	// SurfingVehicles();
+	// // L2 + R2: Fast; L2 + R1: Faster
+	// FastVehicles();
+	// // Circle + Square
+	// RespawnAnywhere();
+	// // R3 + Up/Down
+	// vSync();
+	// // R2 + Up/Down
+	// LockOnFusion();
 
-	// Always Run
-	// CampaignMusic(); // Added to Server
-	VehicleSelect();
-	FormPartyUnkick();
-	// Hacked Start Menu loads following codes inside:
-	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
-	// No use to have those codes on if cheat menu isn't.
-	HackedStartMenu();
-
+	// // Always Run
+	// // CampaignMusic(); // Added to Server
+	// VehicleSelect();
+	// FormPartyUnkick();
+	// // Hacked Start Menu loads following codes inside:
+	// // Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
+	// // No use to have those codes on if cheat menu isn't.
+	// HackedStartMenu();
 
     if (gameIsIn())
     {
-        onConfigGameMenu();
-
         // close config menu on transition to lobby
 		if (lastGameState != 1)
 			configMenuDisable();
+
+		// No Matter where how I execute the menu in game, it keeps getting stuck in a loop:
+		// ra: 0x0059B720
+		// pc: 0x004D6F10
+		// that area edits this address: 0x0021FFDC
+		// Specifically this branch: 0x0059B714
+
+		// if (*(u32*)0x0031067C == 0x00561C48)
+		//  	*(u32*)0x0031067C = (u32)&onGameStartMenu;
+
+		// Swaps the "Vibration" Option in the Start Menu
+		if (*(u32*)0x005603A0 == 0x0C15803E)
+		{
+			// This commented lines are what gets the game stuck in a loop when selecting the mod menu
+			// *(u32*)0x004C3A30 = 0;
+			// *(u32*)0x004C39F0 = 0;
+			// *(u32*)0x004C3994 = 0;
+			// *(u32*)0x004C3954 = 0;
+			// *(u32*)0x004A8C5C = 0;
+			*(u32*)0x005603A0 = 0x0c000000 | ((u32)(&StartMenuSwapJal) / 4);
+		}
+
+		// trigger config menu update
+		onConfigGameMenu();
 
         lastGameState = 1;
     }
     else
     {
-        // hook mod menu
-        if (*(u32*)0x00594CBC == 0)
-		    *(u32*)0x0061E1B4 = 0x08000000 | ((u32)(&onOnlineMenu) / 4);
+		 // hook mod menu
+        if (*(u32*)0x0061E1B4 == 0x03e00008)
+		    *(u32*)0x0061E1B4 = 0x08000000 | ((u32)(&onConfigOnlineMenu) / 4);
 
-        // close config menu on transition to lobby
+		// close config menu on transition to lobby
 		if (lastGameState != 0)
 			configMenuDisable();
 
@@ -1693,5 +1762,5 @@ int main(void)
 	// Call this last
 	dlPostUpdate();
 
-	return 1;
+	return 0;
 }

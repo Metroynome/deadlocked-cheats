@@ -1,4 +1,3 @@
-//#include <libdl/dl.h>
 #include <libdl/pad.h>
 #include <libdl/ui.h>
 #include <libdl/graphics.h>
@@ -70,7 +69,7 @@ void menuStateAlwaysEnabledHandler(TabElem_t* tab, MenuElem_t* element, int* sta
 void menuLabelStateHandler(TabElem_t* tab, MenuElem_t* element, int* state);
 
 void tabDefaultStateHandler(TabElem_t* tab, int * state);
-void SaveConfig(TabElem_t* tab, MenuElem_t* element);
+//void SaveConfig(TabElem_t* tab, MenuElem_t* element);
 
 void navMenu(TabElem_t* tab, int direction, int loop);
 void navTab(int direction);
@@ -88,7 +87,7 @@ MenuElem_ListData_t dataInfiniteChargeboot = {
 
 // In Game Codes
 MenuElem_t menuElementsInGame[] = {
-  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
+  // { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
   { "Free Cam", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
   // { "Singleplayer Music", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
@@ -118,7 +117,7 @@ MenuElem_t menuElementsInGame[] = {
 };
 
 MenuElem_t menuElementsInLobby[] = {
-  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
+  // { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Mask Username", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
   { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
   { "Force G^", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
@@ -687,6 +686,8 @@ void onMenuUpdate(int inGame)
 
   if (isConfigMenuActive)
   {
+      printf("\nOnMenuUpdate, if IsConfigMenuActive: Check!");
+
 		// prevent pad from affecting menus
 		padDisableInput();
 
@@ -715,6 +716,7 @@ void onMenuUpdate(int inGame)
 		{
 			configMenuDisable();
 		}
+    printf("\nOnMenuUpdate, After if: Check!");
 	}
 	else if (!inGame)
   	{
@@ -849,35 +851,35 @@ void configMenuEnable(void)
     selectedTabItem = 0;
 }
 
-void SaveConfig(TabElem_t* tab, MenuElem_t* element)
-{
-  // Close menu when saving
-  configMenuDisable();
+// void SaveConfig(TabElem_t* tab, MenuElem_t* element)
+// {
+//   // Close menu when saving
+//   configMenuDisable();
 
-  int fd;
-  // was original 0x10000, which is the whole file, but we actually don't need it.
-  // I do apply a buffer just in case if we need it, but probably wont.
-  char copy[0x1200];
-  // Port, Slot, Path, Mode
-  /*
-    Modes:
-    Read: 1
-    Write: 2
-  */
-  McOpen(0, 0, file, 2);
-  McSync(0, NULL, &fd);
-  // if (fd >= 0)
-  // {
-  //   printf("\nOpened file");
-  // }
-  memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
-  //sprintf(&copy[0xc00], &test); // string[offset], new data
-  McWrite(fd, &copy, 0x1200); // fd, data, size
-  McClose(fd);
-  McSync(0, NULL, &fd);
-  uiShowOkDialog("Save File", "File has been saved! :D");
-  // if (fd >= 0)
-  // {
-  // 	printf("\nFile Closed!");
-  // }
-}
+//   int fd;
+//   // was original 0x10000, which is the whole file, but we actually don't need it.
+//   // I do apply a buffer just in case if we need it, but probably wont.
+//   char copy[0x1200];
+//   // Port, Slot, Path, Mode
+//   /*
+//     Modes:
+//     Read: 1
+//     Write: 2
+//   */
+//   McOpen(0, 0, file, 2);
+//   McSync(0, NULL, &fd);
+//   // if (fd >= 0)
+//   // {
+//   //   printf("\nOpened file");
+//   // }
+//   memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
+//   //sprintf(&copy[0xc00], &test); // string[offset], new data
+//   McWrite(fd, &copy, 0x1200); // fd, data, size
+//   McClose(fd);
+//   McSync(0, NULL, &fd);
+//   uiShowOkDialog("Save File", "File has been saved! :D");
+//   // if (fd >= 0)
+//   // {
+//   // 	printf("\nFile Closed!");
+//   // }
+// }
