@@ -1,17 +1,19 @@
-//#include <tamtypes.h>
-#include <libdl/stdio.h>
-#include <libdl/graphics.h>
-#include <libdl/string.h>
-#include <libdl/game.h>
+#include <tamtypes.h>
+#include <libdl/dl.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
+#include "menu.h"
+#include "include/module.h"
+#include <libdl/game.h>
+#include <libdl/string.h>
+#include <libdl/stdio.h>
+#include <libdl/gamesettings.h>
+#include <libdl/graphics.h>
+#include <libdl/ui.h>
 #include <libdl/math.h>
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
-#include <libdl/ui.h>
 #include <libdl/music.h>
-#include <libdl/dl.h>
-#include "include/menu.h"
 
 void onConfigOnlineMenu(void);
 void onConfigGameMenu(void);
@@ -1627,10 +1629,10 @@ int GetActiveUIPointer(u8 UI)
 	}
 }
 
-void onStartMenu(void)
+void onStartMenu(long a0)
 {
 	// call start menu back callback
-	((void (*)(long))0x00560E30)(0);
+	((void (*)(long))0x00560E30)(a0);
 	
 	// open config
 	configMenuEnable();
@@ -1656,63 +1658,63 @@ int main(void)
 	// Call this first
 	dlPreUpdate();
 
-    // // R3 + R2/L3
-    // InfiniteHealthMoonjump();
-	// // L2 + R2 + Select
-	// MaskUsername();
-	// // Select + L2
-	// HackedKeyboard();
-    // // L1 + R1 + L3/L1 + R1 + R3
-	// FreeCam();
-	// // R3 + R2/L3 + R2
-	// FollowAimer();
-	// // L3 + R3 + L1/L2
-	// ForceGUp();
-	// // L2 + X: Change Team, Start: Ready Player
-	// HostOptions();
-	// // L1 + R1
-	// MaxTypingLimit();
-	// // L2 + R2
-	// MoreTeamColors();
-	// // Hold L2
-	// InfiniteChargeboot();
-	// // Select + Left/Right
-	// RenderAll();
-	// // R3 + R1 or R3 + R1 + L2
-	// RapidFireWeapons();
-	// // L1 + Left/Right
-	// WalkThroughWalls();
-	// // Hold R3 + R1
-	// RapidFireVehicles();
-	// // L1 + Up
-	// LotsOfDeaths();
-	// // Press X
-	// NoRespawnTimer();
-	// // R3 + Left/Right
-	// WalkFast();
-	// // Hold L3
-	// AirWalk();
-	// // Hold L3: High; or Hold R3: Float
-	// FlyingVehicles();
-	// // Hold L3 or R3
-	// SurfingVehicles();
-	// // L2 + R2: Fast; L2 + R1: Faster
-	// FastVehicles();
-	// // Circle + Square
-	// RespawnAnywhere();
-	// // R3 + Up/Down
-	// vSync();
-	// // R2 + Up/Down
-	// LockOnFusion();
+    // R3 + R2/L3
+    InfiniteHealthMoonjump();
+	// L2 + R2 + Select
+	MaskUsername();
+	// Select + L2
+	HackedKeyboard();
+    // L1 + R1 + L3/L1 + R1 + R3
+	FreeCam();
+	// R3 + R2/L3 + R2
+	FollowAimer();
+	// L3 + R3 + L1/L2
+	ForceGUp();
+	// L2 + X: Change Team, Start: Ready Player
+	HostOptions();
+	// L1 + R1
+	MaxTypingLimit();
+	// L2 + R2
+	MoreTeamColors();
+	// Hold L2
+	InfiniteChargeboot();
+	// Select + Left/Right
+	RenderAll();
+	// R3 + R1 or R3 + R1 + L2
+	RapidFireWeapons();
+	// L1 + Left/Right
+	WalkThroughWalls();
+	// Hold R3 + R1
+	RapidFireVehicles();
+	// L1 + Up
+	LotsOfDeaths();
+	// Press X
+	NoRespawnTimer();
+	// R3 + Left/Right
+	WalkFast();
+	// Hold L3
+	AirWalk();
+	// Hold L3: High; or Hold R3: Float
+	FlyingVehicles();
+	// Hold L3 or R3
+	SurfingVehicles();
+	// L2 + R2: Fast; L2 + R1: Faster
+	FastVehicles();
+	// Circle + Square
+	RespawnAnywhere();
+	// R3 + Up/Down
+	vSync();
+	// R2 + Up/Down
+	LockOnFusion();
 
-	// // Always Run
-	// // CampaignMusic(); // Added to Server
-	// VehicleSelect();
-	// FormPartyUnkick();
-	// // Hacked Start Menu loads following codes inside:
-	// // Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
-	// // No use to have those codes on if cheat menu isn't.
-	// HackedStartMenu();
+	// Always Run
+	// CampaignMusic(); // Added to Server
+	VehicleSelect();
+	FormPartyUnkick();
+	// Hacked Start Menu loads following codes inside:
+	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
+	// No use to have those codes on if cheat menu isn't.
+	HackedStartMenu();
 
     if (gameIsIn())
     {
@@ -1741,6 +1743,13 @@ int main(void)
 			*(u32*)0x005603A0 = 0x0c000000 | ((u32)(&StartMenuSwapJal) / 4);
 		}
 
+		// // still gets stuck in a loop.
+		// PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+		// if ((pad->btns & (PAD_R3 | PAD_L3)) == 0)
+		// {
+		// 	configMenuEnable();
+		// }
+
 		// trigger config menu update
 		onConfigGameMenu();
 
@@ -1762,5 +1771,5 @@ int main(void)
 	// Call this last
 	dlPostUpdate();
 
-	return 0;
+	return 1;
 }

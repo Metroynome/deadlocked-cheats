@@ -1,46 +1,6 @@
 #ifndef __PATCH_CONFIG_H__
 #define __PATCH_CONFIG_H__
 
-typedef struct PatchConfig
-{
-  // In Game
-  char enableInfiniteHealthMoonjump;
-  char enableFreeCam;
-  char enableSingleplayerMusic;
-  char enableFollowAimer;
-  char enableInfiniteChargeboot;
-  char enableRenderAll;
-  char enableRapidFireWeapons;
-  char enableWalkThroughWalls;
-  char enableRapidFireVehicles;
-  char enableLotsOfDeaths;
-  char enableNoRespawnTimer;
-  char enableWalkFast;
-  char enableAirwalk;
-  char enableFlyingVehicles;
-  char enableSurfingVehicles;
-  char enableFastVehicles;
-  char enableRespawnAnywhere;
-  char enableVSync;
-  char enableOmegaAlphaMods;
-  char enableSkillPoints;
-  char enableCheatsMenuWeapons;
-  char enableCheatsMenuEndGame;
-  char enableCheatsMenuFusionAimer;
-  char enableHackedStartMenu;
-  char enableLockOnFusion;
-
-  // In Lobby
-  char enableMaskUsername;
-  char enableHackedKeyboard;
-  char enableForceGUp;
-  char enableHostOptions;
-  char enableVehicleSelect;
-  char enableFormPartyUnkick;
-  char enableMaxTypingLimit;
-  char enableMoreTeamColors;
-} PatchConfig_t;
-
 enum ActionType
 {
   ACTIONTYPE_DRAW,

@@ -6,8 +6,9 @@
 #include <libdl/string.h>
 #include <libdl/game.h>
 #include <libdl/gamesettings.h>
-#include "include/menu.h"
 #include <libdl/mc.h>
+#include "menu.h"
+#include "include/menu.h"
 
 #define LINE_HEIGHT         (0.05)
 #define LINE_HEIGHT_3_2     (0.075)
@@ -69,7 +70,7 @@ void menuStateAlwaysEnabledHandler(TabElem_t* tab, MenuElem_t* element, int* sta
 void menuLabelStateHandler(TabElem_t* tab, MenuElem_t* element, int* state);
 
 void tabDefaultStateHandler(TabElem_t* tab, int * state);
-//void SaveConfig(TabElem_t* tab, MenuElem_t* element);
+void SaveConfig(TabElem_t* tab, MenuElem_t* element);
 
 void navMenu(TabElem_t* tab, int direction, int loop);
 void navTab(int direction);
@@ -117,7 +118,7 @@ MenuElem_t menuElementsInGame[] = {
 };
 
 MenuElem_t menuElementsInLobby[] = {
-  // { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
+  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Mask Username", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
   { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
   { "Force G^", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
@@ -515,25 +516,25 @@ void drawFrame(void)
   float tabY = frameY + frameTitleH;
 
   // bg
-  gfxScreenSpaceBox(frameX, frameY, frameW, frameH, colorBg);
+  //gfxScreenSpaceBox(frameX, frameY, frameW, frameH, colorBg);
 
   // title bg
-  gfxScreenSpaceBox(frameX, frameY, frameW, frameTitleH, colorRed);
+  //gfxScreenSpaceBox(frameX, frameY, frameW, frameTitleH, colorRed);
 
   // title
   gfxScreenSpaceText(0.5 * SCREEN_WIDTH, (frameY + frameTitleH * 0.5) * SCREEN_HEIGHT, 1, 1, colorText, "Mod Menu", -1, 4);
 
   // footer bg
-  gfxScreenSpaceBox(frameX, frameY + frameH - frameFooterH, frameW, frameFooterH, colorRed);
+  //gfxScreenSpaceBox(frameX, frameY + frameH - frameFooterH, frameW, frameFooterH, colorRed);
 
   // footer
   gfxScreenSpaceText(((frameX + frameW) * SCREEN_WIDTH) - 5, (frameY + frameH) * SCREEN_HEIGHT - 5, 1, 1, colorText, footerText, -1, 8);
 
   // content bg
-  gfxScreenSpaceBox(frameX + contentPaddingX, frameY + frameTitleH + tabBarH + contentPaddingY, frameW - (contentPaddingX*2), frameH - frameTitleH - tabBarH - frameFooterH - (contentPaddingY * 2), colorContentBg);
+  //gfxScreenSpaceBox(frameX + contentPaddingX, frameY + frameTitleH + tabBarH + contentPaddingY, frameW - (contentPaddingX*2), frameH - frameTitleH - tabBarH - frameFooterH - (contentPaddingY * 2), colorContentBg);
 
   // tab bar
-  gfxScreenSpaceBox(tabX, tabY, frameW, tabBarH, colorTabBarBg);
+  //gfxScreenSpaceBox(tabX, tabY, frameW, tabBarH, colorTabBarBg);
 
   // tabs
   for (i = 0; i < tabsCount; ++i)
@@ -554,10 +555,10 @@ void drawFrame(void)
 
       // draw bar
       u32 barColor = selectedTabItem == i ? colorSelected : colorTabBg;
-      gfxScreenSpaceBox(tabX + tabBarPaddingX, tabY, pWidth - (2 * tabBarPaddingX), tabBarH, barColor);
+      //gfxScreenSpaceBox(tabX + tabBarPaddingX, tabY, pWidth - (2 * tabBarPaddingX), tabBarH, barColor);
 
       // draw text
-      gfxScreenSpaceText((tabX + 2*tabBarPaddingX) * SCREEN_WIDTH, (tabY + (0.5 * tabBarH)) * SCREEN_HEIGHT, 1, 1, color, tab->name, -1, 3);
+      //gfxScreenSpaceText((tabX + 2*tabBarPaddingX) * SCREEN_WIDTH, (tabY + (0.5 * tabBarH)) * SCREEN_HEIGHT, 1, 1, color, tab->name, -1, 3);
 
       // increment X
       tabX += pWidth - tabBarPaddingX;
@@ -686,8 +687,6 @@ void onMenuUpdate(int inGame)
 
   if (isConfigMenuActive)
   {
-      printf("\nOnMenuUpdate, if IsConfigMenuActive: Check!");
-
 		// prevent pad from affecting menus
 		padDisableInput();
 
@@ -698,7 +697,7 @@ void onMenuUpdate(int inGame)
 			drawFrame();
 
 			// draw tab
-			drawTab(tab);
+			//drawTab(tab);
 		}
 
 		// nav tab right
@@ -716,10 +715,9 @@ void onMenuUpdate(int inGame)
 		{
 			configMenuDisable();
 		}
-    printf("\nOnMenuUpdate, After if: Check!");
 	}
 	else if (!inGame)
-  	{
+  {
 		if (uiGetActive() == UI_ID_ONLINE_MAIN_MENU)
 		{
 			// render message
@@ -818,6 +816,10 @@ void navTab(int direction)
 void onConfigGameMenu(void)
 {
   onMenuUpdate(1);
+    if (gameIsIn())
+  {
+    printf("\nisConfigMenuActive: %d", isConfigMenuActive);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -851,35 +853,35 @@ void configMenuEnable(void)
     selectedTabItem = 0;
 }
 
-// void SaveConfig(TabElem_t* tab, MenuElem_t* element)
-// {
-//   // Close menu when saving
-//   configMenuDisable();
+void SaveConfig(TabElem_t* tab, MenuElem_t* element)
+{
+  // Close menu when saving
+  configMenuDisable();
 
-//   int fd;
-//   // was original 0x10000, which is the whole file, but we actually don't need it.
-//   // I do apply a buffer just in case if we need it, but probably wont.
-//   char copy[0x1200];
-//   // Port, Slot, Path, Mode
-//   /*
-//     Modes:
-//     Read: 1
-//     Write: 2
-//   */
-//   McOpen(0, 0, file, 2);
-//   McSync(0, NULL, &fd);
-//   // if (fd >= 0)
-//   // {
-//   //   printf("\nOpened file");
-//   // }
-//   memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
-//   //sprintf(&copy[0xc00], &test); // string[offset], new data
-//   McWrite(fd, &copy, 0x1200); // fd, data, size
-//   McClose(fd);
-//   McSync(0, NULL, &fd);
-//   uiShowOkDialog("Save File", "File has been saved! :D");
-//   // if (fd >= 0)
-//   // {
-//   // 	printf("\nFile Closed!");
-//   // }
-// }
+  int fd;
+  // was original 0x10000, which is the whole file, but we actually don't need it.
+  // I do apply a buffer just in case if we need it, but probably wont.
+  char copy[0x1200];
+  // Port, Slot, Path, Mode
+  /*
+    Modes:
+    Read: 1
+    Write: 2
+  */
+  McOpen(0, 0, file, 2);
+  //McSync(0, NULL, &fd);
+  // if (fd >= 0)
+  // {
+  //   printf("\nOpened file");
+  // }
+  memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
+  //sprintf(&copy[0xc00], &test); // string[offset], new data
+  McWrite(fd, &copy, 0x1200); // fd, data, size
+  McClose(fd);
+  //McSync(0, NULL, &fd);
+  uiShowOkDialog("Save File", "File has been saved! :D");
+  // if (fd >= 0)
+  // {
+  // 	printf("\nFile Closed!");
+  // }
+}
