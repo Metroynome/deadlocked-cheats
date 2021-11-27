@@ -3,7 +3,6 @@
 #include <libdl/player.h>
 #include <libdl/pad.h>
 #include "menu.h"
-#include "include/module.h"
 #include <libdl/game.h>
 #include <libdl/string.h>
 #include <libdl/stdio.h>
@@ -24,10 +23,9 @@ void internal_wadGetSectors(u64, u64, u64);
 
 // config
 PatchConfig_t config __attribute__((section(".config"))) = {
-    // NULL, // Save Config
-	0, // Infinite Health/Moonjump
-    0, // Mask Username
-    0, // Hacked Keyboard
+    NULL, // Save Config
+	0,
+    0,
     0,
     0,
     0,
@@ -1084,15 +1082,40 @@ void RenderAll()
 ================      Rapid Fire Weapons
 ========
 \*========================================================*/
-void RapidFireWeapons()
+void RapidFire()
 {
-	if (gameIsIn() && config.enableRapidFireWeapons)
+	if (gameIsIn() && config.enableRapidFire)
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		if ((pad->btns & (PAD_R3 | PAD_R1)) == 0 || (pad->btns & (PAD_R3 | PAD_R1 | PAD_L2)) == 0)
+		if (player->Vehicle == 0 && ((pad->btns & (PAD_R3 | PAD_R1)) == 0 || (pad->btns & (PAD_R3 | PAD_R1 | PAD_L2)) == 0))
 		{
 			player->WeaponCooldownTimer = 0;
+		}
+		// Rapid Fire Vehicles
+		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0)
+		{
+			*(u32*)0x00453C7C = 0x24020000;
+			*(u32*)0x0045A440 = 0x24030000;
+			*(u32*)0x00465AA4 = 0x24020000;
+			*(u32*)0x00471D1C = 0x24030000;
+			*(u32*)0x00473630 = 0xA21401FA;
+			*(u32*)0x004737C8 = 0x24060000;
+			*(u32*)0x0047EAD4 = 0xAE00030C;
+			*(u32*)0x0047CB50 = 0xA24202F1;
+			*(u32*)0x003BF0F8 = 0x24020000;
+		}
+		else if ((*(u32*)0x00453C7C == 0x24020000))
+		{
+			*(u32*)0x00453C7C = 0x24020004;
+			*(u32*)0x0045A440 = 0x2403003C;
+			*(u32*)0x00465AA4 = 0x24020004;
+			*(u32*)0x00471D1C = 0x2403000F;
+			*(u32*)0x00473630 = 0xA20001FA;
+			*(u32*)0x004737C8 = 0x2406000F;
+			*(u32*)0x0047EAD4 = 0xAE03030C;
+			*(u32*)0x0047CB50 = 0xA24302F1;
+			*(u32*)0x003BF0F8 = 0x24020008;
 		}
 	}
 }
@@ -1117,44 +1140,6 @@ void WalkThroughWalls()
 		else if (pad->btns == 0xFBDF || !config.enableWalkThroughWalls)
 		{
 			*(u32*)0x00347e40 = 0;
-		}
-	}
-}
-
-/*========================================================*\
-========
-================      Rapid Fire Vehicles
-========
-\*========================================================*/
-void RapidFireVehicles()
-{
-	if (gameIsIn())
-	{
-		Player * player = (Player*)0x00347aa0;
-		PadButtonStatus * pad = playerGetPad(player);
-		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0 && config.enableRapidFireVehicles)
-		{
-			*(u32*)0x00453C7C = 0x24020000;
-			*(u32*)0x0045A440 = 0x24030000;
-			*(u32*)0x00465AA4 = 0x24020000;
-			*(u32*)0x00471D1C = 0x24030000;
-			*(u32*)0x00473630 = 0xA21401FA;
-			*(u32*)0x004737C8 = 0x24060000;
-			*(u32*)0x0047EAD4 = 0xAE00030C;
-			*(u32*)0x0047CB50 = 0xA24202F1;
-			*(u32*)0x003BF0F8 = 0x24020000;
-		}
-		else if ((*(u32*)0x00453C7C == 0x24020000))
-		{
-			*(u32*)0x00453C7C = 0x24020004;
-			*(u32*)0x0045A440 = 0x2403003C;
-			*(u32*)0x00465AA4 = 0x24020004;
-			*(u32*)0x00471D1C = 0x2403000F;
-			*(u32*)0x00473630 = 0xA20001FA;
-			*(u32*)0x004737C8 = 0x2406000F;
-			*(u32*)0x0047EAD4 = 0xAE03030C;
-			*(u32*)0x0047CB50 = 0xA24302F1;
-			*(u32*)0x003BF0F8 = 0x24020008;
 		}
 	}
 }
@@ -1549,30 +1534,19 @@ void HackedStartMenu()
 
 			if (*(u32*)0x00560370 == 0x0C15803E)
 				*(u32*)0x00560370 = 0x0c000000 | ((u32)(&SwapJalWeapons) / 4);
-			// *(u16*)0x00560338 = 0x1190;
-			// *(u32*)0x003104c4 = 0x4954504f;
-			// *(u32*)0x003104c8 = 0x00534e4f;
-			// *(u16*)0x00560350 = 0x1678;
-			// *(u32*)0x00310504 = 0x41454843;
-			// *(u32*)0x00310508 = 0x00005354;
-			// *(u16*)0x00560368 = 0x0fe0;
-			// *(u32*)0x00310544 = 0x50414557;
-			// *(u32*)0x00310548 = 0x00534e4f;
+
 			// Load this if Hacked Start Menu is On
 			OmegaAlphaMods();
 			SkillPoints();
 			CheatsMenuWeapons();
 			CheatsMenuEndGame();
-			//CheatsMenuFusionAimer(*(u8*)(CodeArea + 0x20));
+			//CheatsMenuFusionAimer();
 		}
 		else if (!config.enableHackedStartMenu && *(u32*)0x00560340 != 0x0C15803E)
 		{
 			*(u32*)0x00560340 = 0x0C15803E;
 			*(u32*)0x00560358 = 0x0C15803E;
 			*(u32*)0x00560370 = 0x0C15803E;
-			// *(u16*)0x00560338 = 0x19A0;
-			// *(u16*)0x00560350 = 0x1A30;
-			// *(u16*)0x00560368 = 0x1AD0;
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
@@ -1629,6 +1603,7 @@ int GetActiveUIPointer(u8 UI)
 	}
 }
 
+
 void onStartMenu(long a0)
 {
 	// call start menu back callback
@@ -1653,7 +1628,12 @@ void StartMenuSwapJal(long a0, u8 a3)
 int main(void)
 {
 	if (*(u32*)0x001CF85C != 0x000F8D29)
-		return;
+		return -1;
+
+	// Mod-Menu Patch.bin hook: 0x00138DD0
+	// run original jal that mod-menu hook took over
+	// Still needs to be changed.  Disable vSync disables mod-menu.
+	((void (*)(void))0x001270C0)();
 
 	// Call this first
 	dlPreUpdate();
@@ -1681,11 +1661,9 @@ int main(void)
 	// Select + Left/Right
 	RenderAll();
 	// R3 + R1 or R3 + R1 + L2
-	RapidFireWeapons();
+	RapidFire();
 	// L1 + Left/Right
 	WalkThroughWalls();
-	// Hold R3 + R1
-	RapidFireVehicles();
 	// L1 + Up
 	LotsOfDeaths();
 	// Press X
@@ -1706,7 +1684,6 @@ int main(void)
 	vSync();
 	// R2 + Up/Down
 	LockOnFusion();
-
 	// Always Run
 	// CampaignMusic(); // Added to Server
 	VehicleSelect();
@@ -1722,33 +1699,11 @@ int main(void)
 		if (lastGameState != 1)
 			configMenuDisable();
 
-		// No Matter where how I execute the menu in game, it keeps getting stuck in a loop:
-		// ra: 0x0059B720
-		// pc: 0x004D6F10
-		// that area edits this address: 0x0021FFDC
-		// Specifically this branch: 0x0059B714
-
-		// if (*(u32*)0x0031067C == 0x00561C48)
-		//  	*(u32*)0x0031067C = (u32)&onGameStartMenu;
-
 		// Swaps the "Vibration" Option in the Start Menu
 		if (*(u32*)0x005603A0 == 0x0C15803E)
 		{
-			// This commented lines are what gets the game stuck in a loop when selecting the mod menu
-			// *(u32*)0x004C3A30 = 0;
-			// *(u32*)0x004C39F0 = 0;
-			// *(u32*)0x004C3994 = 0;
-			// *(u32*)0x004C3954 = 0;
-			// *(u32*)0x004A8C5C = 0;
 			*(u32*)0x005603A0 = 0x0c000000 | ((u32)(&StartMenuSwapJal) / 4);
 		}
-
-		// // still gets stuck in a loop.
-		// PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
-		// if ((pad->btns & (PAD_R3 | PAD_L3)) == 0)
-		// {
-		// 	configMenuEnable();
-		// }
 
 		// trigger config menu update
 		onConfigGameMenu();

@@ -8,7 +8,6 @@
 #include <libdl/gamesettings.h>
 #include <libdl/mc.h>
 #include "menu.h"
-#include "include/menu.h"
 
 #define LINE_HEIGHT         (0.05)
 #define LINE_HEIGHT_3_2     (0.075)
@@ -81,23 +80,21 @@ MenuElem_ListData_t dataInfiniteChargeboot = {
     3,
     {
       "Off",
-      "Troy's",
-      "Ethan's",
+      "Hold \x16",
+      "Hold \x16 + \x14",
     }
 };
 
 // In Game Codes
 MenuElem_t menuElementsInGame[] = {
-  // { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
   { "Free Cam", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
   // { "Singleplayer Music", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
   { "Follow Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFollowAimer },
   { "Infinite Chargeboot", listActionHandler, menuStateAlwaysEnabledHandler, &dataInfiniteChargeboot },
   { "Render All", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRenderAll },
-  { "Rapid Fire Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFireWeapons },
+  { "Rapid Fire Weapons and Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFire },
   { "Walk Through Walls", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkThroughWalls },
-  { "Rapid Fire Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFireVehicles },
   { "Lots of Deaths", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLotsOfDeaths },
   { "No Respawn Timer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableNoRespawnTimer },
   { "Walk Fast", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkFast },
@@ -109,16 +106,15 @@ MenuElem_t menuElementsInGame[] = {
   { "Disable vSync", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
   { "Have All Omega and Alpha Mods", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableOmegaAlphaMods },
   { "Have All Skill Points", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSkillPoints },
+  { "Hacked Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
   { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
   { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   // { "Cheats Menu: Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuFusionAimer },
-  { "Hacked Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion }
-
 };
 
+// In Lobby Codes
 MenuElem_t menuElementsInLobby[] = {
-  { "Save", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
   { "Mask Username", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
   { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
   { "Force G^", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
@@ -127,13 +123,27 @@ MenuElem_t menuElementsInLobby[] = {
   { "Form Party and Unkick", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFormPartyUnkick },
   { "Max Typing Limit", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaxTypingLimit },
   { "More Team Colors", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMoreTeamColors }
+};
 
+MenuElem_t menuElementsSave[] = {
+  { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
+  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER }
+};
+
+// Credits
+MenuElem_t menuElementsCredits[] = {
+  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "Dnawrkshp:  libdl, Mod Menu's UI and much more", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL },
+  { "Agent Moose/Metroynome: Codes and modded UI", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL }
 };
 
 // tab items
 TabElem_t tabElements[] = {
   { "In Game", tabDefaultStateHandler, menuElementsInGame, sizeof(menuElementsInGame)/sizeof(MenuElem_t) },
-  { "In Lobby", tabDefaultStateHandler, menuElementsInLobby, sizeof(menuElementsInLobby)/sizeof(MenuElem_t) }
+  { "In Lobby", tabDefaultStateHandler, menuElementsInLobby, sizeof(menuElementsInLobby)/sizeof(MenuElem_t) },
+  { "Save", tabDefaultStateHandler, menuElementsSave, sizeof(menuElementsSave)/sizeof(MenuElem_t) },
+  { "Credits", tabDefaultStateHandler, menuElementsCredits, sizeof(menuElementsCredits)/sizeof(MenuElem_t) }
 };
 
 const int tabsCount = sizeof(tabElements)/sizeof(TabElem_t);
@@ -516,25 +526,25 @@ void drawFrame(void)
   float tabY = frameY + frameTitleH;
 
   // bg
-  //gfxScreenSpaceBox(frameX, frameY, frameW, frameH, colorBg);
+  gfxScreenSpaceBox(frameX, frameY, frameW, frameH, colorBg);
 
   // title bg
-  //gfxScreenSpaceBox(frameX, frameY, frameW, frameTitleH, colorRed);
+  gfxScreenSpaceBox(frameX, frameY, frameW, frameTitleH, colorRed);
 
   // title
   gfxScreenSpaceText(0.5 * SCREEN_WIDTH, (frameY + frameTitleH * 0.5) * SCREEN_HEIGHT, 1, 1, colorText, "Mod Menu", -1, 4);
 
   // footer bg
-  //gfxScreenSpaceBox(frameX, frameY + frameH - frameFooterH, frameW, frameFooterH, colorRed);
+  gfxScreenSpaceBox(frameX, frameY + frameH - frameFooterH, frameW, frameFooterH, colorRed);
 
   // footer
   gfxScreenSpaceText(((frameX + frameW) * SCREEN_WIDTH) - 5, (frameY + frameH) * SCREEN_HEIGHT - 5, 1, 1, colorText, footerText, -1, 8);
 
   // content bg
-  //gfxScreenSpaceBox(frameX + contentPaddingX, frameY + frameTitleH + tabBarH + contentPaddingY, frameW - (contentPaddingX*2), frameH - frameTitleH - tabBarH - frameFooterH - (contentPaddingY * 2), colorContentBg);
+  gfxScreenSpaceBox(frameX + contentPaddingX, frameY + frameTitleH + tabBarH + contentPaddingY, frameW - (contentPaddingX*2), frameH - frameTitleH - tabBarH - frameFooterH - (contentPaddingY * 2), colorContentBg);
 
   // tab bar
-  //gfxScreenSpaceBox(tabX, tabY, frameW, tabBarH, colorTabBarBg);
+  gfxScreenSpaceBox(tabX, tabY, frameW, tabBarH, colorTabBarBg);
 
   // tabs
   for (i = 0; i < tabsCount; ++i)
@@ -555,10 +565,10 @@ void drawFrame(void)
 
       // draw bar
       u32 barColor = selectedTabItem == i ? colorSelected : colorTabBg;
-      //gfxScreenSpaceBox(tabX + tabBarPaddingX, tabY, pWidth - (2 * tabBarPaddingX), tabBarH, barColor);
+      gfxScreenSpaceBox(tabX + tabBarPaddingX, tabY, pWidth - (2 * tabBarPaddingX), tabBarH, barColor);
 
       // draw text
-      //gfxScreenSpaceText((tabX + 2*tabBarPaddingX) * SCREEN_WIDTH, (tabY + (0.5 * tabBarH)) * SCREEN_HEIGHT, 1, 1, color, tab->name, -1, 3);
+      gfxScreenSpaceText((tabX + 2*tabBarPaddingX) * SCREEN_WIDTH, (tabY + (0.5 * tabBarH)) * SCREEN_HEIGHT, 1, 1, color, tab->name, -1, 3);
 
       // increment X
       tabX += pWidth - tabBarPaddingX;
@@ -697,7 +707,7 @@ void onMenuUpdate(int inGame)
 			drawFrame();
 
 			// draw tab
-			//drawTab(tab);
+			drawTab(tab);
 		}
 
 		// nav tab right
@@ -816,10 +826,6 @@ void navTab(int direction)
 void onConfigGameMenu(void)
 {
   onMenuUpdate(1);
-    if (gameIsIn())
-  {
-    printf("\nisConfigMenuActive: %d", isConfigMenuActive);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -849,8 +855,8 @@ void configMenuEnable(void)
   // return to first tab if current is hidden
   int state = 0;
   tabElements[selectedTabItem].stateHandler(&tabElements[selectedTabItem], &state);
-  if ((state & ELEMENT_SELECTABLE) == 0 || (state & ELEMENT_VISIBLE) == 0)
-    selectedTabItem = 0;
+  // if ((state & ELEMENT_SELECTABLE) == 0 || (state & ELEMENT_VISIBLE) == 0)
+  selectedTabItem = 0;
 }
 
 void SaveConfig(TabElem_t* tab, MenuElem_t* element)
@@ -869,7 +875,7 @@ void SaveConfig(TabElem_t* tab, MenuElem_t* element)
     Write: 2
   */
   McOpen(0, 0, file, 2);
-  //McSync(0, NULL, &fd);
+  McSync(0, NULL, &fd);
   // if (fd >= 0)
   // {
   //   printf("\nOpened file");
@@ -878,8 +884,13 @@ void SaveConfig(TabElem_t* tab, MenuElem_t* element)
   //sprintf(&copy[0xc00], &test); // string[offset], new data
   McWrite(fd, &copy, 0x1200); // fd, data, size
   McClose(fd);
-  //McSync(0, NULL, &fd);
-  uiShowOkDialog("Save File", "File has been saved! :D");
+  McSync(0, NULL, &fd);
+
+  if (!gameIsIn() && fd >= 0)
+  {
+    uiShowOkDialog("Save File", "File has been saved! :D");
+  }
+
   // if (fd >= 0)
   // {
   // 	printf("\nFile Closed!");
