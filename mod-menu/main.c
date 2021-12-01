@@ -1681,7 +1681,7 @@ int main(void)
 	// Circle + Square
 	RespawnAnywhere();
 	// R3 + Up/Down
-	vSync();
+	//vSync();
 	// R2 + Up/Down
 	LockOnFusion();
 	// Always Run

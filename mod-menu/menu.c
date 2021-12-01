@@ -103,7 +103,7 @@ MenuElem_t menuElementsInGame[] = {
   { "Surfing Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSurfingVehicles },
   { "Fast Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFastVehicles },
   { "Respawn Anywhere", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRespawnAnywhere },
-  { "Disable vSync", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
+  // { "Disable vSync", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
   { "Have All Omega and Alpha Mods", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableOmegaAlphaMods },
   { "Have All Skill Points", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSkillPoints },
   { "Hacked Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
@@ -867,7 +867,7 @@ void SaveConfig(TabElem_t* tab, MenuElem_t* element)
   int fd;
   // was original 0x10000, which is the whole file, but we actually don't need it.
   // I do apply a buffer just in case if we need it, but probably wont.
-  char copy[0x1200];
+  char copy[0x1080];
   // Port, Slot, Path, Mode
   /*
     Modes:
@@ -880,9 +880,9 @@ void SaveConfig(TabElem_t* tab, MenuElem_t* element)
   // {
   //   printf("\nOpened file");
   // }
-  memcpy(copy, (u8*)0x01DFF000, 0x1200); // dest, src, size
+  memcpy(copy, (u8*)0x01DFF000, 0x1080); // dest, src, size
   //sprintf(&copy[0xc00], &test); // string[offset], new data
-  McWrite(fd, &copy, 0x1200); // fd, data, size
+  McWrite(fd, &copy, 0x1080); // fd, data, size
   McClose(fd);
   McSync(0, NULL, &fd);
 
