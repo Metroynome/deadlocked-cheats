@@ -1210,17 +1210,16 @@ void AirWalk()
 	{
 		Player * player = (Player*)0x00347aa0;
 		PadButtonStatus * pad = playerGetPad(player);
-		//(0xFFFD || 0xF7FD || 0xBFFD || 0x7FFD || 0x6FFD)
 		if (pad->btns == 0xFFFD || pad->btns == 0xBFFD || pad->btns == 0x6FFD)
 		{
 			player->Airwalk = 0;
 		}
-		else if (pad->btns == 0xf7f9)
+		else if (pad->btns == 0xf7f9 && config.enableRapidFire)
 		{
 			player->Airwalk = 0;
 			player->WeaponCooldownTimer = 0;
 		}
-		else if (pad->btns == 0xfefd)
+		else if (pad->btns == 0xfefd && config.enableRapidFire)
 		{
 			player->Airwalk = 0;
 			player->TicksSinceStateChanged = 0x27;

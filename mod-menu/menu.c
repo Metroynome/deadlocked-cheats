@@ -19,6 +19,8 @@ u32 padPointer = 0;
 
 //Save location
 char * file = "/BASCUS-97465RATCHET/patch.bin";
+int Saving = 0;
+int fd = 0;
 
 // Config
 extern PatchConfig_t config;
@@ -69,7 +71,11 @@ void menuStateAlwaysEnabledHandler(TabElem_t* tab, MenuElem_t* element, int* sta
 void menuLabelStateHandler(TabElem_t* tab, MenuElem_t* element, int* state);
 
 void tabDefaultStateHandler(TabElem_t* tab, int * state);
-void SaveConfig(TabElem_t* tab, MenuElem_t* element);
+
+// Saving
+void SaveConfig();
+void EnableSaving(TabElem_t* tab, MenuElem_t* element);
+void RunSavingPopup();
 
 void navMenu(TabElem_t* tab, int direction, int loop);
 void navTab(int direction);
@@ -126,7 +132,7 @@ MenuElem_t menuElementsInLobby[] = {
 };
 
 MenuElem_t menuElementsSave[] = {
-  { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, SaveConfig },
+  { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, EnableSaving },
   { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
   { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER }
 };
@@ -660,6 +666,10 @@ void drawTab(TabElem_t* tab)
   if ((state & ELEMENT_VISIBLE) == 0 || (state & ELEMENT_SELECTABLE) == 0)
     navMenu(tab, 1, 1);
 
+  // Don't move cursor if saving
+  if (Saving != 0)
+    return;
+
   // nav down
   if (padGetButtonDown(0, PAD_DOWN) > 0)
   {
@@ -709,6 +719,13 @@ void onMenuUpdate(int inGame)
 			// draw tab
 			drawTab(tab);
 		}
+
+    // if Save button is pressed
+    RunSavingPopup();
+
+    // Don't switch tabs if saving
+    if (Saving != 0)
+      return;
 
 		// nav tab right
 		if (padGetButtonDown(0, PAD_R1) > 0)
@@ -859,40 +876,78 @@ void configMenuEnable(void)
   selectedTabItem = 0;
 }
 
-void SaveConfig(TabElem_t* tab, MenuElem_t* element)
+void RunSavingPopup(void)
 {
-  // Close menu when saving
-  configMenuDisable();
+	if (Saving == 1)
+	{
+    u32 bgColorDownload = 0x70000000;
+		// render background
+		gfxScreenSpaceBox(0.2, 0.35, 0.6, 0.3, bgColorDownload);
 
-  int fd;
+		// flash color
+		u32 downloadColor = 0x80808080;
+		int gameTime = ((gameGetTime()/100) % 15);
+		if (gameTime > 7)
+			gameTime = 15 - gameTime;
+		downloadColor += 0x101010 * gameTime;
+
+		// render text
+		gfxScreenSpaceText(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, 1, 1, downloadColor, "Saving configuration, please wait...", -1, 4);
+	}
+  else if (Saving == 2)
+  {
+    configMenuDisable();
+    fd = 0;
+    Saving = 0;
+    // printf("\nSave: %d", Saving);
+  }
+  return;
+}
+
+void EnableSaving(TabElem_t* tab, MenuElem_t* element)
+{
+  if (Saving == 0)
+  {
+    Saving = 1;
+    SaveConfig();
+  }
+}
+
+void SaveConfig(void)
+{
   // was original 0x10000, which is the whole file, but we actually don't need it.
   // I do apply a buffer just in case if we need it, but probably wont.
-  char copy[0x1080];
+  char copy[0x1060];
   // Port, Slot, Path, Mode
   /*
     Modes:
     Read: 1
     Write: 2
   */
-  McOpen(0, 0, file, 2);
-  McSync(0, NULL, &fd);
-  // if (fd >= 0)
-  // {
-  //   printf("\nOpened file");
-  // }
-  memcpy(copy, (u8*)0x01DFF000, 0x1080); // dest, src, size
-  //sprintf(&copy[0xc00], &test); // string[offset], new data
-  McWrite(fd, &copy, 0x1080); // fd, data, size
-  McClose(fd);
-  McSync(0, NULL, &fd);
-
-  if (!gameIsIn() && fd >= 0)
+  int Open = McOpen(0, 0, file, 2);
+  if(Open == 0)
   {
-    uiShowOkDialog("Save File", "File has been saved! :D");
+    printf("\nFile opened");
+  }
+  else
+  {
+    printf("\nError opening file.");
+  }
+  McSync(0, NULL, &fd);
+  memcpy(copy, (u8*)0x01DFF000, 0x1060); // dest, src, size
+  McWrite(fd, &copy, 0x1060); // fd, data, size
+  McSync(0, NULL, &fd);
+  int Close = McClose(fd);
+  if(Close == 0)
+  {
+    printf("\nFile Closed");
+  }
+  else
+  {
+    printf("\nError closing file");
   }
 
-  // if (fd >= 0)
-  // {
-  // 	printf("\nFile Closed!");
-  // }
+  // printf("\nfd: %d", fd);
+  // printf("\nSave: %d", Saving);
+  Saving = 2;
 }
