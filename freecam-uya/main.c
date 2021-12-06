@@ -191,8 +191,8 @@ int main(void)
 
 	// Get Local Player
 	void * PlayerPointer = (void*)(*(u32*)0x00225e70);
-	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
-	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;
+	Player * player = (Player*)((u32)PlayerPointer - 0x430C);
+	PadButtonStatus * pad = playerGetPad(player);
 	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 
 	if (!Active)
