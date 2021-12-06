@@ -698,6 +698,10 @@ void drawTab(TabElem_t* tab)
     if (state & ELEMENT_EDITABLE)
       currentElement->handler(tab, currentElement, ACTIONTYPE_DECREMENT, NULL);
   }
+  else if (padGetButtonDown(0, PAD_SQUARE) > 0)
+  {
+    showPopup() // do something
+  }
 }
 
 //------------------------------------------------------------------------------
