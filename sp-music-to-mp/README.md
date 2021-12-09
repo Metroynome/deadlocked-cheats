@@ -1,2 +1,2 @@
-# sp-music-to-mp
-Lets you have all the Single Player tracks in Multiplayer.
+# sp-cutscene-to-mp
+This will let you listen to the cutscene audio form single player in multiplayer.
