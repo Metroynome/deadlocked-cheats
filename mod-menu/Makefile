@@ -3,6 +3,7 @@ EE_BIN_DIR = bin/
 
 EE_ELF = $(EE_BIN_DIR)mod-menu.elf
 EE_BIN = $(EE_BIN_DIR)mod-menu.bin
+EE_PATCH = $(EE_BIN_DIR)patch.bin
 EE_OBJS = main.o menu.o
 EE_LIBS = -ldl -lkernel
 ADDRESS = 01E00000
@@ -40,6 +41,8 @@ code:
 	bin2code $(EE_BIN) $(ADDRESS) $(EE_BIN).pnach pnach-writeonce
 	cat template/footer.raw >> $(EE_BIN).raw
 	cat template/footer.pnach >> $(EE_BIN).pnach
+	cat template/patch-template.bin > $(EE_PATCH)
+	dd conv=notrunc bs=1 if=$(EE_BIN) of=$(EE_PATCH) seek=4096
 
 clean:
 	rm -rf linkfile

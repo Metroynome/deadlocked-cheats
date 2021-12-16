@@ -700,7 +700,7 @@ void drawTab(TabElem_t* tab)
   }
   else if (padGetButtonDown(0, PAD_SQUARE) > 0)
   {
-    showPopup() // do something
+    RunSavingPopup(); // do something
   }
 }
 
