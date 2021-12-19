@@ -1,6 +1,6 @@
 # mod-menu
 Controls:
-    Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
+ ```   Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
     Mask Username (L2 + R2 + Select)
     Hacked Keyboard (L2 + Select)
     Free Cam (L1 + R1 + L3/L1 + R1 + R3)
@@ -30,4 +30,4 @@ Controls:
     Cheats Menu - New Game (No Button Combo; Only works if Hacked Start Menu is On)
     Show Fusion Aimer (No Button Combo)
     Lock On Fusion (R2 + Up/R2 + Down)
-    Distance to Show Names (No Button Combo)
+    Distance to Show Names (No Button Combo)```
