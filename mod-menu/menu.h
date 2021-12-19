@@ -27,6 +27,7 @@ typedef struct PatchConfig
   char enableCheatsMenuEndGame;
   char enableCheatsMenuFusionAimer;
   char enableHackedStartMenu;
+  char enableFusionAimer;
   char enableLockOnFusion;
   char enableDistanceToShowNames;
 

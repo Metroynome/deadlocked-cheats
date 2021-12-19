@@ -1468,38 +1468,27 @@ void CheatsMenuWeapons()
 
  /*========================================================*\
 ========
-================      Cheats Menu - Fusion Aimer
+================      Fusion Aimer
 ========
 \*=========================================================*/
-void CheatsMenuFusionAimer()
+void FusionAimer()
 {
-	if (!config.enableCheatsMenuFusionAimer)
-		return;
-	
-	// Use this is you want the pointer to be where the function is at
-	//*(u32*)0x00393668 = (u32)(&testing);
-
-	int CheatsAddress = 0x0021DE30;
-	int MyCheatAddress = 0x01BF0000;
-	int CheatID = MyCheatAddress + 0x0A;
-	// All cheats are loaded from here: 0x0021DE30
-	// the index of the cheat is then added to the above address.
-	*(u32*)0x00393650 = (u32)CheatID;
-	if (*(u32*)(CheatID + CheatsAddress) == 0x01 && *(u8*)0x0034A12C == 5)
+	if (gameIsIn())
 	{
-		*(u32*)0x004B3840 = 0x00000000;
-		*(u32*)0x004B3848 = 0x00000000;
-		*(u32*)0x0022DFD0 = 0x3F4CCCCD;
-		*(u32*)0x0022DFD4 = 0x40FFFFFF;
-		*(u32*)0x0022DFD8 = 0x00000003;
-		*(u32*)0x0022DFDC = 0x00000000;
-		*(u32*)0x0022DFF8 = 0x42200000;
-		*(u32*)0x0022DFFC = 0x42200000;
-	}
-	else
-	{
-		*(u32*)0x004B3840 = 0x10600059;
-		*(u32*)0x004B3848 = 0x18600050;
+		int FusionAimerBranch = 0x003FAFA8;
+		int FusionAimerBranchData = 0x1062003E;
+		int FusionChargebootBranch = 0x003FAEE0;
+		int FusionChargebootData = 0x10400070;
+		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch != 0)
+		{
+			*(u32*)FusionAimerBranch = 0;
+			*(u32*)FusionChargebootBranch = 0;
+		}
+		else if (config.enableFusionAimer == 0 && *(u32*)FusionAimerBranch == 0)
+		{
+			*(u32*)FusionAimerBranch = FusionAimerBranchData;
+			*(u32*)FusionChargebootBranch = FusionChargebootData;
+		}
 	}
 }
 
@@ -1540,7 +1529,6 @@ void HackedStartMenu()
 			SkillPoints();
 			CheatsMenuWeapons();
 			CheatsMenuEndGame();
-			//CheatsMenuFusionAimer();
 		}
 		else if (!config.enableHackedStartMenu && *(u32*)0x00560340 != 0x0C15803E)
 		{
@@ -1749,8 +1737,10 @@ int main(void)
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu();
-	// Always On
+	// No Button Toggle
 	DistanceToShowNames();
+	// No button Toggle
+	FusionAimer();
 
     if (gameIsIn())
     {
