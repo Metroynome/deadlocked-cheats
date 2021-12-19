@@ -54,7 +54,8 @@ PatchConfig_t config __attribute__((section(".config"))) = {
     0,
     0,
     0,
-    0
+    0,
+	0
 };
 
 short Keys[][2] = {
@@ -1582,6 +1583,58 @@ void LockOnFusion()
 }
 
 /*========================================================*\
+========
+================      Distance To Show Names
+========
+\*========================================================*/
+void DistanceToShowNames()
+{
+	if (gameIsIn())
+	{
+		int Fusion_1 = 0x005DF230;
+		int Arbitor = 0x005DF240;
+		int DualVipers = 0x005DF250;
+		int MagmaCannon = 0x005DF260;
+		int Gadgets = 0x005DF274; // Wrench, Swingshot, Hacker Ray
+		int Other = 0x005DF278; // B6 Obliterator, Hunter Mines, Holoshield, Scorpian Flail
+		int Fusion_2 = 0x003FB5E0; // Fusion has a constant write.
+		// Normal
+		if (config.enableDistanceToShowNames == 0 && *(u16*)Arbitor != 0x42f0)
+		{
+			*(u16*)Fusion_1 = 0x434f;
+			*(u16*)Arbitor = 0x42f0;
+			*(u16*)DualVipers = 0x410c;
+			*(u16*)MagmaCannon = 0x41f0;
+			*(u16*)Other = 0x41a0;
+			*(u16*)Fusion_2 = 0x4296;
+			*(u32*)Gadgets = 0xAE001A90; // sw zero
+		}
+		// Far (Fusion Like)
+		else if (config.enableDistanceToShowNames == 1 && *(u16*)Arbitor != 0x434f)
+		{
+			*(u16*)Fusion_1 = 0x434f;
+			*(u16*)Arbitor = 0x434f;
+			*(u16*)DualVipers = 0x434f;
+			*(u16*)MagmaCannon = 0x434f;
+			*(u16*)Other = 0x434f;
+			*(u16*)Fusion_2 = 0x434f;
+			*(u32*)Gadgets = 0;
+		}
+		// Very Far
+		else if (config.enableDistanceToShowNames == 2 && *(u16*)Arbitor != 0x7fff)
+		{
+			*(u16*)Fusion_1 = 0x5000;
+			*(u16*)Arbitor = 0x5000;
+			*(u16*)DualVipers = 0x5000;
+			*(u16*)MagmaCannon = 0x5000;
+			*(u16*)Other = 0x5000;
+			*(u16*)Fusion_2 = 0x5000;
+			*(u32*)Gadgets = 0;
+		}
+	}
+}
+
+/*========================================================*\
 ========              Grabs the Active Pointer
 ================      if true: returns Pointer
 ========              if false: returns zero
@@ -1626,7 +1679,12 @@ void StartMenuSwapJal(long a0, u8 a3)
 
 int main(void)
 {
+	// if Music is not Loaded, stop.
 	if (*(u32*)0x001CF85C != 0x000F8D29)
+		return -1;
+
+	// if file got corrupted due to saving, stop.
+	if (*(u32*)0x01E00064 == 0x0000991A)
 		return -1;
 
 	// Mod-Menu Patch.bin hook: 0x00138DD0
@@ -1691,6 +1749,8 @@ int main(void)
 	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu();
+	// Always On
+	DistanceToShowNames();
 
     if (gameIsIn())
     {

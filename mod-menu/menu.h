@@ -28,6 +28,7 @@ typedef struct PatchConfig
   char enableCheatsMenuFusionAimer;
   char enableHackedStartMenu;
   char enableLockOnFusion;
+  char enableDistanceToShowNames;
 
   // In Lobby
   char enableMaskUsername;

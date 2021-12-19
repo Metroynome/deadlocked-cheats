@@ -91,6 +91,17 @@ MenuElem_ListData_t dataInfiniteChargeboot = {
     }
 };
 
+MenuElem_ListData_t dataDistanceToShowNames = {
+    &config.enableDistanceToShowNames,
+    NULL,
+    3,
+    {
+      "Normal",
+      "Far",
+      "Very Far",
+    }
+};
+
 // In Game Codes
 MenuElem_t menuElementsInGame[] = {
   { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
@@ -116,7 +127,8 @@ MenuElem_t menuElementsInGame[] = {
   { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
   { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   // { "Cheats Menu: Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuFusionAimer },
-  { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion }
+  { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
+  { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames }
 };
 
 // In Lobby Codes
