@@ -7,8 +7,8 @@ Controls:
     Follow Aimer (L3 + R1 or L3 + L2)
     Force G^ (L3 + R3 + L1/L3 + R3 + L2)
     Host Options (L2 + X: Change Selected Players Team, Select: Ready Selected Player)
-    Vehicle Select (Only works if Hacked Start Menu is On)
-    Form Party and Unkick (Only works if Hacked Start Menu is On)
+    Vehicle Select
+    Form Party and Unkick
     Max Typing Limit (L1 + R1) (Do not use to enter long usernames)
     More Team Colors (L2 + R2)
     Infinite Chargeboot (Hold L2 or Hold L2 + L1)
