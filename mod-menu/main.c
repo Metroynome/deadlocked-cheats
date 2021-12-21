@@ -1526,6 +1526,7 @@ void WeaponsMenuAddons()
 		int ID = player->PlayerId;
 		PlayerWeaponData * playerWeaponData = playerGetWeaponData(ID);
 		int Selected = *(u32*)((u32)WeaponMenu + 0x16C);
+		// L3 + R3: Give Weapons
 		if (((pad->btns & (PAD_L3 | PAD_R3)) == 0) && _HackedStartMenuToggle == 0)
 		{
 			_HackedStartMenuToggle = 1;
@@ -1547,6 +1548,7 @@ void WeaponsMenuAddons()
 		{
 			_HackedStartMenuToggle = 0;
 		}
+		// Square: Decrease Level
 		if ((pad->btns & (PAD_SQUARE)) == 0 && _HackedStartMenuToggle == 0)
 		{
 			int WEAPON = SelectedWeapon(Selected);
@@ -1571,6 +1573,7 @@ void WeaponsMenuAddons()
 		{
 			_HackedStartMenuToggle = 0;
 		}
+		// Circle: Increase Level
 		if ((pad->btns & (PAD_CIRCLE)) == 0 && _HackedStartMenuToggle == 0)
 		{
 			int WEAPON = SelectedWeapon(Selected);
