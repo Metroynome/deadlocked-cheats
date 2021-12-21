@@ -13,6 +13,7 @@
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
 #include <libdl/music.h>
+#include <libdl/weapon.h>
 
 void onConfigOnlineMenu(void);
 void onConfigGameMenu(void);
@@ -113,6 +114,9 @@ int Secondary_Save = 0;
 char _FreeCam_Init = 0;
 char ToggleScoreboard = 0;
 char ToggleRenderAll = 0;
+char _HackedStartMenuToggle = 0;
+char _HackedStartMenuSquare = 0;
+char _HackedStartMenuCircle = 0;
 
 int Map;
 
@@ -1466,6 +1470,135 @@ void CheatsMenuWeapons()
 	}
  }
 
+ /*========================================================*\
+========
+================      Weapons Menu Addons (Give Weapons, v2 ect)
+========
+\*========================================================*/
+void setWeapon(Player * player, PlayerWeaponData * wepData, int weaponId)
+{
+	if (wepData[weaponId].Level < 0)
+	{
+		playerGiveWeapon(player, weaponId, 0);
+		wepData[weaponId].Level = 0;
+	}
+}
+int SelectedWeapon(int Selected)
+{
+	int w = -1;
+	switch(Selected)
+	{
+		case 0:
+			w = WEAPON_ID_FLAIL;
+			break;
+		case 1:
+			w = WEAPON_ID_VIPERS;
+			break;
+		case 2:
+			w = WEAPON_ID_MAGMA_CANNON;
+			break;
+		case 3:
+			w = WEAPON_ID_MINE_LAUNCHER;
+			break;
+		case 4:
+			w = WEAPON_ID_B6;
+			break;
+		case 5:
+			w = WEAPON_ID_ARBITER;
+			break;
+		case 6:
+			w = WEAPON_ID_FUSION_RIFLE;
+			break;
+		case 7:
+			w = WEAPON_ID_OMNI_SHIELD;
+			break;
+	}
+	return w;
+}
+void WeaponsMenuAddons()
+{
+	int Menu = *(u32*)0x0033824C;
+	int WeaponMenu = 0x00312258;
+	if (Menu == WeaponMenu)
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		int ID = player->PlayerId;
+		PlayerWeaponData * playerWeaponData = playerGetWeaponData(ID);
+		int Selected = *(u32*)((u32)WeaponMenu + 0x16C);
+		if (((pad->btns & (PAD_L3 | PAD_R3)) == 0) && _HackedStartMenuToggle == 0)
+		{
+			_HackedStartMenuToggle = 1;
+			setWeapon(player, playerWeaponData, WEAPON_ID_VIPERS);
+			setWeapon(player, playerWeaponData, WEAPON_ID_MAGMA_CANNON);
+			setWeapon(player, playerWeaponData, WEAPON_ID_ARBITER);
+			setWeapon(player, playerWeaponData, WEAPON_ID_FUSION_RIFLE);
+			setWeapon(player, playerWeaponData, WEAPON_ID_MINE_LAUNCHER);
+			setWeapon(player, playerWeaponData, WEAPON_ID_B6);
+			setWeapon(player, playerWeaponData, WEAPON_ID_OMNI_SHIELD);
+			setWeapon(player, playerWeaponData, WEAPON_ID_FLAIL);
+			
+			// Close Menu (Doesn't Work)
+			// ((void (*)())0x0056C178)();
+			// Redraw Weapons Menu (Needs to close menu first)
+			// ((void (*)(int, int, int, int))0x0056B920)(0x00312258, 0x0033824c, 0x00312258, 0x0033828c);
+		}
+		else if (!(pad->btns & (PAD_L3 | PAD_R3)) == 0)
+		{
+			_HackedStartMenuToggle = 0;
+		}
+		if ((pad->btns & (PAD_SQUARE)) == 0 && _HackedStartMenuToggle == 0)
+		{
+			int WEAPON = SelectedWeapon(Selected);
+			switch(playerWeaponData[WEAPON].Level)
+			{
+				case 0:
+					playerWeaponData[WEAPON].Level = 98;
+					break;
+				case 1:
+					playerWeaponData[WEAPON].Level = 0;
+					break;
+				case 9:
+					playerWeaponData[WEAPON].Level = 1;
+					break;
+				case 98:
+					playerWeaponData[WEAPON].Level = 9;
+					break;
+			}
+			_HackedStartMenuToggle = 1;
+		}
+		else if (!(pad->btns & (PAD_SQUARE)) == 0)
+		{
+			_HackedStartMenuToggle = 0;
+		}
+		if ((pad->btns & (PAD_CIRCLE)) == 0 && _HackedStartMenuToggle == 0)
+		{
+			int WEAPON = SelectedWeapon(Selected);
+			switch(playerWeaponData[WEAPON].Level)
+			{
+				case 0:
+					playerWeaponData[WEAPON].Level = 1;
+					break;
+				case 1:
+					playerWeaponData[WEAPON].Level = 9;
+					break;
+				case 9:
+					playerWeaponData[WEAPON].Level = 98;
+					break;
+				case 98:
+					playerWeaponData[WEAPON].Level = 0;
+					break;
+			}
+
+			_HackedStartMenuToggle = 1;
+		}
+		else if (!(pad->btns & (PAD_CIRCLE)) == 0)
+		{
+			_HackedStartMenuToggle = 0;
+		}
+	}
+}
+
 /*========================================================*\
 ========
 ================      Fusion Aimer
@@ -1529,6 +1662,7 @@ void HackedStartMenu()
 			SkillPoints();
 			CheatsMenuWeapons();
 			CheatsMenuEndGame();
+			WeaponsMenuAddons();
 		}
 		else if (!config.enableHackedStartMenu && *(u32*)0x00560340 != 0x0C15803E)
 		{
