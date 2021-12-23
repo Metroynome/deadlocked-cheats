@@ -25,9 +25,10 @@ Controls:
     Respawn Anywhere (Circle + Square)
     All Alpha/Omega Mods (Only works if Hacked Start Menu is On)
     All Skill Points (No Button Combo; Only works if Hacked Start Menu is On)
-    Hacked Start Menu (No Button Combo; No Button Combo Needed)
+    Hacked Start Menu (No Button Combo)
     Cheats Menu - Weapons  (No Button Combo; Only works if Hacked Start Menu is On)
     Cheats Menu - New Game (No Button Combo; Only works if Hacked Start Menu is On)
     Show Fusion Aimer (No Button Combo)
     Lock On Fusion (R2 + Up/R2 + Down)
-    Distance to Show Names (No Button Combo)```
+    Distance to Show Names (No Button Combo)
+    Freeze Time (Hold L1)```

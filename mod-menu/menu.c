@@ -128,7 +128,8 @@ MenuElem_t menuElementsInGame[] = {
   { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
-  { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames }
+  { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
+  { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime }
 };
 
 // In Lobby Codes

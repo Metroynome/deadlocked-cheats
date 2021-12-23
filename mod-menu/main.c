@@ -24,39 +24,42 @@ void internal_wadGetSectors(u64, u64, u64);
 
 // config
 PatchConfig_t config __attribute__((section(".config"))) = {
-    NULL, // Save Config
-	0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-	0
+	0, // enableInfiniteHealthMoonjump
+	0, // enableFreeCam
+	0, // enableSingleplayerMusic
+	0, // enableFollowAimer
+	0, // enableInfiniteChargeboot
+	0, // enableRenderAll
+	0, // enableRapidFire
+	0, // enableWalkThroughWalls
+	0, // enableLotsOfDeaths
+	0, // enableNoRespawnTimer
+	0, // enableWalkFast
+	0, // enableAirwalk
+	0, // enableFlyingVehicles
+	0, // enableSurfingVehicles
+	0, // enableFastVehicles
+	0, // enableRespawnAnywhere
+	0, // enableVSync
+	0, // enableOmegaAlphaMods
+	0, // enableSkillPoints
+	0, // enableCheatsMenuWeapons
+	0, // enableCheatsMenuEndGame
+	0, // enableCheatsMenuFusionAimer
+	0, // enableHackedStartMenu
+	0, // enableFusionAimer
+	0, // enableLockOnFusion
+	0, // enableDistanceToShowNames
+	0, // enableFreezeTime
+
+	0, // enableMaskUsername
+	0, // enableHackedKeyboard
+	0, // enableForceGUp
+	0, // enableHostOptions
+	0, // enableVehicleSelect
+	0, // enableFormPartyUnkick
+	0, // enableMaxTypingLimit
+	0, // enableMoreTeamColors
 };
 
 short Keys[][2] = {
@@ -1544,19 +1547,16 @@ void WeaponsMenuAddons()
 			// Redraw Weapons Menu (Needs to close menu first)
 			// ((void (*)(int, int, int, int))0x0056B920)(0x00312258, 0x0033824c, 0x00312258, 0x0033828c);
 		}
-		else if (!(pad->btns & (PAD_L3 | PAD_R3)) == 0)
-		{
-			_HackedStartMenuToggle = 0;
-		}
 		// Square: Decrease Level
-		if ((pad->btns & (PAD_SQUARE)) == 0 && _HackedStartMenuToggle == 0)
+		else if ((pad->btns & (PAD_SQUARE)) == 0 && _HackedStartMenuToggle == 0)
 		{
 			int WEAPON = SelectedWeapon(Selected);
 			switch(playerWeaponData[WEAPON].Level)
 			{
-				case 0:
-					playerWeaponData[WEAPON].Level = 98;
-					break;
+				// Don't Cycle back around
+				// case 0:
+				// 	playerWeaponData[WEAPON].Level = 98;
+				// 	break;
 				case 1:
 					playerWeaponData[WEAPON].Level = 0;
 					break;
@@ -1569,12 +1569,8 @@ void WeaponsMenuAddons()
 			}
 			_HackedStartMenuToggle = 1;
 		}
-		else if (!(pad->btns & (PAD_SQUARE)) == 0)
-		{
-			_HackedStartMenuToggle = 0;
-		}
 		// Circle: Increase Level
-		if ((pad->btns & (PAD_CIRCLE)) == 0 && _HackedStartMenuToggle == 0)
+		else if ((pad->btns & (PAD_CIRCLE)) == 0 && _HackedStartMenuToggle == 0)
 		{
 			int WEAPON = SelectedWeapon(Selected);
 			switch(playerWeaponData[WEAPON].Level)
@@ -1588,14 +1584,15 @@ void WeaponsMenuAddons()
 				case 9:
 					playerWeaponData[WEAPON].Level = 98;
 					break;
-				case 98:
-					playerWeaponData[WEAPON].Level = 0;
-					break;
+				// Cycle Back Around
+				// case 98:
+				// 	playerWeaponData[WEAPON].Level = 0;
+				// 	break;
 			}
 
 			_HackedStartMenuToggle = 1;
 		}
-		else if (!(pad->btns & (PAD_CIRCLE)) == 0)
+		else if (!(pad->btns & (PAD_CIRCLE)) == 0 && !(pad->btns & (PAD_SQUARE)) == 0 && !(pad->btns & (PAD_L3 | PAD_R3)) == 0)
 		{
 			_HackedStartMenuToggle = 0;
 		}
@@ -1615,7 +1612,7 @@ void FusionAimer()
 		int FusionAimerBranchData = 0x1062003E;
 		int FusionChargebootBranch = 0x003FAEE0;
 		int FusionChargebootData = 0x10400070;
-		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch != 0)
+		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch == FusionAimerBranchData)
 		{
 			*(u32*)FusionAimerBranch = 0;
 			*(u32*)FusionChargebootBranch = 0;
@@ -1661,11 +1658,11 @@ void HackedStartMenu()
 				*(u32*)0x00560370 = 0x0c000000 | ((u32)(&SwapJalWeapons) / 4);
 
 			// Load this if Hacked Start Menu is On
+			WeaponsMenuAddons();
 			OmegaAlphaMods();
 			SkillPoints();
 			CheatsMenuWeapons();
 			CheatsMenuEndGame();
-			WeaponsMenuAddons();
 		}
 		else if (!config.enableHackedStartMenu && *(u32*)0x00560340 != 0x0C15803E)
 		{
@@ -1755,6 +1752,24 @@ void DistanceToShowNames()
 			*(u16*)Other = 0x5000;
 			*(u16*)Fusion_2 = 0x5000;
 			*(u32*)Gadgets = 0;
+		}
+	}
+}
+
+/*========================================================*\
+========
+================      Freeze Time
+========
+\*========================================================*/
+void FreezeTime()
+{
+	if (gameIsIn() && config.enableFreezeTime)
+	{
+		Player * player = (Player*)0x00347aa0;
+		PadButtonStatus * pad = playerGetPad(player);
+		if(pad->btns == 0xFBFF)
+		{
+			*(u32*)0x00172378 = 0x000ef000;
 		}
 	}
 }
@@ -1871,13 +1886,15 @@ int main(void)
 	VehicleSelect();
 	FormPartyUnkick();
 	// Hacked Start Menu loads following codes inside:
-	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods
+	// Hacked Cheats Menu, All Skill Points, All Omega/Alpha Mods, Weapons Menu Addons
 	// No use to have those codes on if cheat menu isn't.
 	HackedStartMenu();
 	// No Button Toggle
 	DistanceToShowNames();
 	// No button Toggle
 	FusionAimer();
+	// Hold L1
+	FreezeTime();
 
     if (gameIsIn())
     {
