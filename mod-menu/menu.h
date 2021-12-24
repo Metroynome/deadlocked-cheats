@@ -31,6 +31,7 @@ typedef struct PatchConfig
   char enableLockOnFusion;
   char enableDistanceToShowNames;
   char enableFreezeTime;
+  char enableControllableArbitor;
 
   // In Lobby
   char enableMaskUsername;

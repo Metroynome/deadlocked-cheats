@@ -130,7 +130,8 @@ MenuElem_t menuElementsInGame[] = {
   { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
-  { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime }
+  { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
+  { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor }
 };
 
 // In Lobby Codes

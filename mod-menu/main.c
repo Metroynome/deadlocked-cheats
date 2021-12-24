@@ -53,6 +53,7 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableLockOnFusion
 	0, // enableDistanceToShowNames
 	0, // enableFreezeTime
+	0, // enableControllableArbitor
 
 	0, // enableMaskUsername
 	0, // enableHackedKeyboard
@@ -1810,6 +1811,30 @@ void CheatsMenuChangeTeam()
 }
 
 /*========================================================*\
+========
+================      Controllable Arbitor
+========
+\*========================================================*/
+void ControllableArbitor()
+{
+	if (!gameIsIn())
+		return;
+	
+	void * Pointer = (void*)(*(u32*)0x0034a184);
+	int TakeControl = *(u32*)(Pointer + 0xB50);
+	if (config.enableControllableArbitor && TakeControl != 1)
+	{
+		TakeControl = 1;
+	}
+	else if (!config.enableControllableArbitor)
+	{
+		TakeControl = 0;
+	}
+
+}
+
+
+/*========================================================*\
 ========              Grabs the Active Pointer
 ================      if true: returns Pointer
 ========              if false: returns zero
@@ -1829,7 +1854,6 @@ int GetActiveUIPointer(u8 UI)
 		return 0;
 	}
 }
-
 
 void onStartMenu(long a0)
 {
