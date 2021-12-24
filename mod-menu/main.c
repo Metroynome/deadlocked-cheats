@@ -54,6 +54,7 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableDistanceToShowNames
 	0, // enableFreezeTime
 	0, // enableControllableArbitor
+	0, // enableVisibomb
 
 	0, // enableMaskUsername
 	0, // enableHackedKeyboard
@@ -62,7 +63,7 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableVehicleSelect
 	0, // enableFormPartyUnkick
 	0, // enableMaxTypingLimit
-	0, // enableMoreTeamColors
+	0 // enableMoreTeamColors
 };
 
 short Keys[][2] = {
@@ -1794,7 +1795,8 @@ void CheatsMenuChangeTeam()
 {
 	if (config.enableCheatsMenuChangeTeam)
 	{
-		int Team = 0x0034a9b4;
+		Player * player = (Player*)0x00347aa0;
+		int Team = player->Team;
 		if(OriginalTeam == -1)
 		{
 			OriginalTeam = *(u32*)Team;
@@ -1803,7 +1805,7 @@ void CheatsMenuChangeTeam()
 		{
 			*(u32*)Team = OriginalTeam;
 		}
-		else
+		else if (*(u8*)0x0021DE32 != 0 && *(u32*)Team != (*(u8*)0x0021DE32 - 0x1))
 		{
 			*(u32*)Team = *(u8*)0x0021DE32 - 0x1;
 		}
@@ -1817,22 +1819,40 @@ void CheatsMenuChangeTeam()
 \*========================================================*/
 void ControllableArbitor()
 {
-	if (!gameIsIn())
-		return;
-	
-	void * Pointer = (void*)(*(u32*)0x0034a184);
-	int TakeControl = *(u32*)(Pointer + 0xB50);
-	if (config.enableControllableArbitor && TakeControl != 1)
+	if (gameIsIn())
 	{
-		TakeControl = 1;
+		void * Pointer = (void*)(*(u32*)0x0034a184);
+		if (config.enableControllableArbitor && *(u32*)((u32)Pointer + 0xB50) != 1)
+		{
+			*(u32*)((u32)Pointer + 0xB50) = 1;
+		}
+		else if (!config.enableControllableArbitor)
+		{
+			*(u32*)((u32)Pointer + 0xB50) = 0;
+		}
 	}
-	else if (!config.enableControllableArbitor)
-	{
-		TakeControl = 0;
-	}
-
 }
 
+/*========================================================*\
+========
+================      Visibomb
+========
+\*========================================================*/
+void Visibomb()
+{
+	if (gameIsIn() && config.enableVisibomb)
+	{
+		if (!config.enableControllableArbitor)
+			config.enableControllableArbitor = 1;
+
+		Player * player = (Player*)0x00347aa0;
+		void * Projectile = (void*)(*(u32*)0x003346BC);
+		//int Projectile = *(u32*)0x003346BC;
+		if (Projectile == 0) return;
+
+		vector_copy(player->CameraPos, ((u32)Projectile + 0x10));
+	}
+}
 
 /*========================================================*\
 ========              Grabs the Active Pointer
@@ -1954,6 +1974,10 @@ int main(void)
 	FusionAimer();
 	// Hold L1
 	FreezeTime();
+	// No Button Toggle
+	ControllableArbitor();
+	// No Button Toggle
+	Visibomb();
 
     if (gameIsIn())
     {

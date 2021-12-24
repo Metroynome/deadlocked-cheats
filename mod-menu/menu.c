@@ -131,7 +131,8 @@ MenuElem_t menuElementsInGame[] = {
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
   { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
-  { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor }
+  { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
+  { "Visibomb Mod", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVisibomb }
 };
 
 // In Lobby Codes

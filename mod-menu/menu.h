@@ -32,6 +32,7 @@ typedef struct PatchConfig
   char enableDistanceToShowNames;
   char enableFreezeTime;
   char enableControllableArbitor;
+  char enableVisibomb;
 
   // In Lobby
   char enableMaskUsername;
