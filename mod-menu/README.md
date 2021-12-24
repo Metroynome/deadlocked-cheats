@@ -28,7 +28,10 @@ Controls:
     Hacked Start Menu
     Cheats Menu - Weapons  (Only works if Hacked Start Menu is On)
     Cheats Menu - New Game (Only works if Hacked Start Menu is On)
+    Cheats Menu - Change Team (Only works if Hacked Start Menu is On, use HUD Color Cheat)
     Show Fusion Aimer (No Button Combo)
     Lock On Fusion (R2 + Up/R2 + Down)
     Distance to Show Names (No Button Combo)
-    Freeze Time (Hold L1)```
+    Freeze Time (Hold L1)
+    Controllable Arbitor Rocket (No Button Combo)
+    Visibomb Mod (No Button Combo)```
