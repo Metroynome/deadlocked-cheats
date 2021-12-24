@@ -14,6 +14,7 @@
 #include <libdl/hud.h>
 #include <libdl/music.h>
 #include <libdl/weapon.h>
+#include <libdl/team.h>
 
 void onConfigOnlineMenu(void);
 void onConfigGameMenu(void);
@@ -24,6 +25,7 @@ void internal_wadGetSectors(u64, u64, u64);
 
 // config
 PatchConfig_t config __attribute__((section(".config"))) = {
+	NULL,
 	0, // enableInfiniteHealthMoonjump
 	0, // enableFreeCam
 	0, // enableSingleplayerMusic
@@ -45,7 +47,7 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableSkillPoints
 	0, // enableCheatsMenuWeapons
 	0, // enableCheatsMenuEndGame
-	0, // enableCheatsMenuFusionAimer
+	0, // enableCheatsMenuChangeTeam
 	0, // enableHackedStartMenu
 	0, // enableFusionAimer
 	0, // enableLockOnFusion
@@ -120,6 +122,7 @@ char ToggleRenderAll = 0;
 char _HackedStartMenuToggle = 0;
 char _HackedStartMenuSquare = 0;
 char _HackedStartMenuCircle = 0;
+int OriginalTeam = -1;
 
 int Map;
 
@@ -1457,8 +1460,8 @@ void CheatsMenuWeapons()
 ================      Cheats Menu - END GAME
 ========
 \*========================================================*/
- void CheatsMenuEndGame()
- {
+void CheatsMenuEndGame()
+{
 	if (config.enableCheatsMenuEndGame)
 	{
 		*(u8*)0x00393a88 = 0x20;
@@ -1471,7 +1474,7 @@ void CheatsMenuWeapons()
 				break;
 		}
 	}
- }
+}
 
  /*========================================================*\
 ========
@@ -1609,17 +1612,20 @@ void FusionAimer()
 	if (gameIsIn())
 	{
 		int FusionAimerBranch = 0x003FAFA8;
-		int FusionAimerBranchData = 0x1062003E;
+		int FusionAimerBranchData1 = 0x1062003E;
+		int FusionAimerBranchData2 = 0x3C020023;
 		int FusionChargebootBranch = 0x003FAEE0;
 		int FusionChargebootData = 0x10400070;
-		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch == FusionAimerBranchData)
+		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch == FusionAimerBranchData1)
 		{
 			*(u32*)FusionAimerBranch = 0;
+			*(u32*)((u32)FusionAimerBranch + 0x4) = 0;
 			*(u32*)FusionChargebootBranch = 0;
 		}
 		else if (config.enableFusionAimer == 0 && *(u32*)FusionAimerBranch == 0)
 		{
-			*(u32*)FusionAimerBranch = FusionAimerBranchData;
+			*(u32*)FusionAimerBranch = FusionAimerBranchData1;
+			*(u32*)((u32)FusionAimerBranch + 0x4) =  FusionAimerBranchData2;
 			*(u32*)FusionChargebootBranch = FusionChargebootData;
 		}
 	}
@@ -1661,6 +1667,7 @@ void HackedStartMenu()
 			WeaponsMenuAddons();
 			OmegaAlphaMods();
 			SkillPoints();
+			CheatsMenuChangeTeam();
 			CheatsMenuWeapons();
 			CheatsMenuEndGame();
 		}
@@ -1672,9 +1679,12 @@ void HackedStartMenu()
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
-	else if (*(u8*)0x0021de40 != 0)
+	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de32)
 	{
-		*(u8*)0x0021de40 = 0;
+		*(u8*)0x0021de40 = 0; // Turn off Remove Helment Cheat
+
+		*(u8*)0x0021de32 = 0; // Turn off HUD Color Cheat
+		OriginalTeam = -1; // Revert Original Team Color
 	}
 }
 
@@ -1770,6 +1780,31 @@ void FreezeTime()
 		if(pad->btns == 0xFBFF)
 		{
 			*(u32*)0x00172378 = 0x000ef000;
+		}
+	}
+}
+
+/*========================================================*\
+========
+================      Cheats Menu - Change Team
+========
+\*========================================================*/
+void CheatsMenuChangeTeam()
+{
+	if (config.enableCheatsMenuChangeTeam)
+	{
+		int Team = 0x0034a9b4;
+		if(OriginalTeam == -1)
+		{
+			OriginalTeam = *(u32*)Team;
+		}
+		if (*(u8*)0x0021DE32 == 0 && *(u32*)Team != OriginalTeam)
+		{
+			*(u32*)Team = OriginalTeam;
+		}
+		else
+		{
+			*(u32*)Team = *(u8*)0x0021DE32 - 0x1;
 		}
 	}
 }
