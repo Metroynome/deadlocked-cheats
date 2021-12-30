@@ -1613,22 +1613,25 @@ void FusionAimer()
 {
 	if (gameIsIn())
 	{
+		int test = 0x003FAFA8;
 		int FusionAimerBranch = 0x003FAFA8;
 		int FusionAimerBranchData1 = 0x1062003E;
 		int FusionAimerBranchData2 = 0x3C020023;
 		int FusionChargebootBranch = 0x003FAEE0;
 		int FusionChargebootData = 0x10400070;
-		if (config.enableFusionAimer == 1 && *(u32*)FusionAimerBranch == FusionAimerBranchData1)
+		if (config.enableFusionAimer/* && *(u32*)FusionAimerBranch == FusionAimerBranchData1*/)
 		{
-			*(u32*)FusionAimerBranch = 0;
-			*(u32*)((u32)FusionAimerBranch + 0x4) = 0;
-			*(u32*)FusionChargebootBranch = 0;
+			*(u32*)test = 0x1060003E;
+			//*(u32*)FusionAimerBranch = 0x1462003E;
+			//*(u32*)(FusionAimerBranch + 0x4) = 0;
+			//*(u32*)FusionChargebootBranch = 0;
 		}
-		else if (config.enableFusionAimer == 0 && *(u32*)FusionAimerBranch == 0)
+		else if (!config.enableFusionAimer/* && *(u32*)FusionAimerBranch == 0x1462003E*/)
 		{
-			*(u32*)FusionAimerBranch = FusionAimerBranchData1;
-			*(u32*)((u32)FusionAimerBranch + 0x4) =  FusionAimerBranchData2;
-			*(u32*)FusionChargebootBranch = FusionChargebootData;
+			*(u32*)test = FusionAimerBranchData1;
+			//*(u32*)FusionAimerBranch = FusionAimerBranchData1;
+			//*(u32*)(FusionAimerBranch + 0x4) =  FusionAimerBranchData2;
+			//*(u32*)FusionChargebootBranch = FusionChargebootData;
 		}
 	}
 }
@@ -1681,7 +1684,7 @@ void HackedStartMenu()
 		}
 	}
 	// If not in game, set Remove Helmet cheat back off.
-	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de32)
+	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de32 != 0)
 	{
 		*(u8*)0x0021de40 = 0; // Turn off Remove Helment Cheat
 
@@ -1795,9 +1798,8 @@ void CheatsMenuChangeTeam()
 {
 	if (config.enableCheatsMenuChangeTeam)
 	{
-		Player * player = (Player*)0x00347aa0;
-		int Team = player->Team;
-		if(OriginalTeam == -1)
+		int Team = 0x0034A9B4;
+		if (OriginalTeam == -1)
 		{
 			OriginalTeam = *(u32*)Team;
 		}

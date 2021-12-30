@@ -127,10 +127,10 @@ MenuElem_t menuElementsInGame[] = {
   { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
   { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   { "Cheats Menu: Change Team", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuChangeTeam },
-  { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
+  // { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
-  { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
+  // { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
   { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
   { "Visibomb Mod", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVisibomb }
 };
