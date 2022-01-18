@@ -52,6 +52,7 @@ int GetLevel(void * GameplayFilePointer)
 }
 
 int Active = 0;
+int SpawnedPack = 0;
 int main(void)
 {
 	// Grab GameplayFile Pointer.
@@ -61,20 +62,27 @@ int main(void)
 	// If pointer doesn't equel Online Lobby Pointer, proceed.
 	if (GameplayFilePointer != 0x00574F88)
 	{
-        if (*(u8*)0x00248B90 == 0x1)
+        // Spawn Pack if Health <= zero and if not spawned already.
+        if (*(float*)0x00235964 <= 0 && SpawnedPack == 0)
         {
+            SpawnedPack = 1;
             ((void (*)(u32))0x004F0378)(0x002F7900);
         }
-        if ((pad->btns & PAD_L3) == 0 && Active == 0)
-	    {
-            Active = 1;
-            // Outpost X12 only currently
-            ((void (*)(u32))0x004F0378)(0x002F7900);
-        }
-        if (!(pad->btns & PAD_L3) == 0)
+        else if (*(float*)0x00235964 > 0 && SpawnedPack == 1)
         {
-            Active = 0;
+            SpawnedPack = 0;
         }
+
+        // if ((pad->btns & PAD_L3) == 0 && Active == 0)
+	    // {
+        //     Active = 1;
+        //     // Outpost X12 only currently
+        //     ((void (*)(u32))0x004F0378)(0x002F7900);
+        // }
+        // if (!(pad->btns & PAD_L3) == 0)
+        // {
+        //     Active = 0;
+        // }
 	}
 	return 0;
 }
