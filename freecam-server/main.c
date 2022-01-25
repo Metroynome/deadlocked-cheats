@@ -136,11 +136,11 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10000006;
 
 	// deactivate hud
-	hud->Healthbar = 0;
-	hud->Minimap = 0;
-	hud->Weapons = 0;
-	hud->Popup = 1;
-	hud->NormalScoreboard = 1;
+	hud->Flags.Healthbar = 0;
+	hud->Flags.Minimap = 0;
+	hud->Flags.Weapons = 0;
+	hud->Flags.Popup = 1;
+	hud->Flags.NormalScoreboard = 1;
 }
 
 void deactivate(Player * player, PlayerHUDFlags * hud)
@@ -152,11 +152,11 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10400006;
 
 	// reactivate hud
-	hud->Healthbar = 1;
-	hud->Minimap = 1;
-	hud->Weapons = 1;
-	hud->Popup = 1;
-	hud->NormalScoreboard = 1;
+	hud->Flags.Healthbar = 1;
+	hud->Flags.Minimap = 1;
+	hud->Flags.Weapons = 1;
+	hud->Flags.Popup = 1;
+	hud->Flags.NormalScoreboard = 1;
 }
 
 int main(void)
@@ -234,24 +234,24 @@ int main(void)
 		{
 			ToggleHUD = 1;
 			// if Popup and Scoreboard are showing
-			if (hud->Popup & hud->NormalScoreboard)
+			if (hud->Flags.Popup & hud->Flags.NormalScoreboard)
 			{
 				// Hide Popup
-				hud->Popup = !hud->Popup;
+				hud->Flags.Popup = !hud->Flags.Popup;
 			}
 			// if Popup and Scoreboard are hidden
-			else if (!hud->Popup & !hud->NormalScoreboard)
+			else if (!hud->Flags.Popup & !hud->Flags.NormalScoreboard)
 			{
 				// Show Popup
-				hud->Popup = !hud->Popup;
+				hud->Flags.Popup = !hud->Flags.Popup;
 				// Show Scoreboard
-				hud->NormalScoreboard = !hud->NormalScoreboard;
+				hud->Flags.NormalScoreboard = !hud->Flags.NormalScoreboard;
 			}
 			// if Popup is hidden and Scoreboard is showing
-			else if (!hud->Popup & hud->NormalScoreboard)
+			else if (!hud->Flags.Popup & hud->Flags.NormalScoreboard)
 			{
 				// Hide Scoreboard
-				hud->NormalScoreboard = !hud->NormalScoreboard;
+				hud->Flags.NormalScoreboard = !hud->Flags.NormalScoreboard;
 			}
 		}
 		// if Select is no longer held

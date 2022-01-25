@@ -131,7 +131,7 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10000006;
 
 	// Set Respawn Timer to Zero, then negative so player can't respawn
-	player->RespawnTimer = -1;
+	player->timers.resurrectWait = -1;
 
 	// deactivate hud
 	hud->Flags.Healthbar = 0;
@@ -156,7 +156,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10400006;
 
 	// Reset Respawn timer
-	player->RespawnTimer = 0;
+	player->timers.resurrectWait = 0;
 
 	// Reset Render Data/Function
 	if (*(u32*)0x004D7168 == 0x03e00008)
