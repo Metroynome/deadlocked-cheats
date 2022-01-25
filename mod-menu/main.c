@@ -27,6 +27,7 @@ void internal_wadGetSectors(u64, u64, u64);
 PatchConfig_t config __attribute__((section(".config"))) = {
 	NULL,
 	0, // enableInfiniteHealthMoonjump
+	0, // enableUnlimitedAmmo
 	0, // enableFreeCam
 	0, // enableSingleplayerMusic
 	0, // enableFollowAimer
@@ -67,13 +68,16 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 };
 
 short Keys[][2] = {
+	// The Keyboard goes in Alpbhabetical order.  Maybe I can do logic to easy to offsets.
 	// Offset, Data
-	{0x0918, 0x0008},
-	{0x0E58, 0x5009},
-	{0x13F8, 0x470A},
-	{0x0D38, 0x500B},
-	{0x0D98, 0x570C},
-	{0x0DF8, 0x420D},
+	{0x04F8, 0x0008}, // Original Color
+	{0x0E58, 0x5009}, // 
+	{0x13F8, 0x470A}, // 
+	{0x0D38, 0x500B}, // 
+	{0x0D98, 0x570C}, // 
+	{0x0DF8, 0x420D}, // Black
+	{0x0978, 0x520E}, // Red
+	{0x0BB8, 0x410F}, // Aqua
 	{0x0EB8, 0x0010},
 	{0x0F18, 0x0011},
 	{0x0F78, 0x0012},
@@ -234,7 +238,7 @@ void HackedKeyboard()
 	if(!_HackedKeyboard_Init)
 		return;
 
-	void * Pointer = (void*)(*(u32*)0x011C70B4);
+	void * Pointer = (void*)(*(u32*)0x011C70B4); // Points to 0x0133D580
 	int KeyboardCheck = ((u32)Pointer + 0x230);
 	//if Keyboard is open
 	if (*(u32*)KeyboardCheck != -1)
@@ -338,7 +342,7 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10000006;
 
 	// Set Respawn Timer to Zero, then negative so player can't respawn
-	player->RespawnTimer = -1;
+	player->timers.resurrectWait = -1;
 
 	// deactivate hud
 	hud->Flags.Healthbar = 0;
@@ -363,7 +367,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10400006;
 
 	// Reset Respawn timer
-	player->RespawnTimer = 0;
+	player->timers.resurrectWait = 0;
 
 	// Reset Render Data/Function
 	if (*(u32*)0x004D7168 == 0x03e00008)
@@ -1039,7 +1043,7 @@ void InfiniteChargeboot()
 		// This is used to see if a certain byte is set. If so joker with L1 + L2, if not, just use L2.
 		if (pad->btns == ((config.enableInfiniteChargeboot == 2) ? 0xFAFF : 0xFEFF))
 		{
-			player->TicksSinceStateChanged = 0x27;
+			*(u32*)0x00347e10 = 0x27;
 		}
 	}
 }
@@ -1103,7 +1107,7 @@ void RapidFire()
 		PadButtonStatus * pad = playerGetPad(player);
 		if (player->Vehicle == 0 && ((pad->btns & (PAD_R3 | PAD_R1)) == 0 || (pad->btns & (PAD_R3 | PAD_R1 | PAD_L2)) == 0))
 		{
-			player->WeaponCooldownTimer = 0;
+			*(u32*)0x00347e8c = 0;
 		}
 		// Rapid Fire Vehicles
 		if (player->Vehicle != 0 && (pad->btns & (PAD_R1 | PAD_R3)) == 0)
@@ -1225,17 +1229,17 @@ void AirWalk()
 		PadButtonStatus * pad = playerGetPad(player);
 		if (pad->btns == 0xFFFD || pad->btns == 0xBFFD || pad->btns == 0x6FFD)
 		{
-			player->Airwalk = 0;
+			*(u32*)0x00347d9c = 0;
 		}
 		else if (pad->btns == 0xf7f9 && config.enableRapidFire)
 		{
-			player->Airwalk = 0;
-			player->WeaponCooldownTimer = 0;
+			*(u32*)0x00347d9c = 0;
+			*(u32*)0x00347e8c = 0;
 		}
 		else if (pad->btns == 0xfefd && config.enableRapidFire)
 		{
-			player->Airwalk = 0;
-			player->TicksSinceStateChanged = 0x27;
+			*(u32*)0x00347d9c = 0;
+			*(u32*)0x00347e10 = 0x27;
 		}
 	}
 }
@@ -1683,13 +1687,17 @@ void HackedStartMenu()
 			*(u32*)0x00560370 = 0x0C15803E;
 		}
 	}
-	// If not in game, set Remove Helmet cheat back off.
-	else if (*(u8*)0x0021de40 != 0 || *(u8*)0x0021de32 != 0)
+	// If not in game, set Cheats off.
+	else
 	{
-		*(u8*)0x0021de40 = 0; // Turn off Remove Helment Cheat
+		if (*(u8*)0x0021de40 != 0)
+			*(u8*)0x0021de40 = 0; // Turn off Remove Helment Cheat
 
-		*(u8*)0x0021de32 = 0; // Turn off HUD Color Cheat
-		OriginalTeam = -1; // Revert Original Team Color
+		if (*(u8*)0x0021de32 != 0)
+			*(u8*)0x0021de32 = 0; // Turn off HUD Color Cheat
+
+		if (OriginalTeam != -1)
+			OriginalTeam = -1; // Revert Original Team Color
 	}
 }
 
@@ -1857,6 +1865,24 @@ void Visibomb()
 }
 
 /*========================================================*\
+========
+================      Unlimited Ammo
+========
+\*========================================================*/
+void UnlimitedAmmo()
+{
+	if (gameIsIn() && config.enableUnlimitedAmmo)
+	{
+		GameOptions * gameOptions = gameGetOptions();
+		gameOptions->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 1;
+	}
+	else if (!gameIsIn() && config.enableUnlimitedAmmo)
+	{
+		config.enableUnlimitedAmmo = 0;
+	}
+}
+
+/*========================================================*\
 ========              Grabs the Active Pointer
 ================      if true: returns Pointer
 ========              if false: returns zero
@@ -1980,6 +2006,8 @@ int main(void)
 	ControllableArbitor();
 	// No Button Toggle
 	Visibomb();
+	// No Button toggle
+	UnlimitedAmmo();
 
     if (gameIsIn())
     {
