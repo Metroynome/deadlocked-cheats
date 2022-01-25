@@ -105,6 +105,7 @@ MenuElem_ListData_t dataDistanceToShowNames = {
 // In Game Codes
 MenuElem_t menuElementsInGame[] = {
   { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
+  { "Unlimited Ammo", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableUnlimitedAmmo },
   { "Free Cam", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
   // { "Singleplayer Music", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
   { "Follow Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFollowAimer },

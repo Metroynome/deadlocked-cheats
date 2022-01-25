@@ -5,6 +5,7 @@ typedef struct PatchConfig
 {
   // In Game
   char enableInfiniteHealthMoonjump;
+  char enableUnlimitedAmmo;
   char enableFreeCam;
   char enableSingleplayerMusic;
   char enableFollowAimer;
