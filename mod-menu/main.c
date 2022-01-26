@@ -1871,10 +1871,17 @@ void Visibomb()
 \*========================================================*/
 void UnlimitedAmmo()
 {
-	if (gameIsIn() && config.enableUnlimitedAmmo)
+	if (gameIsIn())
 	{
-		GameOptions * gameOptions = gameGetOptions();
-		gameOptions->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 1;
+		if (config.enableUnlimitedAmmo)
+		{
+			gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 1;
+		}
+		else
+		{
+			gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 0;
+
+		}
 	}
 	else if (!gameIsIn() && config.enableUnlimitedAmmo)
 	{
