@@ -16,6 +16,9 @@
 #include <libdl/weapon.h>
 #include <libdl/team.h>
 
+#define CAMERA_SPEED_PATCH_OFF1			(*(u16*)0x00561BB8)
+#define CAMERA_SPEED_PATCH_OFF2			(*(u16*)0x00561BDC)
+
 void onConfigOnlineMenu(void);
 void onConfigGameMenu(void);
 void configMenuEnable(void);
@@ -128,7 +131,8 @@ char ToggleRenderAll = 0;
 char _HackedStartMenuToggle = 0;
 char _HackedStartMenuSquare = 0;
 char _HackedStartMenuCircle = 0;
-int OriginalTeam = -1;
+int _OriginalTeam = -1;
+char _UnlimitedAmmo = -1;
 
 int Map;
 
@@ -1696,8 +1700,8 @@ void HackedStartMenu()
 		if (*(u8*)0x0021de32 != 0)
 			*(u8*)0x0021de32 = 0; // Turn off HUD Color Cheat
 
-		if (OriginalTeam != -1)
-			OriginalTeam = -1; // Revert Original Team Color
+		if (_OriginalTeam != -1)
+			_OriginalTeam = -1; // Revert Original Team Color
 	}
 }
 
@@ -1766,7 +1770,7 @@ void DistanceToShowNames()
 			*(u32*)Gadgets = 0;
 		}
 		// Very Far
-		else if (config.enableDistanceToShowNames == 2 && *(u16*)Arbitor != 0x7fff)
+		else if (config.enableDistanceToShowNames == 2 && *(u16*)Arbitor != 0x5000)
 		{
 			*(u16*)Fusion_1 = 0x5000;
 			*(u16*)Arbitor = 0x5000;
@@ -1807,13 +1811,13 @@ void CheatsMenuChangeTeam()
 	if (config.enableCheatsMenuChangeTeam)
 	{
 		int Team = 0x0034A9B4;
-		if (OriginalTeam == -1)
+		if (_OriginalTeam == -1)
 		{
-			OriginalTeam = *(u32*)Team;
+			_OriginalTeam = *(u32*)Team;
 		}
-		if (*(u8*)0x0021DE32 == 0 && *(u32*)Team != OriginalTeam)
+		if (*(u8*)0x0021DE32 == 0 && *(u32*)Team != _OriginalTeam)
 		{
-			*(u32*)Team = OriginalTeam;
+			*(u32*)Team = _OriginalTeam;
 		}
 		else if (*(u8*)0x0021DE32 != 0 && *(u32*)Team != (*(u8*)0x0021DE32 - 0x1))
 		{
@@ -1873,19 +1877,61 @@ void UnlimitedAmmo()
 {
 	if (gameIsIn())
 	{
-		if (config.enableUnlimitedAmmo)
+		if (_UnlimitedAmmo == -1)
 		{
-			gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 1;
+			_UnlimitedAmmo = gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo;
+			config.enableUnlimitedAmmo = _UnlimitedAmmo;
 		}
-		else
-		{
-			gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = 0;
-
-		}
+		gameGetOptions()->GameFlags.MultiplayerGameFlags.UnlimitedAmmo = config.enableUnlimitedAmmo;
 	}
-	else if (!gameIsIn() && config.enableUnlimitedAmmo)
+	else if (!gameIsIn() && (config.enableUnlimitedAmmo || _UnlimitedAmmo != -1))
 	{
 		config.enableUnlimitedAmmo = 0;
+		_UnlimitedAmmo = -1;
+	}
+}
+
+/*========================================================*\
+========
+================      Camera Speed
+========
+\*========================================================*/
+void patchCameraSpeed()
+{
+	const u16 SPEED = 0x100;
+	char buffer[16];
+
+	// Check if the value is the default max of 64
+	// This is to ensure that we only write here when
+	// we're in game and the patch hasn't already been applied
+	if (CAMERA_SPEED_PATCH_OFF1 == 0x40)
+	{
+		CAMERA_SPEED_PATCH_OFF1 = SPEED;
+		CAMERA_SPEED_PATCH_OFF2 = SPEED+1;
+	}
+
+	// Patch edit profile bar
+	if (uiGetActive() == UI_ID_EDIT_PROFILE)
+	{
+		void * editProfile = (void*)GetActiveUIPointer(UIP_EDIT_PROFILE);
+		if (editProfile)
+		{
+			// get cam speed element
+			void * camSpeedElement = (void*)*(u32*)(editProfile + 0xC0);
+			if (camSpeedElement)
+			{
+				// update max value
+				*(u32*)(camSpeedElement + 0x78) = SPEED;
+
+				// get current value
+				float value = *(u32*)(camSpeedElement + 0x70) / 64.0;
+
+				// render
+				sprintf(buffer, "%.0f%%", value*100);
+				gfxScreenSpaceText(240,   166,   1, 1, 0x80000000, buffer, -1, 1);
+				gfxScreenSpaceText(240-1, 166-1, 1, 1, 0x80FFFFFF, buffer, -1, 1);
+			}
+		}
 	}
 }
 
@@ -1948,6 +1994,13 @@ int main(void)
 
 	// Call this first
 	dlPreUpdate();
+
+	// L1 + R1 is Held, do not load the mod menu.
+	if (GetActiveUIPointer(UIP_ONLINE_LOCAL_EDIT_PROFILE_MENU) && padGetButtonDown(0, PAD_L1 | PAD_R1) > 0)
+	{
+		*(u32*)0x00138DD0 = 0x0C049C30;
+		return -1;
+	}
 
     // R3 + R2/L3
     InfiniteHealthMoonjump();
@@ -2015,6 +2068,8 @@ int main(void)
 	Visibomb();
 	// No Button toggle
 	UnlimitedAmmo();
+	// No Button Toggle (Always Run, not listed in config menu)
+	patchCameraSpeed();
 
     if (gameIsIn())
     {
@@ -2033,7 +2088,8 @@ int main(void)
 
         lastGameState = 1;
     }
-    else
+	// if hook doesn't match normal value, proceed.
+    else if (*(u32*)0x00138DD0 != 0x0C049C30)
     {
 		 // hook mod menu
         if (*(u32*)0x0061E1B4 == 0x03e00008)

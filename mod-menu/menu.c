@@ -76,6 +76,7 @@ void tabDefaultStateHandler(TabElem_t* tab, int * state);
 void SaveConfig();
 void EnableSaving(TabElem_t* tab, MenuElem_t* element);
 void RunSavingPopup();
+void DisableModMenu();
 
 void navMenu(TabElem_t* tab, int direction, int loop);
 void navTab(int direction);
@@ -151,7 +152,9 @@ MenuElem_t menuElementsInLobby[] = {
 MenuElem_t menuElementsSave[] = {
   { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, EnableSaving },
   { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
-  { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER }
+  { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "Disable Mod Menu", buttonActionHandler, menuStateAlwaysEnabledHandler, DisableModMenu }
 };
 
 // Credits
@@ -165,7 +168,7 @@ MenuElem_t menuElementsCredits[] = {
 TabElem_t tabElements[] = {
   { "In Game", tabDefaultStateHandler, menuElementsInGame, sizeof(menuElementsInGame)/sizeof(MenuElem_t) },
   { "In Lobby", tabDefaultStateHandler, menuElementsInLobby, sizeof(menuElementsInLobby)/sizeof(MenuElem_t) },
-  { "Save", tabDefaultStateHandler, menuElementsSave, sizeof(menuElementsSave)/sizeof(MenuElem_t) },
+  { "Settings", tabDefaultStateHandler, menuElementsSave, sizeof(menuElementsSave)/sizeof(MenuElem_t) },
   { "Credits", tabDefaultStateHandler, menuElementsCredits, sizeof(menuElementsCredits)/sizeof(MenuElem_t) }
 };
 
@@ -914,7 +917,9 @@ void RunSavingPopup(void)
 
 		// render text
 		gfxScreenSpaceText(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, 1, 1, downloadColor, "Saving configuration, please wait...", -1, 4);
-	}
+	
+    SaveConfig();
+  }
   else if (Saving == 2)
   {
     configMenuDisable();
@@ -930,12 +935,12 @@ void EnableSaving(TabElem_t* tab, MenuElem_t* element)
   if (Saving == 0)
   {
     Saving = 1;
-    SaveConfig();
   }
 }
 
 void SaveConfig(void)
 {
+  // printf("\nPoll: 0x%x", McPollSema());
   // was original 0x10000, which is the whole file, but we actually don't need it.
   // I do apply a buffer just in case if we need it, but probably wont.
   char copy[0x1060];
@@ -948,11 +953,11 @@ void SaveConfig(void)
   int Open = McOpen(0, 0, file, 2);
   if(Open == 0)
   {
-    printf("\nFile opened");
+    printf("\nFile Opened");
   }
   else
   {
-    printf("\nError opening file.");
+    printf("\nError Opening File.");
   }
   McSync(0, NULL, &fd);
   memcpy(copy, (u8*)0x01DFF000, 0x1060); // dest, src, size
@@ -965,10 +970,16 @@ void SaveConfig(void)
   }
   else
   {
-    printf("\nError closing file");
+    printf("\nError Closing File");
   }
 
   // printf("\nfd: %d", fd);
   // printf("\nSave: %d", Saving);
   Saving = 2;
+}
+
+void DisableModMenu(void)
+{
+  configMenuDisable();
+  *(u32*)0x00138DD0 = 0x0C049C30;
 }
