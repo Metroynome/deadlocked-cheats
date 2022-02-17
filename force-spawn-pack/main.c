@@ -53,6 +53,15 @@ int GetLevel(void * GameplayFilePointer)
 
 int Active = 0;
 int SpawnedPack = 0;
+void SpawnPack(void)
+{
+    // Run Normal Respawn functions
+    ((void (*)())0x004EF120)();
+
+    // Spawn Pack
+    ((void (*)(u32))0x004F0378)(0x002F7900);
+}
+
 int main(void)
 {
 	// Grab GameplayFile Pointer.
@@ -62,27 +71,42 @@ int main(void)
 	// If pointer doesn't equel Online Lobby Pointer, proceed.
 	if (GameplayFilePointer != 0x00574F88)
 	{
+		// Check which Level we are on.  Function returns the address of the Weapon Pack function.
+		int WeaponPack = GetLevel(GameplayFilePointer);
+		// If WeaponPack function isn't Zero, make it zero.
+		if (*(u32*)WeaponPack != 0)
+			*(u32*)WeaponPack = 0;
+
         // Spawn Pack if Health <= zero and if not spawned already.
         if (*(float*)0x00235964 <= 0 && SpawnedPack == 0)
         {
             SpawnedPack = 1;
-            ((void (*)(u32))0x004F0378)(0x002F7900);
+            // Hook SpawnPack
+			*(u32*)0x0051F138 = 0x0c000000 | ((u32)(&SpawnPack) / 4);
         }
         else if (*(float*)0x00235964 > 0 && SpawnedPack == 1)
         {
             SpawnedPack = 0;
         }
 
-        // if ((pad->btns & PAD_L3) == 0 && Active == 0)
-	    // {
-        //     Active = 1;
-        //     // Outpost X12 only currently
-        //     ((void (*)(u32))0x004F0378)(0x002F7900);
-        // }
-        // if (!(pad->btns & PAD_L3) == 0)
-        // {
-        //     Active = 0;
-        // }
+        if ((pad->btns & PAD_L3) == 0 && Active == 0)
+	    {
+            Active = 1;
+            // Outpost X12 only currently
+            ((void (*)(u32))0x004F0378)(0x002F7900);
+        }
+        else if ((pad->btns & PAD_R3) == 0 && Active == 0)
+	    {
+            Active = 1;
+            // Outpost X12 only currently
+            // ((void (*)(u32))0x004F0378)(0x002F7900);
+            // Hurt Player
+            ((void (*)(u32, u16, u16))0x00502658)(0x002F7900, 5, 0);
+        }
+        if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0)
+        {
+            Active = 0;
+        }
 	}
 	return 0;
 }
