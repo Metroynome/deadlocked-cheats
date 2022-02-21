@@ -764,61 +764,64 @@ void ForceGUp()
 void HostOptions()
 {
 	// exit if in game or not in game lobby and not host
-	if (gameIsIn() || (*(u32*)0x00173aec == -1) || (*(u32*)0x001723b0 == 0) || !config.enableHostOptions)
+	if (!config.enableHostOptions || gameIsIn() || (*(u32*)0x00173aec == -1) || (*(u32*)0x001723b0 == 0))
 	{
 		_HostOptions_Init = 0;
 		_HostOptions_ReadyPlayer = 0;
 		_HostOptions_TeamColor = 0;
 		return;
 	}
-
-	_HostOptions_Init = 1;
-	PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;	
-	//int Selection = *(u32*)0x013C9310 - 0xa;
-	// Updated Selection freezes when loading screen shows.
-	// Needs fixing.
-	if ((pad->btns & PAD_SELECT) == 0 && !gameIsIn())
+	// if game is not in, and enable Host Options is enabled, and is Host
+	if (!gameIsIn() && config.enableHostOptions && (*(u32*)0x001723b0 == 1))
 	{
-		int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
-		void * Pointer = (void*)(*(u32*)0x0021dfe8);
-		int ReadyStatus = ((u32)Pointer + 0x10e);
-		if (Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+		_HostOptions_Init = 1;
+		PadButtonStatus * pad = (PadButtonStatus*)0x001ee600;	
+		//int Selection = *(u32*)0x013C9310 - 0xa;
+		// Updated Selection freezes when loading screen shows.
+		// Needs fixing.
+		if ((pad->btns & PAD_SELECT) == 0)
 		{
-			_HostOptions_ReadyPlayer = 1;
-			*(u8*)((u32)ReadyStatus + Selection) = (*(u8*)((u32)ReadyStatus + Selection) == 0x06) ? 0x00 : 0x06;
-			//printf("host value: 0x%x\n", ((u32)ReadyStatus + Selection));
+			int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+			void * Pointer = (void*)(*(u32*)0x0021dfe8);
+			int ReadyStatus = ((u32)Pointer + 0x10e);
+			if (Selection <= 0x9 && !_HostOptions_ReadyPlayer && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+			{
+				_HostOptions_ReadyPlayer = 1;
+				*(u8*)((u32)ReadyStatus + Selection) = (*(u8*)((u32)ReadyStatus + Selection) == 0x06) ? 0x00 : 0x06;
+				//printf("host value: 0x%x\n", ((u32)ReadyStatus + Selection));
+			}
 		}
-	}
-	else if (!(pad->btns & PAD_SELECT) == 0 && _HostOptions_ReadyPlayer)
-	{
-		_HostOptions_ReadyPlayer = 0;
-	}
+		else if (!(pad->btns & PAD_SELECT) == 0 && _HostOptions_ReadyPlayer)
+		{
+			_HostOptions_ReadyPlayer = 0;
+		}
 
-	// Change Team/Color Logic
-	if ((pad->btns & (PAD_L2)) == 0 && !gameIsIn())
-	{
-		int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
-		if (Selection <= 0x9 && !_HostOptions_TeamColor)
+		// Change Team/Color Logic
+		if ((pad->btns & (PAD_L2)) == 0)
+		{
+			int Selection = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+			if (Selection <= 0x9 && !_HostOptions_TeamColor)
+			{
+				_HostOptions_TeamColor = 1;
+				*(u32*)0x00172170 = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
+				//*(u32*)0x00172170 = *(u32*)0x013C9310 - 0xa;
+				//printf("host value: 0x%x\n", Selection);
+			}
+		}
+		// if Change Team/Color Menu is open
+		else if ((*(u32*)0x003434B8 == 0x259 || *(u32*)0x003434B8 == 0x261) && _HostOptions_TeamColor)
 		{
 			_HostOptions_TeamColor = 1;
-			*(u32*)0x00172170 = *(u32*)((*(u32*)((u32)0x011C7064 + (UIP_STAGING * 0x4))) + 0x230) - 0xa;
-			//*(u32*)0x00172170 = *(u32*)0x013C9310 - 0xa;
-			//printf("host value: 0x%x\n", Selection);
+			// ReadyPlayer is 1 so that when you exit, it doesn't ready the selected player.
+			_HostOptions_ReadyPlayer = 1;
+			// Set User ID back to zero.  Once menu is open, it doesn't matter what the ID is.
+			*(u32*)0x00172170 = 0;
 		}
-	}
-	// if Change Team/Color Menu is open
-	else if ((*(u32*)0x003434B8 == 0x259 || *(u32*)0x003434B8 == 0x261) && _HostOptions_TeamColor)
-	{
-		_HostOptions_TeamColor = 1;
-		// ReadyPlayer is 1 so that when you exit, it doesn't ready the selected player.
-		_HostOptions_ReadyPlayer = 1;
-		// Set User ID back to zero.  Once menu is open, it doesn't matter what the ID is.
-		*(u32*)0x00172170 = 0;
-	}
-	else if (!(pad->btns & (PAD_L2)) == 0 && _HostOptions_TeamColor && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
-	{
-		_HostOptions_TeamColor = 0;
-		*(u32*)0x00172170 = 0;
+		else if (!(pad->btns & (PAD_L2)) == 0 && _HostOptions_TeamColor && (*(u32*)0x003434B8 != 0x259 || *(u32*)0x003434B8 != 0x261))
+		{
+			_HostOptions_TeamColor = 0;
+			*(u32*)0x00172170 = 0;
+		}
 	}
 }
 
