@@ -1,11 +1,11 @@
 EE_OBJS_DIR = obj/
 EE_BIN_DIR = bin/
 
-EE_ELF = $(EE_BIN_DIR)patch-save.elf
-EE_BIN = $(EE_BIN_DIR)patch-save.bin
-EE_OBJS = main.o rpc.o
+EE_ELF = $(EE_BIN_DIR)test.elf
+EE_BIN = $(EE_BIN_DIR)test.bin
+EE_OBJS = main.o
 EE_LIBS = -ldl -lkernel
-ADDRESS = 01E00000
+ADDRESS = 000F3000
 
 EE_OBJS := $(EE_OBJS:%=$(EE_OBJS_DIR)%)
 EE_INCS := -I../../include -I$(PS2SDK)/ports/include
