@@ -1999,9 +1999,11 @@ int main(void)
 	dlPreUpdate();
 
 	// L1 + R1 is Held, do not load the mod menu.
-	if (GetActiveUIPointer(UIP_ONLINE_LOCAL_EDIT_PROFILE_MENU) && padGetButtonDown(0, PAD_L1 | PAD_R1) > 0)
+	if (GetActiveUIPointer(UIP_ONLINE_LOCAL_EDIT_PROFILE_MENU) != 0 && padGetButtonDown(0, PAD_L1 | PAD_R1) > 0)
 	{
 		*(u32*)0x00138DD0 = 0x0C049C30;
+		// Nop patch writing function.  Patch rewrites after each game.
+		*(u32*)0x001579D0 = 0;
 		return -1;
 	}
 

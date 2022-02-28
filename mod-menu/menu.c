@@ -981,5 +981,8 @@ void SaveConfig(void)
 void DisableModMenu(void)
 {
   configMenuDisable();
+  // Revert Hook
   *(u32*)0x00138DD0 = 0x0C049C30;
+  // Nop patch writing function.  Patch rewrites after each game.
+	*(u32*)0x001579D0 = 0;
 }
