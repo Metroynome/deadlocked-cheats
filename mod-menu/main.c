@@ -56,6 +56,8 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableFusionAimer
 	0, // enableLockOnFusion
 	0, // enableDistanceToShowNames
+	0, // enableRemoveCameraShake
+	0, // enableRemoveArbitorExplosionFlash
 	0, // enableFreezeTime
 	0, // enableControllableArbitor
 	0, // enableVisibomb
@@ -1939,6 +1941,40 @@ void patchCameraSpeed()
 }
 
 /*========================================================*\
+========
+================      Remove Camera Shake (B6 Explosion, Flail hit, ect.)
+========
+\*========================================================*/
+void RemoveCameraShake()
+{
+	if (gameIsIn() && config.enableRemoveCameraShake)
+	{
+		if(*(u32*)0x004B14A0 != 0x03e00008)
+		{
+			*(u32*)0x004B14A0 = 0x03e00008;
+			*(u32*)0x004B14A4 = 0;
+		}
+	}
+}
+
+/*========================================================*\
+========
+================      Remove Arbitor Explosion Flash
+========
+\*========================================================*/
+void RemoveArbitorExplosionFlash()
+{
+	if (gameIsIn() && config.enableRemoveArbitorExplosionFlash)
+	{
+		// Remove Arbitor Post Explosion Flash (Close)
+		*(u32*)0x003E7A50 = 0;
+
+		// Remove Arbitor Post Explosion Flash (Far)
+		*(u32*)0x003E70B8 = 0;
+	}
+}
+
+/*========================================================*\
 ========              Grabs the Active Pointer
 ================      if true: returns Pointer
 ========              if false: returns zero
@@ -2071,10 +2107,14 @@ int main(void)
 	ControllableArbitor();
 	// No Button Toggle
 	Visibomb();
-	// No Button toggle
+	// No Button Toggle
 	UnlimitedAmmo();
 	// No Button Toggle (Always Run, not listed in config menu)
 	patchCameraSpeed();
+	// No Button Toggle
+	RemoveCameraShake();
+	// No Button Toggle
+	RemoveArbitorExplosionFlash();
 
     if (gameIsIn())
     {

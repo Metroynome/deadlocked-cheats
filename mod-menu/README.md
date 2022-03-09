@@ -1,6 +1,7 @@
 # mod-menu
 Controls:
  ```   Infinite Health/Moonjump (R3 + R2 = On/L3 = Off)
+   Unlimited Ammo (Toggles in game setting on/off)
     Mask Username (L2 + R2 + Select)
     Hacked Keyboard (L2 + Select)
     Free Cam (L1 + R1 + L3/L1 + R1 + R3)
@@ -32,6 +33,10 @@ Controls:
     Show Fusion Aimer (No Button Combo)
     Lock On Fusion (R2 + Up/R2 + Down)
     Distance to Show Names (No Button Combo)
+    Remove Camera Shake (No button Combo)
+    Remove Arbitor Explosion Flash (No Button Combo)
     Freeze Time (Hold L1)
     Controllable Arbitor Rocket (No Button Combo)
-    Visibomb Mod (No Button Combo)```
+    Visibomb Mod (No Button Combo)
+    Patch Camera Speed (Always On)```
+    

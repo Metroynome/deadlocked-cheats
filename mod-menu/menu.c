@@ -132,6 +132,8 @@ MenuElem_t menuElementsInGame[] = {
   // { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
+  { "Remove Camera Shake", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },
+  { "Remove Arbitor Explosion Flash", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveArbitorExplosionFlash },
   // { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
   { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
   { "Visibomb Mod", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVisibomb }

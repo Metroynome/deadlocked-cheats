@@ -31,6 +31,8 @@ typedef struct PatchConfig
   char enableFusionAimer;
   char enableLockOnFusion;
   char enableDistanceToShowNames;
+  char enableRemoveCameraShake;
+  char enableRemoveArbitorExplosionFlash;
   char enableFreezeTime;
   char enableControllableArbitor;
   char enableVisibomb;
