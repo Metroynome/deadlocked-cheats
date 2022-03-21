@@ -1966,11 +1966,11 @@ void RemoveArbitorExplosionFlash()
 {
 	if (gameIsIn() && config.enableRemoveArbitorExplosionFlash)
 	{
-		// Remove Arbitor Post Explosion Flash (Close)
-		*(u32*)0x003E7A50 = 0;
+		// Remove Arbitor Post Explosion Fog (Close)
+		*(u32*)0x003E7A78 = 0;
 
 		// Remove Arbitor Post Explosion Flash (Far)
-		*(u32*)0x003E70B8 = 0;
+		*(u32*)0x003E707C = 0;
 	}
 }
 
