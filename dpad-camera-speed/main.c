@@ -50,8 +50,8 @@ void DPadCameraLogic(void)
 		"sw 	$t5, 0x0($a0);"
 		
 		"_exitDpadCamera:"
-		"jr 	$ra;"
 		"nop;"
+		"jr 	$ra;"
 	);
 
 
