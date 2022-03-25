@@ -11,43 +11,47 @@ void DPadCameraLogic(void)
 	// a2: Max Camera speed
 
 	//=================TRY 1:::::::
+	// This Works as it should, but it doesn't cycle back around.
 	asm (
 		// Load Pad 1
-		"lui	$t6, 0x001F\n"
-		"addiu 	$t6, $t6, 0xE682\n"
-		"lh	$t6, 0x0($t6)\n"
+		"lui	$t6, 0x001F;"
+		"addiu 	$t6, $t6, 0xE682;"
+		"lh	$t6, 0x0($t6);"
 		// Load Jokers
-		"addiu 	$t7, $zero, 0xFF7F\n" // Left
-		"addiu 	$t8, $zero, 0xFFDF\n" // Right
-		"addiu 	$t9, $zero, 0xBFFF\n" // Cross
+		"addiu 	$t7, $zero, 0xFF7F;" // Left
+		"addiu 	$t8, $zero, 0xFFDF;" // Right
+		"addiu 	$t9, $zero, 0xBFFF;" // Cross
 		// if d-pad Left, Subtract
-		"addiu 	$t5, $zero, -0x8\n"
-		"beq 	$t6, $t7, _DoNewSpeed\n"
+		"addiu 	$t5, $zero, -0x8;"
+		"beq 	$t6, $t7, _DoNewSpeed;"
 		// if d-pad Right, Add
-		"addiu 	$t5, $zero, 0x8\n"
-		"beq 	$t6, $t8, _DoNewSpeed\n"
+		"addiu 	$t5, $zero, 0x8;"
+		"beq 	$t6, $t8, _DoNewSpeed;"
 		//if Cross, Add
-		"addiu 	$t5, $zero, 0x8\n"
-		"beq 	$t6, $t9, _DoNewSpeed\n"
+		"addiu 	$t5, $zero, 0x8;"
+		"beq 	$t6, $t9, _DoNewSpeed;"
+		// if Nothing is pressed, exit.
+		"nop;"
+		"beq	$zero, $zero, _exitDpadCamera;"
 
 		"_DoNewSpeed:"
-		"add 	$t5, $t5, $v0\n"
+		"add 	$t5, $t5, $v0;"
 		// if less than zero, save Zero (Can save Max Speed to Cycle Around)
-		"slti	$t6, $t5, 0xffff\n"
-		"sw		$zero, 0x0($a0)\n"
-		"bne 	$t6, $zero, _exitDpadCamera\n"
+		"slti	$t6, $t5, 0xffff;"
+		"sw		$zero, 0x0($a0);"
+		"bne 	$t6, $zero, _exitDpadCamera;"
 
 		// if greater than max speed, save Max Speed
-		"slt 	$t6, $a2, $t5\n"
-		"sw 	$a2, 0x0($a0)\n"
-		"bne 	$t6, $zero, _exitDpadCamera\n"
+		"slt 	$t6, $a2, $t5;"
+		"sw 	$a2, 0x0($a0);"
+		"bne 	$t6, $zero, _exitDpadCamera;"
 		
 		// Everything In Between
-		"sw 	$t5, 0x0($a0)\n"
+		"sw 	$t5, 0x0($a0);"
 		
 		"_exitDpadCamera:"
-		"jr 	$ra\n"
-		"nop\n"
+		"jr 	$ra;"
+		"nop;"
 	);
 
 
@@ -59,51 +63,51 @@ void DPadCameraLogic(void)
 	// asm (
 		// DOESNT GO TO 100 IF ON 78 >:(
 	// 	// Load Pad 1
-	// 	"lui	$t6, 0x001F\n"
-	// 	"addiu 	$t6, $t6, 0xE682\n"
-	// 	"lh	$t6, 0x0($t6)\n"
+	// 	"lui	$t6, 0x001F;"
+	// 	"addiu 	$t6, $t6, 0xE682;"
+	// 	"lh	$t6, 0x0($t6);"
 	// 	// Load Jokers
-	// 	"addiu 	$t7, $zero, 0xFF7F\n" // Left
-	// 	"addiu 	$t8, $zero, 0xFFDF\n" // Right
-	// 	"addiu 	$t9, $zero, 0xBFFF\n" // Cross
+	// 	"addiu 	$t7, $zero, 0xFF7F;" // Left
+	// 	"addiu 	$t8, $zero, 0xFFDF;" // Right
+	// 	"addiu 	$t9, $zero, 0xBFFF;" // Cross
 	// 	// if d-pad Left, Subtract
-	// 	"addiu 	$t5, $zero, -0x8\n"
-	// 	"beq 	$t6, $t7, _DoNewSpeed\n"
+	// 	"addiu 	$t5, $zero, -0x8;"
+	// 	"beq 	$t6, $t7, _DoNewSpeed;"
 	// 	// if d-pad Right, Add
-	// 	"addiu 	$t5, $zero, 0x8\n"
-	// 	"beq 	$t6, $t8, _DoNewSpeed\n"
+	// 	"addiu 	$t5, $zero, 0x8;"
+	// 	"beq 	$t6, $t8, _DoNewSpeed;"
 	// 	//if Cross, Add
-	// 	"addiu 	$t5, $zero, 0x8\n"
-	// 	"beq 	$t6, $t9, _DoNewSpeed\n"
+	// 	"addiu 	$t5, $zero, 0x8;"
+	// 	"beq 	$t6, $t9, _DoNewSpeed;"
 
 
 	// 	"_DoNewSpeed:"
-	// 	"add 	$t5, $t5, $v0\n"
+	// 	"add 	$t5, $t5, $v0;"
 	// 	// if less than zero, save Max Speed
-	// 	"addiu 	$t9, $zero, -0x1\n"
-	// 	"slt	$t6, $t9, $t5\n"
-	// 	"nop\n"
-	// 	"beq 	$t6, $zero, _GoToMax\n"
+	// 	"addiu 	$t9, $zero, -0x1;"
+	// 	"slt	$t6, $t9, $t5;"
+	// 	"nop;"
+	// 	"beq 	$t6, $zero, _GoToMax;"
 
-	// 	"addiu 	$t9, $a2, 0x1\n"
-	// 	"slt 	$t6, $t9, $t5\n"
-	// 	"nop\n"
-	// 	"bne 	$t6, $zero, _GoToZero\n"
+	// 	"addiu 	$t9, $a2, 0x1;"
+	// 	"slt 	$t6, $t9, $t5;"
+	// 	"nop;"
+	// 	"bne 	$t6, $zero, _GoToZero;"
 
-	// 	"add	$t5, $zero, $t5\n"
-	// 	"beq	$zero, $zero, _exitDpadCamera\n"
+	// 	"add	$t5, $zero, $t5;"
+	// 	"beq	$zero, $zero, _exitDpadCamera;"
 
 	// 	"_GoToMax:"
-	// 	"add	$t5, $zero, $a2\n"
-	// 	"beq	$zero, $zero, _exitDpadCamera\n"
+	// 	"add	$t5, $zero, $a2;"
+	// 	"beq	$zero, $zero, _exitDpadCamera;"
 
 	// 	"_GoToZero:"
-	// 	"add	$t5, $zero, $zero\n"
+	// 	"add	$t5, $zero, $zero;"
 
 	// 	// Everything Else!
 	// 	"_exitDpadCamera:"
-	// 	"sw 	$t5, 0x0($a0)\n"
-	// 	"jr 	$ra\n"
+	// 	"sw 	$t5, 0x0($a0);"
+	// 	"jr 	$ra;"
 	// );
 
 
