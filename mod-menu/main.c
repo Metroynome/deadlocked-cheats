@@ -1902,6 +1902,9 @@ void UnlimitedAmmo()
 \*========================================================*/
 void DPadCameraLogic(void)
 {
+	// v0: Loaded Camera Speed
+	// a0: Camera speed Address
+	// a2: Max Camera speed
 	asm (
 		// Load Pad 1
 		"lui	$t6, 0x001F\n"
@@ -1920,26 +1923,24 @@ void DPadCameraLogic(void)
 		//if Cross, Add
 		"addiu 	$t5, $zero, 0x8\n"
 		"beq 	$t6, $t9, _DoNewSpeed\n"
+		// if Nothing is pressed, exit.
+		"nop;"
+		"beq	$zero, $zero, _exitDpadCamera;"
 
 		"_DoNewSpeed:"
 		"add 	$t5, $t5, $v0\n"
-		// if less than zero, save Max Speed
+		// if less than zero, save Zero (Can save Max Speed to Cycle Around)
 		"slti	$t6, $t5, 0xffff\n"
-		"sw		$a2, 0x0($a0)\n"
+		"sw		$zero, 0x0($a0)\n"
 		"bne 	$t6, $zero, _exitDpadCamera\n"
 
-		// ???
-		"sw		$t5, 0x0($a0)\n"
-		"beq 	$t6, $zero, _exitDpadCamera\n"
-
-		// anything else
+		// if greater than max speed, save Max Speed
 		"slt 	$t6, $a2, $t5\n"
-		"sw 	$t5, 0x0($a0)\n"
-		"beq 	$t6, $zero, _exitDpadCamera\n"
-
-		// if greater than max speed, save Zero
-		"sw 	$zero, 0x0($a0)\n"
+		"sw 	$a2, 0x0($a0)\n"
 		"bne 	$t6, $zero, _exitDpadCamera\n"
+		
+		// Everything In Between
+		"sw 	$t5, 0x0($a0)\n"
 		
 		"_exitDpadCamera:"
 		"jr 	$ra\n"
