@@ -17,7 +17,6 @@
 #include <libdl/team.h>
 
 #define CAMERA_SPEED_PATCH_OFF1			(*(u16*)0x00561BB8)
-#define CAMERA_SPEED_PATCH_OFF2			(*(u16*)0x00561BDC)
 
 void onConfigOnlineMenu(void);
 void onConfigGameMenu(void);
@@ -1903,28 +1902,49 @@ void UnlimitedAmmo()
 \*========================================================*/
 void DPadCameraLogic(void)
 {
-	int CameraSpeed = 0x100;
+	asm (
+		// Load Pad 1
+		"lui	$t6, 0x001F\n"
+		"addiu 	$t6, $t6, 0xE682\n"
+		"lh	$t6, 0x0($t6)\n"
+		// Load Jokers
+		"addiu 	$t7, $zero, 0xFF7F\n" // Left
+		"addiu 	$t8, $zero, 0xFFDF\n" // Right
+		"addiu 	$t9, $zero, 0xBFFF\n" // Cross
+		// if d-pad Left, Subtract
+		"addiu 	$t5, $zero, -0x8\n"
+		"beq 	$t6, $t7, _DoNewSpeed\n"
+		// if d-pad Right, Add
+		"addiu 	$t5, $zero, 0x8\n"
+		"beq 	$t6, $t8, _DoNewSpeed\n"
+		//if Cross, Add
+		"addiu 	$t5, $zero, 0x8\n"
+		"beq 	$t6, $t9, _DoNewSpeed\n"
 
-	int CameraSpeedAddr = 0x00171F18;
-	int num = 0;
-	if ((*(u16*)0x001EE682 & PAD_LEFT) == 0)
-	{
-		num = -0x8;
-	}
-	else if ((*(u16*)0x001EE682 & PAD_RIGHT) == 0 | (*(u16*)0x001EE682 & PAD_CROSS) == 0)
-	{
-		num = 0x8;
-	}
-	int NewSpeed = (u32)(*(u32*)CameraSpeedAddr + num);
-	if (NewSpeed >= CameraSpeed)
-	{
-		NewSpeed = CameraSpeed;
-	}
-	else if (NewSpeed <= 0)
-	{
-		NewSpeed = 0;
-	}
-	*(u32*)CameraSpeedAddr = NewSpeed;
+		"_DoNewSpeed:"
+		"add 	$t5, $t5, $v0\n"
+		// if less than zero, save Max Speed
+		"slti	$t6, $t5, 0xffff\n"
+		"sw		$a2, 0x0($a0)\n"
+		"bne 	$t6, $zero, _exitDpadCamera\n"
+
+		// ???
+		"sw		$t5, 0x0($a0)\n"
+		"beq 	$t6, $zero, _exitDpadCamera\n"
+
+		// anything else
+		"slt 	$t6, $a2, $t5\n"
+		"sw 	$t5, 0x0($a0)\n"
+		"beq 	$t6, $zero, _exitDpadCamera\n"
+
+		// if greater than max speed, save Zero
+		"sw 	$zero, 0x0($a0)\n"
+		"bne 	$t6, $zero, _exitDpadCamera\n"
+		
+		"_exitDpadCamera:"
+		"jr 	$ra\n"
+		"nop\n"
+	);
 }
 void patchCameraSpeed()
 {
@@ -1950,11 +1970,10 @@ void patchCameraSpeed()
 		// Patch Camera Speed Logic with mine.
 		if (*(u32*)0x00561BCC == 0x14460003)
 		{
+			CAMERA_SPEED_PATCH_OFF1 = SPEED;
 			*(u32*)0x00561BCC = 0x0C000000 | ((u32)(&DPadCameraLogic) / 4);
 			*(u32*)0x00561BD0 = 0;
 			*(u32*)0x00561BD8 = 0;
-			*(u32*)0x00561C1C = 0x3C050017;
-			*(u32*)0x00561C20 = 0x8CA21F18;
 		}
 	}
 
