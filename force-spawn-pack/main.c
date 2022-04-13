@@ -60,8 +60,8 @@ int main(void)
         else if ((pad->btns & PAD_R3) == 0 && Active == 0)
 	    {
             Active = 1;
-            // Hurt Player
-            ((void (*)(u32, u16, u16))0x00502658)(PlayerStruct, 1, 0);
+            // End Game - Time up
+            ((void (*)(u32, u32, u32, u32))0x00539708)(3, 0x2720, 0x0034f420, PlayerStruct);
         }
         if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0)
         {
