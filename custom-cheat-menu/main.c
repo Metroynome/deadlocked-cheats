@@ -35,6 +35,19 @@ char Strings[3][10] = {
 	"ANOTHER TEST?!?!?!"
 };
 
+int StringID = 0x1342;
+int StringPointer = *(u32*)0x002226A4;
+int num = -1;
+do
+{
+	++num;
+	StringPointer += 0x10; // Add 0x10 to check next string id.
+} while (*(u16*)(StringPointer + 0x04) != StringID);
+num = num << 2;
+int StringAddress = StringPointer + num;
+return StringAddress;
+
+
 void NewStrings()
 {
 	int NewStringPointer = 0x0009F000;
