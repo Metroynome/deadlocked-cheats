@@ -1625,25 +1625,20 @@ void FusionAimer()
 {
 	if (gameIsIn())
 	{
-		int test = 0x003FAFA8;
 		int FusionAimerBranch = 0x003FAFA8;
-		int FusionAimerBranchData1 = 0x1062003E;
-		int FusionAimerBranchData2 = 0x3C020023;
+		int FusionAimerBranchData = 0x1062003E;
 		int FusionChargebootBranch = 0x003FAEE0;
-		int FusionChargebootData = 0x10400070;
-		if (config.enableFusionAimer/* && *(u32*)FusionAimerBranch == FusionAimerBranchData1*/)
+		int FusionChargebootBranchData = 0x10400070;
+		if (config.enableFusionAimer/* && *(u32*)FusionAimerBranch == FusionAimerBranchData*/)
 		{
-			*(u32*)test = 0x1060003E;
-			//*(u32*)FusionAimerBranch = 0x1462003E;
-			//*(u32*)(FusionAimerBranch + 0x4) = 0;
-			//*(u32*)FusionChargebootBranch = 0;
+			// Freezes at line: 0x003fafd8
+			*(u32*)FusionAimerBranch = 0;
+			*(u32*)FusionChargebootBranch = 0;
 		}
 		else if (!config.enableFusionAimer/* && *(u32*)FusionAimerBranch == 0x1462003E*/)
 		{
-			*(u32*)test = FusionAimerBranchData1;
-			//*(u32*)FusionAimerBranch = FusionAimerBranchData1;
-			//*(u32*)(FusionAimerBranch + 0x4) =  FusionAimerBranchData2;
-			//*(u32*)FusionChargebootBranch = FusionChargebootData;
+			*(u32*)FusionAimerBranch = FusionAimerBranchData;
+			*(u32*)FusionChargebootBranch = FusionChargebootBranchData;
 		}
 	}
 }
