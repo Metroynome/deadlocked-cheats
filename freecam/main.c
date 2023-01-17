@@ -105,16 +105,16 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// Hold Circle: Lock Camera
 	if ((pad->btns & PAD_CIRCLE) == 0)
 	{
-		vector_copy(cameraPos, CameraPosition);
-		vector_subtract(delta, targetPos, cameraPos);
-		vector_normalize(delta, delta);
-		float pitch = asinf(-delta[2]);
-		float yaw = atan2f(delta[1], delta[0]);
-
-		player->CameraPitch.Value = pitch;
-		player->CameraYaw.Value = yaw;
+		vector_copy(delta, CameraPosition);
+		delta[2] += 1;
+		vector_subtract(delta, targetPos, delta);
+		float len = vector_length(delta);
+		float targetYaw = atan2f(delta[1] / len, delta[0] / len);
+		float targetPitch = asinf(-delta[2] / len);
+		player->CameraPitch.Value = targetPitch;
+		player->CameraYaw.Value = targetYaw;
 	}
-
+	
 	// Add Vector to Camera Position
 	vector_add(CameraPosition, CameraPosition, v);
 }
@@ -150,7 +150,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	PlayerCoordinates[2] = PlayerPosition[2];
 
 	// Set Camera Distance to Default
-	player->CameraDistance = -6;
+	player->CameraOffset[0] = -6;
 
 	// Don't let Camera go past death barrier
 	*(u32*)0x005F40DC = 0x10400006;
@@ -183,7 +183,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 int main(void)
 {
 	// ensure we're in game
-	if (!gameIsIn())
+	if (!isInGame())
 	{
 		Active = 0;
 		return -1;
@@ -296,7 +296,7 @@ int main(void)
 		player->UNK19[4] = 0;
 
 	// Constanty Set Camera Distance to Zero
-	player->CameraDistance = 0;
+	player->CameraOffset[0] = 0;
 
 	// fix death camera lock
 	player->CameraPitchMin = 1.48353; // Testing: 1.57077;
