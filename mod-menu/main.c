@@ -68,7 +68,9 @@ PatchConfig_t config __attribute__((section(".config"))) = {
 	0, // enableVehicleSelect
 	0, // enableFormPartyUnkick
 	0, // enableMaxTypingLimit
-	0 // enableMoreTeamColors
+	0, // enableMoreTeamColors
+	0, // enableDNASBypass
+	0 // enableDNASRedirect
 };
 
 short Keys[][2] = {
@@ -109,6 +111,7 @@ const char ModMenuStr[] = "MOD MENU";
 const char HackedStartMenuOptions[] = "OPTIONS";
 const char HackedStartMenuCheats[] = "CHEATS";
 const char HackedStartMenuWeapons[] = "WEAPONS";
+const char * Redirect = "dl.rac-horizon.com";
 
 char _InfiniteHealthMoonjump_Init = 0;
 char _MaskUsername_Init = 0;
@@ -162,7 +165,8 @@ void InfiniteHealthMoonjump()
 	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
 	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
 	PadButtonStatus * pad = playerGetPad(player);
-	if ((pad->btns & (PAD_R3 | PAD_R2)) == 0){
+	if ((pad->btns & (PAD_R3 | PAD_R2)) == 0)
+	{
 		_InfiniteHealthMoonjump_Init = 1;
 	}
 	else if ((pad->btns & (PAD_L3)) == 0)
@@ -177,7 +181,8 @@ void InfiniteHealthMoonjump()
 	// Player Health is always max.
 	player->Health = PLAYER_MAX_HEALTH;
 	// if X is pressed, lower gravity.
-	if ((pad->btns & PAD_CROSS) == 0){
+	if ((pad->btns & PAD_CROSS) == 0)
+	{
 		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
 	}
 }
@@ -324,14 +329,14 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// Hold Circle: lock camera
 	if ((pad->btns & PAD_CIRCLE) == 0)
 	{
-		vector_copy(cameraPos, CameraPosition);
-		vector_subtract(delta, targetPos, cameraPos);
-		vector_normalize(delta, delta);
-		float pitch = asinf(-delta[2]);
-		float yaw = atan2f(delta[1], delta[0]);
-
-		player->CameraPitch.Value = pitch;
-		player->CameraYaw.Value = yaw;
+		vector_copy(delta, CameraPosition);
+		delta[2] += 1;
+		vector_subtract(delta, targetPos, delta);
+		float len = vector_length(delta);
+		float targetYaw = atan2f(delta[1] / len, delta[0] / len);
+		float targetPitch = asinf(-delta[2] / len);
+		player->CameraPitch.Value = targetPitch;
+		player->CameraYaw.Value = targetYaw;
 	}
 }
 
@@ -2032,6 +2037,30 @@ void RemoveArbitorExplosionFlash()
 	}
 }
 
+void DNASBypass()
+{
+	if (config.enableDNASBypass)
+	{
+		if (*(u8*)0x00498CB0 == (7 || 6) && GetActiveUIPointer(UI_ID_DNAS_SELECT) != 0)
+			*(u8*)0x00498CB0 = 5;
+	}
+}
+
+void DNASRedirect()
+{
+	if (config.enableDNASRedirect)
+	{
+		if ((char*)0x001B1ECD == Redirect)
+		return -1;
+	
+		// Hostname
+		strncpy((char*)0x001B1ECD, Redirect, 32);
+		// dnas hostname
+		strncpy((char*)0x00466090, Redirect, 32);
+		strncpy((char*)0x004885B0, Redirect, 32);
+	}
+}
+
 
 
 /*========================================================*\
@@ -2098,6 +2127,8 @@ int main(void)
 	if (GetActiveUIPointer(UIP_ONLINE_LOCAL_EDIT_PROFILE_MENU) != 0 && padGetButtonDown(0, PAD_L1 | PAD_R1) > 0)
 	{
 		*(u32*)0x00138DD0 = 0x0C049C30;
+		// Revert Patch Menu Hook
+		*(u32*)0x0061E1B4 = 0x03e00008;
 		// Nop patch writing function.  Patch rewrites after each game.
 		*(u32*)0x001579D0 = 0;
 		return -1;
@@ -2175,6 +2206,10 @@ int main(void)
 	RemoveCameraShake();
 	// No Button Toggle
 	RemoveArbitorExplosionFlash();
+	// No Button Toggle
+	DNASBypass();
+	// No Button Toggle  (Need DNAS Bypass on for it to work)
+	DNASRedirect();
 
     if (gameIsIn())
     {
@@ -2210,5 +2245,5 @@ int main(void)
 	// Call this last
 	dlPostUpdate();
 
-	return 1;
+	return 0;
 }

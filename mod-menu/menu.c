@@ -129,10 +129,10 @@ MenuElem_t menuElementsInGame[] = {
   { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
   { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   // { "Cheats Menu: Change Team", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuChangeTeam },
-  //v{ "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
+  // { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
-  { "Remove Camera Shake", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },
+  // { "Remove Camera Shake", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },
   { "Remove Arbitor Explosion Flash", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveArbitorExplosionFlash },
   // { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
   { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
@@ -152,6 +152,8 @@ MenuElem_t menuElementsInLobby[] = {
 };
 
 MenuElem_t menuElementsSave[] = {
+  { "Skip/Bypass DNAS", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASBypass },
+  { "Redirect DNAS", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASRedirect },
   { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, EnableSaving },
   { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
   { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
@@ -985,6 +987,15 @@ void DisableModMenu(void)
   configMenuDisable();
   // Revert Hook
   *(u32*)0x00138DD0 = 0x0C049C30;
+  // Revert Patch Menu Hook
+  if (gameIsIn())
+  {
+    *(u32*)0x005603A0 = 0x0C15803E;
+  }
+  else
+  {
+    *(u32*)0x0061E1B4 = 0x03e00008;
+  }
   // Nop patch writing function.  Patch rewrites after each game.
 	*(u32*)0x001579D0 = 0;
 }

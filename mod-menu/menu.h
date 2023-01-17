@@ -46,6 +46,8 @@ typedef struct PatchConfig
   char enableFormPartyUnkick;
   char enableMaxTypingLimit;
   char enableMoreTeamColors;
+  char enableDNASBypass;
+  char enableDNASRedirect;
 } PatchConfig_t;
 
 enum UIPointers
