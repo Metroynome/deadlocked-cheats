@@ -26,7 +26,7 @@ int fd = 0;
 extern PatchConfig_t config;
 
 // constants
-const char footerText[] = "\x14 \x15 TAB     \x10 SELECT     \x12 BACK";
+const char footerText[] = "\x13 DESCRIPTION        \x14 \x15 TAB     \x10 SELECT     \x12 BACK";
 
 // menu display properties
 const u32 colorBlack = 0x80000000;
@@ -103,69 +103,89 @@ MenuElem_ListData_t dataDistanceToShowNames = {
     }
 };
 
+
+/*
+Button Codes:
+10 - x
+11 - circle
+12 - triangle
+13 - square
+14 - l1
+15 - r1
+16 - l2
+17 - r2
+18 - left analog
+19 - right analog
+1a - left d pad
+1b - right d pad
+1c - down d pad
+1d - up d pad
+1e - select
+1f - start
+*/
 // In Game Codes
 MenuElem_t menuElementsInGame[] = {
-  { "Infinite Health/Moonjump", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
-  { "Unlimited Ammo", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableUnlimitedAmmo },
-  { "Free Cam", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
-  // { "Singleplayer Music", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
-  { "Follow Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFollowAimer },
-  { "Infinite Chargeboot", listActionHandler, menuStateAlwaysEnabledHandler, &dataInfiniteChargeboot },
-  { "Render All", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRenderAll },
-  { "Rapid Fire Weapons and Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFire },
-  { "Walk Through Walls", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkThroughWalls },
-  { "Lots of Deaths", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLotsOfDeaths },
-  { "No Respawn Timer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableNoRespawnTimer },
-  { "Walk Fast", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkFast },
-  { "Airwalk", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableAirwalk },
-  { "Flying Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFlyingVehicles },
-  { "Surfing Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSurfingVehicles },
-  { "Fast Vehicles", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFastVehicles },
-  { "Respawn Anywhere", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRespawnAnywhere },
-  // { "Disable vSync", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
-  { "Have All Omega and Alpha Mods", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableOmegaAlphaMods },
-  { "Have All Skill Points", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSkillPoints },
-  { "Hacked Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
-  { "Cheats Menu: Weapons", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
-  { "Cheats Menu: End Game", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
-  // { "Cheats Menu: Change Team", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuChangeTeam },
-  // { "Show Fusion Aimer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
-  { "Lock-On Fusion", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
-  { "Distance to Show Names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
-  // { "Remove Camera Shake", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },
-  { "Remove Arbitor Explosion Flash", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveArbitorExplosionFlash },
-  // { "Freeze Time", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
-  { "Control Arbitor Rocket", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
-  { "Visibomb Mod", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVisibomb }
+  { "Infinite Health/Moonjump", "On: \x17 + \x19\n Off: \x18", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableInfiniteHealthMoonjump },
+  { "Unlimited Ammo", "Turn on/off Infinite Ammo.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableUnlimitedAmmo },
+  { "Free Cam", "On: \x14 + \x15 + \x18\n Off: x14 + \x15 + \x19", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreeCam },
+  // { "Singleplayer Music", "Adds music from Single player to multiplayer", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSingleplayerMusic },
+  { "Follow Aimer", "Press: \x19 + \x17 or \x18 + \x17", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFollowAimer },
+  { "Infinite Chargeboot", "Lets you chargeboot infinitely", listActionHandler, menuStateAlwaysEnabledHandler, &dataInfiniteChargeboot },
+  { "Render All", "On: \x1E + \x1A\x0AOff: \x1E + \x1B", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRenderAll },
+  { "Rapid Fire Weapons and Vehicles", "Hold R3 while Shooting with \x15", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRapidFire },
+  { "Walk Through Walls", "On: \x14 + \x1A\x0AOff \x14 + \x1B", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkThroughWalls },
+  { "Lots of Deaths", "Hold \x14 + \x1D when dead.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLotsOfDeaths },
+  { "No Respawn Timer", "Press \x10 to respawn instantly", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableNoRespawnTimer },
+  { "Walk Fast", "On: \x19 + \x1A\x0AOff: \x19 + \x1B", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableWalkFast },
+  { "Airwalk", "Hold \x18", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableAirwalk },
+  { "Flying Vehicles", "Hold \x18 to go up.\x0AHold \x19 to float.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFlyingVehicles },
+  { "Surfing Vehicles", "On: \x16 + \x1D\x0AOff: \x16 + \x1C", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSurfingVehicles },
+  { "Fast Vehicles", "Fast: Hold \x16 + \x17\x0AFaster: Hold \x16 + \x15", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFastVehicles },
+  { "Respawn Anywhere", "Press \x11 + \x13 to respawn.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRespawnAnywhere },
+  // { "Disable vSync", "On: \x19 + \x1d\x0AOff: \x19 + \x1C", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVSync },
+  { "Have All Omega and Alpha Mods", "No Toggle Needed", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableOmegaAlphaMods },
+  { "Have All Skill Points", "No Toggle Needed", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableSkillPoints },
+  { "Hacked Start Menu", "Adds more options to the Start Menu", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedStartMenu },
+  { "Cheats Menu: Weapons", "Add option to select what weapon to hold.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
+  { "Cheats Menu: End Game", "Add option to End Game if host.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
+  // { "Cheats Menu: Change Team", "Change team color in game.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuChangeTeam },
+  // { "Show Fusion Aimer", "Shows fusion aimer.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
+  { "Lock-On Fusion", "On: \x19 + \x1D\x0AOff: \x19 + \x1C", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
+  { "Distance to Show Names", "Distance to players names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
+  // { "Remove Camera Shake", "Removes camera shake from B6, Flail and other explosions.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },
+  { "Remove Arbitor Explosion Flash", "No Toggle Needed", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveArbitorExplosionFlash },
+  // { "Freeze Time", "Hold \x14", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFreezeTime },
+  { "Control Arbitor Rocket", "Arbitor rocket follows your aimer.\nNo Toggle Needed", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableControllableArbitor },
+  { "Visibomb Mod", "Badger41's Visibomb Mod.  No Toggle Needed.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVisibomb }
 };
 
 // In Lobby Codes
 MenuElem_t menuElementsInLobby[] = {
-  { "Mask Username", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
-  { "Hacked Keyboard", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
-  { "Force G^", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
-  { "Host Options", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHostOptions },
-  { "Vehicle Select", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVehicleSelect },
-  { "Form Party and Unkick", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFormPartyUnkick },
-  { "Max Typing Limit", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaxTypingLimit },
-  { "More Team Colors", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMoreTeamColors }
+  { "Mask Username", "Type desired name into a text field, then press \x17 + \x16 + \x1E", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaskUsername },
+  { "Hacked Keyboard", "Press \x1E + \x17 when focused on keyboard.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHackedKeyboard },
+  { "Force G^", "G^ Players: \x18 + \x19 + \x14\10Gv Players: \x18 + \x19 + \x16", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableForceGUp },
+  { "Host Options", "If Host, hover over name:\x0AChange Players Team: \x16 + \x10\x0AReady Player: \x1F", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableHostOptions },
+  { "Vehicle Select", "Able to select any vehicle on any map.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableVehicleSelect },
+  { "Form Party and Unkick", "Adds Form Party option and can't be kicked from games.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFormPartyUnkick },
+  { "Max Typing Limit", "Press \x14 + \x15 when typing.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMaxTypingLimit },
+  { "More Team Colors", "When changing your team, press \x16 + \x17", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableMoreTeamColors }
 };
 
 MenuElem_t menuElementsSave[] = {
-  { "Skip/Bypass DNAS", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASBypass },
-  { "Redirect DNAS", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASRedirect },
-  { "Save Settings", buttonActionHandler, menuStateAlwaysEnabledHandler, EnableSaving },
-  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
-  { "While in game, a popup will not show.", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
-  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
-  { "Disable Mod Menu", buttonActionHandler, menuStateAlwaysEnabledHandler, DisableModMenu }
+  { "Skip/Bypass DNAS", "Skip DNAS.  No Toggle Needed", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASBypass },
+  { "Redirect DNAS", "Redirect DNAS to specified DNAS.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableDNASRedirect },
+  { "Save Settings", "", buttonActionHandler, menuStateAlwaysEnabledHandler, EnableSaving },
+  { "", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "While in game, a popup will not show.", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "Disable Mod Menu", "", buttonActionHandler, menuStateAlwaysEnabledHandler, DisableModMenu }
 };
 
 // Credits
 MenuElem_t menuElementsCredits[] = {
-  { "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
-  { "Dnawrkshp:  libdl, Mod Menu's UI and much more", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL },
-  { "Agent Moose/Metroynome: Codes and modded UI", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL }
+  { "", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_HEADER },
+  { "Dnawrkshp:  libdl, Mod Menu's UI and much more", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL },
+  { "Agent Moose/Metroynome: Codes and modded UI", "", labelActionHandler, menuLabelStateHandler, (void*)LABELTYPE_LABEL }
 };
 
 // tab items
@@ -695,14 +715,26 @@ void drawTab(TabElem_t* tab)
     return;
 
   // nav down
-  if (padGetButtonDown(0, PAD_DOWN) > 0)
+  if (padGetButtonUp(0, PAD_DOWN) > 0)
   {
     navMenu(tab, 1, 0);
   }
+  // page down
+  else if (padGetButtonUp(0, PAD_R2) > 0)
+  {
+    for (i = 0; i < 10; ++i)
+      navMenu(tab, 1, 0);
+  }
   // nav up
-  else if (padGetButtonDown(0, PAD_UP) > 0)
+  else if (padGetButtonUp(0, PAD_UP) > 0)
   {
     navMenu(tab, -1, 0);
+  }
+  // page up
+  else if (padGetButtonUp(0, PAD_L2) > 0)
+  {
+    for (i = 0; i < 10; ++i)
+      navMenu(tab, -1, 0);
   }
   // nav select
   else if (padGetButtonDown(0, PAD_CROSS) > 0)
@@ -722,10 +754,6 @@ void drawTab(TabElem_t* tab)
     if (state & ELEMENT_EDITABLE)
       currentElement->handler(tab, currentElement, ACTIONTYPE_DECREMENT, NULL);
   }
-  else if (padGetButtonDown(0, PAD_SQUARE) > 0)
-  {
-    RunSavingPopup(); // do something
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -739,7 +767,7 @@ void onMenuUpdate(int inGame)
 		padDisableInput();
 
 		// draw
-		if (padGetButton(0, PAD_L3) <= 0)
+		if ((padGetButton(0, PAD_L3) || padGetButton(0, PAD_SQUARE)) <= 0)
 		{
 			// draw frame
 			drawFrame();
@@ -747,6 +775,20 @@ void onMenuUpdate(int inGame)
 			// draw tab
 			drawTab(tab);
 		}
+    // show description
+    else if (padGetButton(0, PAD_SQUARE) > 0)
+    {
+      int state = 0;
+      MenuElem_t * menuElements = tab->elements;
+      MenuElem_t* currentElement;
+      currentElement = &menuElements[tab->selectedMenuItem];
+      state = getMenuElementState(tab, currentElement);
+      if (state & ELEMENT_EDITABLE)
+      {
+        gfxScreenSpaceBox(0.2, 0.35, 0.6, 0.3, 0x70000000);
+        gfxScreenSpaceText(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, 1, 1, 0x80FFFFFF, currentElement->desc, -1, 4);
+      }
+    }
 
     // if Save button is pressed
     RunSavingPopup();
