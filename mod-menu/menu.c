@@ -149,7 +149,7 @@ MenuElem_t menuElementsInGame[] = {
   { "Cheats Menu: Weapons", "Add option to select what weapon to hold.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuWeapons },
   { "Cheats Menu: End Game", "Add option to End Game if host.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuEndGame },
   // { "Cheats Menu: Change Team", "Change team color in game.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableCheatsMenuChangeTeam },
-  // { "Show Fusion Aimer", "Shows fusion aimer.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
+  { "Enable Fusion Aimer", "Enables fusion aimer.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableFusionAimer },
   { "Lock-On Fusion", "On: \x19 + \x1D\x0AOff: \x19 + \x1C", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableLockOnFusion },
   { "Distance to Show Names", "Distance to players names", listActionHandler, menuStateAlwaysEnabledHandler, &dataDistanceToShowNames },
   // { "Remove Camera Shake", "Removes camera shake from B6, Flail and other explosions.", toggleActionHandler, menuStateAlwaysEnabledHandler, &config.enableRemoveCameraShake },

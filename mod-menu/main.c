@@ -1637,13 +1637,13 @@ void FusionAimer()
 		if (config.enableFusionAimer/* && *(u32*)FusionAimerBranch == FusionAimerBranchData*/)
 		{
 			// Freezes at line: 0x003fafd8
-			*(u32*)FusionAimerBranch = 0;
-			*(u32*)FusionChargebootBranch = 0;
+			*(u32*)FusionAimerBranch = 0x1462003E;
+			// *(u32*)FusionChargebootBranch = 0x14400070;
 		}
 		else if (!config.enableFusionAimer/* && *(u32*)FusionAimerBranch == 0x1462003E*/)
 		{
 			*(u32*)FusionAimerBranch = FusionAimerBranchData;
-			*(u32*)FusionChargebootBranch = FusionChargebootBranchData;
+			// *(u32*)FusionChargebootBranch = FusionChargebootBranchData;
 		}
 	}
 }
