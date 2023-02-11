@@ -12,8 +12,6 @@
 #include <libdl/stdio.h>
 #include <libdl/game.h>
 #include <libdl/player.h>
-#include <libdl/pad.h>
-#include <libdl/music.h>
 
 int Active = 0;
 int FinishedConvertingTracks = 0;
@@ -79,5 +77,5 @@ int main(void)
 		FinishedConvertingTracks = 1;
 	};
 
-	return 1;
+	return 0;
 }
