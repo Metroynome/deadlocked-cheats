@@ -31,6 +31,19 @@ int main(void)
 	// 	*(u32*)(AnotherPointer + 0x48) = p;
 	// }
 
+	// Change Harbinger Pvars to Vipers
+	// This will be what data we use when we take out Dual Magmas
+	// *(u16*)0x0039a020 = 0x1094; // Weapon ID
+	// *(u32*)0x0039a0a0 = 0x003b6548; // Target Function
+	if (*(u16*)0x0039a020 == 0x2613)
+		memcpy((u32*)0x0039a000, (u32*)0x00399a80, 0xb0);
+
+	*(u16*)0x0039a020 = 0x1087; // Weapon ID
+	// *(u32*)0x0039a0a0 = 0x003b6548; // Target Function
+	
+	// Enable Harbinger
+	*(u16*)0x001D4C68 = 0;
+
 	// Dual Wield Vipers or Magma Cannon
 	// Hook our function
 	*(u32*)0x005DDA3C = 0x0c000000 | ((u32)(&DualWieldWeapons) >> 2);
@@ -38,10 +51,13 @@ int main(void)
 	// Set Left Hand weapon to needed dual wield weapon.
 	*(u32*)0x005DDA54 = 0x0040202D;
 	// Constant Write which Weapon PVars to get if Magma Cannon is selected
-	if (*(u32*)0x00349f50 == 3)
+	if (*(u32*)0x00349f50 == 0xa)
 	{
 		// Set to dual viper pvars
-		*(u32*)0x00349DB8 = 2;
+		//	even replacing harbinger with dual vipers
+		//	and loading from there doesn't let
+		//	left hand moby update.
+		//*(u32*)0x00349DB8 = 2;
 		// Writes Player Struct to Parent Moby
 		*(u32*)0x005CDD38 = 0x24081087;
 	}
