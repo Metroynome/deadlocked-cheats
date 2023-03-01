@@ -99,12 +99,15 @@ int main(void)
 		*(u8*)0x005D0FC4 = 0x40;
 		// Change Walking Backward Arbitor Animation
 		*(u8*)0x005EF2BC = 0x5D;
-		// Reset Strafing Arbitor Animation
+		// Change Strafing Arbitor Animation
 		*(u8*)0x005EF618 = 0x56;
 		// Change Walking Forward Arbitor Animation
 		*(u8*)0x005EF7A0 = 0x56;
 		// Change Something with Walking Animations
 		*(u8*)0x005EF65C = 0xa;
+		// Change Random Idle Animation Weapon check to Current Weapon.
+		// This way the it skips random idle animations.
+		*(u8*)0x005EF890 = 0xa;
 	}
 	// Reset back to Dual Vipers
 	else
@@ -127,8 +130,10 @@ int main(void)
 		*(u8*)0x005EF618 = 0x60;
 		// Reset Walking Forward Arbitor Animation
 		*(u8*)0x005EF7A0 = 0x60;
-		// Change Something with Walking Animations
+		// Reset Something with Walking Animations
 		*(u8*)0x005EF65C = 0x2;
+		// Reset Random Idle Animation Weapon check to Dual Vipers.
+		*(u8*)0x005EF890 = 0x2;
 	}
 	
 	return 0;
