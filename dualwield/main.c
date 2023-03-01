@@ -82,7 +82,7 @@ int main(void)
 		//	left hand moby update.
 		// *(u32*)0x00349DB8 = 2;
 		// Writes Player Struct to certain Parent Moby
-		*(u32*)0x005CDD38 = 0x24081087;
+		*(u16*)0x005CDD38 = 0x1087;
 		// Sets branch to true, so any weapon that is
 		// dual wield able will spawn second weapon.
 		// In this case I can choose via "DualWieldWeapons" function
@@ -90,29 +90,45 @@ int main(void)
 		// Dual Wield Weapon Check 2: Sets s6 to needed weapon to make branch (0x005DE33C) true.
 		*(u8*)0x005DDF04 = 0xa;
 		// Disabling this does correct jump animation for dual wield weapons
-		*(u32*)0x005DDC64 = 0;
-		// Reset Idle Arbitor Animation
-		*(u8*)0x005D0F90 = 0x40;
-		// Change Walking Forward Arbitor Animation
-		*(u8*)0x005EF7A0 = 0x56;
+		// *(u32*)0x005DDC64 = 0;
+		// Change Idle Arbitor Animation
+		// *(u8*)0x005D0F90 = 0x40;
+		// Change Magma Cannon Idle Animation 1
+		*(u8*)0x005D0F9C = 0x40;
+		// Change Magma Cannon Idle Animation 2
+		*(u8*)0x005D0FC4 = 0x40;
 		// Change Walking Backward Arbitor Animation
 		*(u8*)0x005EF2BC = 0x5D;
+		// Reset Strafing Arbitor Animation
+		*(u8*)0x005EF618 = 0x56;
+		// Change Walking Forward Arbitor Animation
+		*(u8*)0x005EF7A0 = 0x56;
+		// Change Something with Walking Animations
+		*(u8*)0x005EF65C = 0xa;
 	}
 	// Reset back to Dual Vipers
 	else
 	{
 		// Reset writing Player Struct to certain Parent Moby
-		*(u32*)0x005CDD38 = 0x24081094;
+		*(u16*)0x005CDD38 = 0x1094;
 		// Dual Wield Weapon Check 2:  Reset s0 for Dual Wield Branch at 0x005DE33C
 		*(u8*)0x005DDF04 = 2;
 		// Reset Jumping Animation
-		*(u32*)0x005DDC64 = 0x8E442318;
+		// *(u32*)0x005DDC64 = 0x8E442318;
 		// Reset Idle Arbitor Animation
-		*(u8*)0x005D0F90 = 0x44;
-		// Reset Walking Forward Arbitor Animation
-		*(u8*)0x005EF7A0 = 0x60;
+		// *(u8*)0x005D0F90 = 0x44;
+		// Reset Magma Cannon Idle Animation 1
+		*(u8*)0x005D0F9C = 0x4e;
+		// Reset Magma Cannon Idle Animation 2
+		*(u8*)0x005D0FC4 = 0x4e;
 		// Reset Walking Backward Arbitor Animation
 		*(u8*)0x005EF2BC = 0x61;
+		// Reset Strafing Arbitor Animation
+		*(u8*)0x005EF618 = 0x60;
+		// Reset Walking Forward Arbitor Animation
+		*(u8*)0x005EF7A0 = 0x60;
+		// Change Something with Walking Animations
+		*(u8*)0x005EF65C = 0x2;
 	}
 	
 	return 0;
