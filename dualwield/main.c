@@ -107,6 +107,7 @@ int main(void)
 		*(u8*)0x005EF65C = 0xa;
 		// Change Random Idle Animation Weapon check to Current Weapon.
 		// This way the it skips random idle animations.
+		// I can just jr ra this function too.
 		*(u8*)0x005EF890 = 0xa;
 	}
 	// Reset back to Dual Vipers
