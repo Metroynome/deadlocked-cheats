@@ -15,11 +15,10 @@ int Active = 0;
 int ToggleScoreboard = 0;
 int ToggleRenderAll = 0;
 VECTOR CameraPosition,
-		PlayerPosition,
+		PlayerBackup,
 		targetPos,
 		cameraPos,
 		delta;
-char RenderAllData[0x280];
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -125,7 +124,7 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	vector_copy(CameraPosition, player->CameraPos);
 
 	// Copy Current Player Position and store it.
-	vector_copy(PlayerPosition, player->PlayerPosition);
+	vector_copy(PlayerBackup, player->PlayerPosition);
 
 	// Let Camera go past the death barrier
 	*(u32*)0x005F40DC = 0x10000006;
@@ -144,10 +143,10 @@ void activate(Player * player, PlayerHUDFlags * hud)
 void deactivate(Player * player, PlayerHUDFlags * hud)
 {
 	// Reset Player Position
-	float * PlayerCoordinates = (float*) player->UNK24;
-	PlayerCoordinates[0] = PlayerPosition[0];
-	PlayerCoordinates[1] = PlayerPosition[1];
-	PlayerCoordinates[2] = PlayerPosition[2];
+	float * PlayerCoordinates = (float*)0x0034a9a4;
+	PlayerCoordinates[0] = PlayerBackup[0];
+	PlayerCoordinates[1] = PlayerBackup[1];
+	PlayerCoordinates[2] = PlayerBackup[2];
 
 	// Set Camera Distance to Default
 	player->CameraOffset[0] = -6;
@@ -158,19 +157,9 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	// Reset Respawn timer
 	player->timers.resurrectWait = 0;
 
-	// Reset Render Data/Function
-	if (*(u32*)0x004D7168 == 0x03e00008)
-	{
-		*(u32*)0x004C0760 = 0x0C135C40;
-		*(u32*)0x004C0878 = 0x0C135BD8;
-		*(u32*)0x004C09E0 = 0x0C135C40;
-		*(u32*)0x004C0A50 = 0x0C135C40;
-		*(u32*)0x004D7168 = 0x78A20000;
-		*(u32*)0x004D716C = 0x20A50010;
-		// If off, grab RenderAllData and set it to render data.
-		memcpy((u8*)0x00240A40, RenderAllData, 0x280);
-	}
-	RenderAllData[0x280] = 0;
+	// Reset Occlusion
+	if (*(u32*)0x00222648 == 0)
+		*(u32*)0x00222648 = 2;
 
 	// reactivate hud
 	hud->Flags.Healthbar = 1;
@@ -235,35 +224,14 @@ int main(void)
 		{
 			ToggleRenderAll = 1;
 			
-			// if render function has not been modified, then do so.
-			if (*(u32*)0x004D7168 != 0x03e00008)
+			// If Occlusion equals 2 (On) change it to zero (Off)
+			if (*(u32*)0x00222648 == 2)
 			{
-				// Copy Render Data and save it.
-				memcpy(RenderAllData, (u8*)0x00240A40, 0x280);
-
-				// Turn off render functions
-				*(u32*)0x004C0760 = 0x00000000;
-				*(u32*)0x004C0878 = 0x00000000;
-				*(u32*)0x004C09E0 = 0x00000000;
-				*(u32*)0x004C0A50 = 0x00000000;
-				*(u32*)0x004D7168 = 0x03e00008;
-				*(u32*)0x004D716C = 0x00000000;
-
-				// Set render data to -1.
-				memset((u8*)0x00240A40, 0xff, 0x280);
+				*(u32*)0x00222648 = 0;
 			}
 			else
 			{
-				// If Off, turn functions back to normal.
-				*(u32*)0x004C0760 = 0x0C135C40;
-				*(u32*)0x004C0878 = 0x0C135BD8;
-				*(u32*)0x004C09E0 = 0x0C135C40;
-				*(u32*)0x004C0A50 = 0x0C135C40;
-				*(u32*)0x004D7168 = 0x78A20000;
-				*(u32*)0x004D716C = 0x20A50010;
-
-				// If off, grab RenderAllData and set it to render data.
-				memcpy((u8*)0x00240A40, RenderAllData, 0x280);
+				*(u32*)0x00222648 = 2;
 			}
 		}
 		else if (!(pad->btns & PAD_SQUARE) == 0)
@@ -279,12 +247,10 @@ int main(void)
 	// If player isn't dead, move player to X: Zero
 	if ((player->PlayerState) != 0x99)
 	{
-		float * PlayerCoordinates = (float*) player->UNK24;
+		float * PlayerCoordinates = (float*)0x0034a9a4;
 		PlayerCoordinates[0] = 0;
-		PlayerCoordinates[1] = PlayerPosition[1];
-
-		// Add 0x00100000 to Y so it doesn't hit death barriers.
-		PlayerCoordinates[2] = PlayerPosition[2] + 0x00100000;
+		PlayerCoordinates[1] = PlayerBackup[1];
+		PlayerCoordinates[2] = PlayerBackup[2] + 0x00100000;
 	}
 
 	// Force Hold Wrench
