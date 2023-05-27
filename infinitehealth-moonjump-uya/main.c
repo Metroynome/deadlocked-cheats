@@ -5,6 +5,7 @@ int UpdateHealthJAL = 0;
 int main(void)
 {
 	void * GameplayFilePointer = (void*)(*(u32*)0x01FFFD00);
+    // If in game
 	if (GameplayFilePointer != 0x00574F88)
 	{
         int Joker = *(u16*)0x00225982;
@@ -41,6 +42,7 @@ int main(void)
                 UpdateHealthJAL = 0;
         }
 	}
+    // if Not In Game
     else
     {
         if (UpdateHealthJAL != 0)
