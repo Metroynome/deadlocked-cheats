@@ -55,13 +55,16 @@ int main(void)
             // Spawn Pack (Outpost X12)
             //((void (*)(u32))0x004F0378)(0x002F7900);
             // Heal Player
-            ((void (*)(u32, u16, u16))0x0041BE98)(PlayerStruct, 1, 57);
+            //((void (*)(u32, u32))0x0041BE98)(0x01C78440, PlayerStruct);
+            ((void (*)(int))0x004E3080)(1);
         }
         else if ((pad->btns & PAD_R3) == 0 && Active == 0)
 	    {
             Active = 1;
-            // End Game - Time up
-            ((void (*)(u32, u32, u32, u32))0x00539708)(3, 0x2720, 0x0034f420, PlayerStruct);
+            // End Game - Blue Team Wins!
+            // ((void(*)(int))0x00539708)(0);
+            // Hurt Player
+            ((void (*)(u32, u16, u16))0x00502658)(0x002F7900, 1, 0);
         }
         if (!(pad->btns & PAD_L3) == 0 && !(pad->btns & PAD_R3) == 0)
         {
