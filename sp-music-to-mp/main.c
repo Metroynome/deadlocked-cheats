@@ -145,10 +145,10 @@ void CampaignMusic()
 	// If not in main lobby, game lobby, ect.
 	if(CodeSegmentPointer != 0x01430700){
 		// if TRACK_RANGE_MAX doesn't equal TotalTracks
-		// if(musicTrackRangeMax() != TotalTracks){
-		// 	int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
-		// 	*(u16*)MusicFunctionData = AllTracks;
-		// }
+		if(musicTrackRangeMax() != TotalTracks){
+			int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
+			*(u16*)MusicFunctionData = AllTracks;
+		}
 		if (*(u32*)NewTracksLocation == 0 || !SetupMusic)
 		{
 			int Track;
