@@ -10,22 +10,52 @@
 #include <libdl/pad.h>
 #include <libdl/music.h>
 
+#define TRACK_RANGE_MIN (*(u8*)0x0021EC08)
+#define TRACK_RANGE_MAX (*(u8*)0x0021EC0C)
+#define CURRENT_TRACK (*(u16*)0x00206990)
+#define TRACK_DURATION (*(u32*)0x002069A4)
+
+int musicCurrentTrack(void)
+{
+    return CURRENT_TRACK;
+}
+
+int musicTrackDuration(void)
+{
+    return TRACK_DURATION;
+}
+
+int musicTrackRangeMin(void)
+{
+    return TRACK_RANGE_MIN;
+}
+
+int musicTrackRangeMax(void)
+{
+    return TRACK_RANGE_MAX;
+}
+
+
 int enableSingleplayerMusic = 1;
+
+typedef struct MusicTrack {
+	u32 LeftAudio;
+	u32 RightAudio;
+} MusicTrack;
+MusicTrack Music[0x3e] = {};
 
 void CampaignMusic()
 {
 	static int FinishedConvertingTracks = 0;
 	static int AddedTracks = 0;
-	int Track;
-	int Music[][2] = {};
+	static int SetupMusic = 0;
 
 	// check to see if multiplayer tracks are loaded
 	if (!musicIsLoaded())
 		return;
 
-
 	u32 NewTracksLocation = 0x001CF940;
-	if (!FinishedConvertingTracks || !Music)
+	if (!FinishedConvertingTracks)
 	{
 		AddedTracks = 0;
 		int MultiplayerSector = *(u32*)0x001CF85C;
@@ -52,8 +82,8 @@ void CampaignMusic()
 				// make sure WAD_Sector isn't zero
 				if (WAD_Sector != 0)
 				{
-					DPRINTF("WAD: 0x%X\n", WAD);
-					DPRINTF("WAD Sector: 0x%X\n", WAD_Sector);
+					printf("WAD: 0x%X\n", WAD);
+					printf("WAD Sector: 0x%X\n", WAD_Sector);
 
 					// do music stuffs~
 					// Get SP 2 MP Offset for current WAD_Sector.
@@ -70,8 +100,10 @@ void CampaignMusic()
 						int ConvertedTrack_LeftAudio = SP2MP + Track_LeftAudio;
 						int ConvertedTrack_RightAudio = SP2MP + Track_RightAudio;
 						// Store converted tracks for later
-						Music[AddedTracks][0] = ConvertedTrack_LeftAudio;
-						Music[AddedTracks][1] = ConvertedTrack_RightAudio;
+						Music[AddedTracks].LeftAudio = ConvertedTrack_LeftAudio;
+						Music[AddedTracks].RightAudio = ConvertedTrack_RightAudio;
+						// Music[AddedTracks][0] = ConvertedTrack_LeftAudio;
+						// Music[AddedTracks][1] = ConvertedTrack_RightAudio;
 						// If on DreadZone Station, and first song, add 0x20 instead of 0x20
 						// This fixes an offset bug.
 						if (a == 0 && b == 0)
@@ -101,7 +133,7 @@ void CampaignMusic()
 		memset((u32*)Stack, 0, 0x2A0);
 
 		FinishedConvertingTracks = 1;
-		DPRINTF("Added Tracks: %d\n", AddedTracks);
+		printf("Added Tracks: %d\n", AddedTracks);
 	};
 	
 
@@ -113,18 +145,20 @@ void CampaignMusic()
 	// If not in main lobby, game lobby, ect.
 	if(CodeSegmentPointer != 0x01430700){
 		// if TRACK_RANGE_MAX doesn't equal TotalTracks
-		if(musicTrackRangeMax() != TotalTracks){
-			int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
-			*(u16*)MusicFunctionData = AllTracks;
-		}
-		if (*(u32*)NewTracksLocation == 0)
+		// if(musicTrackRangeMax() != TotalTracks){
+		// 	int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
+		// 	*(u16*)MusicFunctionData = AllTracks;
+		// }
+		if (*(u32*)NewTracksLocation == 0 || !SetupMusic)
 		{
+			int Track;
 			for(Track = 0; Track < AddedTracks; ++Track)
 			{
-				*(u32*)(NewTracksLocation) = Music[Track][1];
-				*(u32*)(NewTracksLocation + 0x08) = Music[Track][2];
+				*(u32*)(NewTracksLocation) = Music[Track].LeftAudio;
+				*(u32*)(NewTracksLocation + 0x08) = Music[Track].RightAudio;
 				NewTracksLocation += 0x10;
 			}
+			SetupMusic = 1;
 		}
 	}
 
