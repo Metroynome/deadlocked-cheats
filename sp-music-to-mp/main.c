@@ -37,18 +37,30 @@ int musicTrackRangeMax(void)
 
 
 int enableSingleplayerMusic = 1;
+static char AdderTracks[] = {};
 
-typedef struct MusicTrack {
-	u16 LeftAudio;
-	u16 RightAudio;
-} MusicTrack;
-MusicTrack Music[0x1f] = {};
 
-void CampaignMusic()
+void CheckFirstBits(int Track, int LeftAudio, int RightAudio)
+{
+	// Get First 2 bytes of the track data
+	LeftAudio = (LeftAudio >> 10);
+	RightAudio = (RightAudio >> 10);
+	if (LeftAudio == RightAudio)
+	{
+		AdderTracks[LeftAudio] = Track;
+	}
+	else
+	{
+		AdderTracks[LeftAudio] = Track;
+		AdderTracks[RightAudio] = Track;
+	}
+}
+void CampaignMusic(void)
 {
 	static int FinishedConvertingTracks = 0;
 	static int AddedTracks = 0;
 	static int SetupMusic = 0;
+	static short Music[0x1f][2] = {};
 
 	// check to see if multiplayer tracks are loaded
 	if (!musicIsLoaded())
@@ -95,13 +107,15 @@ void CampaignMusic()
 					// if it does equal zero, that means we reached the end of the list and we move onto the next batch of tracks.
 					do
 					{
-						short Track_LeftAudio = *(u32*)(Songs + b);
-						short Track_RightAudio = *(u32*)((u32)(Songs + b) + 0x8);
+						int Track_LeftAudio = *(u32*)(Songs + b);
+						int Track_RightAudio = *(u32*)((u32)(Songs + b) + 0x8);
 						int ConvertedTrack_LeftAudio = SP2MP + Track_LeftAudio;
 						int ConvertedTrack_RightAudio = SP2MP + Track_RightAudio;
+						// Checks the first 16 bits of track for 0, 1, 2, ect.
+						// CheckFirstBits(AddedTracks, ConvertedTrack_LeftAudio, ConvertedTrack_RightAudio);
 						// Store converted tracks for later
-						Music[AddedTracks].LeftAudio = (u16)ConvertedTrack_LeftAudio;
-						Music[AddedTracks].RightAudio = (u16)ConvertedTrack_RightAudio;
+						Music[AddedTracks][0] = (u16)ConvertedTrack_LeftAudio;
+						Music[AddedTracks][1] = (u16)ConvertedTrack_RightAudio;
 						// If on DreadZone Station, and first song, add 0x20 instead of 0x20
 						// This fixes an offset bug.
 						if (a == 0 && b == 0)
@@ -126,9 +140,9 @@ void CampaignMusic()
 			{
 				a--;
 			}
-		}
 		// Zero out stack to finish the job.
 		memset((u32*)Stack, 0, 0x2A0);
+		}
 
 		FinishedConvertingTracks = 1;
 		printf("Added Tracks: %d\n", AddedTracks);
@@ -143,43 +157,43 @@ void CampaignMusic()
 	// If not in main lobby, game lobby, ect.
 	if(CodeSegmentPointer != 0x01430700){
 		// if TRACK_RANGE_MAX doesn't equal TotalTracks
-		// if(musicTrackRangeMax() != TotalTracks){
-		// 	int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
-		// 	*(u16*)MusicFunctionData = AllTracks;
-		// }
+		if(musicTrackRangeMax() != TotalTracks){
+			int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
+			*(u16*)MusicFunctionData = AllTracks;
+		}
 		if (*(u32*)NewTracksLocation == 0 || !SetupMusic)
 		{
 			int Track;
 			for(Track = 0; Track < AddedTracks; ++Track)
 			{
-				u32 Left = Music[Track].LeftAudio;
-				u32 Right = Music[Track].RightAudio;
-				int Adder_1 = 0x10000;
-				int Adder_2 = 0x20000;
-				int Adder_3 = 0x30000;
+				u32 Left = (u16)Music[Track][0];
+				u32 Right = (u16)Music[Track][1];
+				u32 Add1 = 0x10000;
+				u32 Add2 = 0x20000;
+				u32 Add3 = 0x30000;
 				if (Track == 8)
 				{
-					Right += Adder_1;
+					Right += Add1;
 				}
 				else if (Track >= 9 && Track <= 31)
 				{
-					Left += Adder_1;
-					Right += Adder_1;
+					Left += Add1;
+					Right += Add1;
 				}
 				else if (Track == 32)
 				{
-					Left += Adder_1;
-					Right += Adder_2;
+					Left += Add1;
+					Right += Add2;
 				}
 				else if (Track >= 33 && Track <= 56)
 				{
-					Left += Adder_2;
-					Right += Adder_2;
+					Left += Add2;
+					Right += Add2;
 				}
 				else if (Track >= 57)
 				{
-					Left += Adder_3;
-					Right += Adder_3;
+					Left += Add3;
+					Right += Add3;
 				}
 				
 				*(u32*)(NewTracksLocation) = Left;
