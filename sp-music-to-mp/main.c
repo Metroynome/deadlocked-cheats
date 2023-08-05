@@ -39,10 +39,10 @@ int musicTrackRangeMax(void)
 int enableSingleplayerMusic = 1;
 
 typedef struct MusicTrack {
-	u32 LeftAudio;
-	u32 RightAudio;
+	u16 LeftAudio;
+	u16 RightAudio;
 } MusicTrack;
-MusicTrack Music[0x3e] = {};
+MusicTrack Music[0x1f] = {};
 
 void CampaignMusic()
 {
@@ -95,15 +95,13 @@ void CampaignMusic()
 					// if it does equal zero, that means we reached the end of the list and we move onto the next batch of tracks.
 					do
 					{
-						int Track_LeftAudio = *(u32*)(Songs + b);
-						int Track_RightAudio = *(u32*)((u32)(Songs + b) + 0x8);
+						short Track_LeftAudio = *(u32*)(Songs + b);
+						short Track_RightAudio = *(u32*)((u32)(Songs + b) + 0x8);
 						int ConvertedTrack_LeftAudio = SP2MP + Track_LeftAudio;
 						int ConvertedTrack_RightAudio = SP2MP + Track_RightAudio;
 						// Store converted tracks for later
-						Music[AddedTracks].LeftAudio = ConvertedTrack_LeftAudio;
-						Music[AddedTracks].RightAudio = ConvertedTrack_RightAudio;
-						// Music[AddedTracks][0] = ConvertedTrack_LeftAudio;
-						// Music[AddedTracks][1] = ConvertedTrack_RightAudio;
+						Music[AddedTracks].LeftAudio = (u16)ConvertedTrack_LeftAudio;
+						Music[AddedTracks].RightAudio = (u16)ConvertedTrack_RightAudio;
 						// If on DreadZone Station, and first song, add 0x20 instead of 0x20
 						// This fixes an offset bug.
 						if (a == 0 && b == 0)
@@ -145,17 +143,47 @@ void CampaignMusic()
 	// If not in main lobby, game lobby, ect.
 	if(CodeSegmentPointer != 0x01430700){
 		// if TRACK_RANGE_MAX doesn't equal TotalTracks
-		if(musicTrackRangeMax() != TotalTracks){
-			int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
-			*(u16*)MusicFunctionData = AllTracks;
-		}
+		// if(musicTrackRangeMax() != TotalTracks){
+		// 	int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
+		// 	*(u16*)MusicFunctionData = AllTracks;
+		// }
 		if (*(u32*)NewTracksLocation == 0 || !SetupMusic)
 		{
 			int Track;
 			for(Track = 0; Track < AddedTracks; ++Track)
 			{
-				*(u32*)(NewTracksLocation) = Music[Track].LeftAudio;
-				*(u32*)(NewTracksLocation + 0x08) = Music[Track].RightAudio;
+				u32 Left = Music[Track].LeftAudio;
+				u32 Right = Music[Track].RightAudio;
+				int Adder_1 = 0x10000;
+				int Adder_2 = 0x20000;
+				int Adder_3 = 0x30000;
+				if (Track == 8)
+				{
+					Right += Adder_1;
+				}
+				else if (Track >= 9 && Track <= 31)
+				{
+					Left += Adder_1;
+					Right += Adder_1;
+				}
+				else if (Track == 32)
+				{
+					Left += Adder_1;
+					Right += Adder_2;
+				}
+				else if (Track >= 33 && Track <= 56)
+				{
+					Left += Adder_2;
+					Right += Adder_2;
+				}
+				else if (Track >= 57)
+				{
+					Left += Adder_3;
+					Right += Adder_3;
+				}
+				
+				*(u32*)(NewTracksLocation) = Left;
+				*(u32*)(NewTracksLocation + 0x08) = Right;
 				NewTracksLocation += 0x10;
 			}
 			SetupMusic = 1;
