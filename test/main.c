@@ -1,81 +1,122 @@
-/*
- sp-cutscene-to-mp Code Created by Troy "Agent Moose" Pruitt
- Allows all single cutscene audio to be played in Multiplayer.
-
- Although this code is similar to the sp=music-to-mp, it does have some major differences.
-
- if SelectLevel is 1 (aka Dreadzone Station):
-	0x15e: Courtney Gears and Al.
-*/
-
 #include <tamtypes.h>
-#include <libdl/stdio.h>
-#include <libdl/game.h>
-#include <libdl/player.h>
 
-int Active = 0;
-int FinishedConvertingTracks = 0;
-int AddedTracks = 0;
+#include <libdl/stdio.h>
+#include <libdl/string.h>
+#include <libdl/player.h>
+#include <libdl/utils.h>
+#include <libdl/game.h>
+#include <libdl/pad.h>
+#include <libdl/dl.h>
+#include <libdl/weapon.h>
+#include <libdl/moby.h>
+#include <libdl/graphics.h>
+#include <libdl/gamesettings.h>
+#include <libdl/spawnpoint.h>
+#include <libdl/team.h>
+#include <libdl/ui.h>
+#include <libdl/time.h>
+#include <libdl/camera.h>
+#include <libdl/gameplay.h>
+#include <libdl/map.h>
+#include <libdl/collision.h>
+#include <libdl/guber.h>
+#include <libdl/sound.h>
+
+#define TestMoby	(*(Moby**)0x00091004)
+
+void DebugInGame(Player* player)
+{
+    if (playerPadGetButtonDown(player, PAD_LEFT) > 0) {
+		// Nothing Yet!
+	} else if (playerPadGetButtonDown(player, PAD_RIGHT) > 0) {
+		// Nothing Yet!
+	} else if (playerPadGetButtonDown(player, PAD_UP) > 0) {
+		// Nothing Yet!
+	} else if(playerPadGetButtonDown(player, PAD_DOWN) > 0) {
+		// Nothing Yet!
+	} else if (playerPadGetButtonDown(player, PAD_L3) > 0) {
+		// Nothing Yet!
+	} else if (playerPadGetButtonDown(player, PAD_R3) > 0) {
+		// Nothing Yet!
+	}
+}
+
+void DebugInMenus(void)
+{
+    if (padGetButtonDown(0, PAD_LEFT) > 0) {
+		// Nothing Yet!
+	} else if (padGetButtonDown(0, PAD_RIGHT) > 0) {
+		// Nothing Yet!
+	} else if (padGetButtonDown(0, PAD_UP) > 0) {
+		// Nothing Yet!
+	} else if(padGetButtonDown(0, PAD_DOWN) > 0) {
+		// Nothing Yet!
+	} else if (padGetButtonDown(0, PAD_L3) > 0) {
+		// Nothing Yet!
+	} else if (padGetButtonDown(0, PAD_R3) > 0) {
+		// Nothing Yet!
+	}
+}
+
+void InfiniteChargeboot(void)
+{
+	int i;
+	Player** players = playerGetAll();
+	for (i = 0; i < GAME_MAX_PLAYERS; ++i){
+		Player * p = players[i];
+		if (!p)
+			continue;
+
+		if (p->PlayerState == PLAYER_STATE_CHARGE && playerPadGetButton(p, PAD_L2) > 0 && p->timers.state > 55)
+			p->timers.state = 55;
+	}
+}
+
+void InfiniteHealthMoonjump(void)
+{
+	int _InfiniteHealthMoonjump_Init = 0;
+	// Handle On/Off Button Press
+	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
+	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
+	PadButtonStatus * pad = playerGetPad(player);
+	if ((pad->btns & (PAD_R3 | PAD_R2)) == 0)
+		_InfiniteHealthMoonjump_Init = 1;
+	else if ((pad->btns & (PAD_L3)) == 0)
+		_InfiniteHealthMoonjump_Init = 0;
+
+	// Handle On/Off
+	if(!_InfiniteHealthMoonjump_Init)
+		return;
+
+	// Player Health is always max.
+	player->Health = player->MaxHealth;
+	// if X is pressed, lower gravity.
+	if ((pad->btns & PAD_CROSS) == 0)
+		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
+}
 
 int main(void)
 {
-	// check to see if multiplayer tracks are loaded
-	if (!musicIsLoaded())
-	{
-		Active = 0;
-		return -1;
+	dlPreUpdate();
+
+	// GameSettings * gameSettings = gameGetSettings();
+	// GameOptions * gameOptions = gameGetOptions();
+
+    if (isInGame()) {
+		Player * p = playerGetFromSlot(0);
+		if (!p)
+			return 0;
+
+		printf("\nanimId: %d", p->PlayerMoby->AnimSeqId);
+
+		InfiniteChargeboot();
+		InfiniteHealthMoonjump();
+    	// DebugInGame(p);
+    } else {
+		DebugInMenus();
 	}
 
-	Active = 1;
-
-	int NewTracksLocation = 0x001CF940;
-	if (!FinishedConvertingTracks)
-	{
-		AddedTracks = 0;
-		int MultiplayerSectorID = *(u32*)0x001CF85C;
-		int Stack = 0x0023ac00;
-		int Sector = 0x001CE468;
-		int end_address = 0x001CEBE0;
-		int Offset = 0;
-		int a = 0;
-
-		do
-		{
-			memset((u32*)Stack, 0, 0x26F0);
-			Offset += 0x8;
-			int MapSector = *(u32*)(Sector + Offset);
-			if (MapSector != 0)
-			{
-				internal_wadGetSectors(MapSector, 1, Stack);
-				int SectorID = *(u32*)(Stack);
-				// levelaudiowad
-				if (SectorID == 0x2a0)
-				{
-					printf("\nAudioWAD Address: 0x%x", (u32)(Sector + Offset));
-				}
-				// levelscenewad
-				else if (SectorID == 0x26f0)
-				{
-					printf("\nSceneWAD Address: 0x%x", (u32)(Sector + Offset));
-				}
-				// levelwad
-				else if (SectorID == 0xc68)
-				{
-					printf("\nLevelWAD Address: 0x%x", (u32)(Sector + Offset));
-				}
-				else
-				{
-					printf("\nUnidentified WAD:");
-					printf("\nAddress: 0x%x", (u32)(Sector + Offset));
-					printf("\nSize: 0x%x", *(u32*)(Sector + Offset));
-				}
-				a++;
-			}
-		} while ((u32)(Sector + Offset) <= end_address);
-		memset((u32*)Stack, 0, 0x26F0);
-
-		FinishedConvertingTracks = 1;
-	};
+	dlPostUpdate();
 
 	return 0;
 }
