@@ -15,9 +15,9 @@ void doTheFlapFlap(void)
 	// use x or not to flap!
 	int Manual = 0;
 
-	static float negativef = -1;
-	static float positivef = 0.50;
-	static float rotModifier = 0.10;
+	static float negativef = -0.50;
+	static float positivef = 0.70;
+	static float rotModifier = 0.06;
 	static int state = 0;
 	static float lRot = 0;
 	static float rRot = 0;
