@@ -11,45 +11,21 @@
 #include <libdl/vehicle.h>
 #include <libdl/time.h>
 
-#define DUAL_VIPER_HOOK (0x003B7A08)
-// function i'm overwriting
-#define DUAL_VIPER_SHOOT_FUNC (0x005F03D0)
+#define DUAL_VIPER_SHOOT_HOOK (0x003B7A84)
+#define DUAL_VIPER_SHOOT_FUNC (0x003B66A0)
 
-int correctShooting(u32 a0, u32 a1, u32 a2)
+void correctShooting(Moby *moby, Player *player, u32 stack)
 {
-	int ret = ((int (*)(u32, u32, u32))DUAL_VIPER_SHOOT_FUNC)(a0, a1, a2);
-	Player * player = playerGetFromSlot(0);
-	// register unsigned int CurrentViper asm("s2");
-	static u32 right_viper = 0;
-	static u32 left_viper = 0;
-	u32 moby1 = *(u32*)((u32)player + 0x22f0);
-	u32 moby2 = *(u32*)((u32)player + 0x22f4);
-	if (moby1 == 0 || moby2 == 0)
-		return 0;
+	u32 moby1_right = *(u32*)((u32)player + 0x22f0);
+	u32 moby2_left = *(u32*)((u32)player + 0x22f4);
+	if (moby1_right == 0 || moby2_left == 0)
+		return;
 
-	if (right_viper != moby1)
-		right_viper = moby1;
-	if (left_viper != moby2)
-		left_viper = moby2;
+	if (padGetButtonDown(0, PAD_R1) > 0)
+		((void (*)(Moby *, Player *, u32))DUAL_VIPER_SHOOT_FUNC)(moby1_right, player, stack);
 
-	int jointCnt = 0;
-	if ( padGetButtonDown(0, PAD_R1) > 0)
-		jointCnt = 8;
-	// Shoot Right Hand
 	if (padGetButtonDown(0, PAD_L1) > 0)
-		jointCnt = 8;
-
-	// printf("\nRight: %08x", right_viper);
-	// printf("\nLeft : %08x", left_viper);
-	static int old_ret = -1;
-	if (old_ret != ret) {
-		printf("\nret: %d, jointCnt: %d", ret, jointCnt);
-		old_ret = ret;
-	}
-	if (ret == jointCnt)
-		return ret;
-	
-	return 0;
+		((void (*)(Moby *, Player *, u32))DUAL_VIPER_SHOOT_FUNC)(moby2_left, player, stack);
 }
 
 int main(void)
@@ -58,10 +34,32 @@ int main(void)
 
 	if (!isInGame())
 		return -1;
+	Player *player = playerGetFromSlot(0);
 	
+	static int holdingDualVipers = 0;
+	if (*(u32*)((u32)player + 0x22f4) != 0 && !holdingDualVipers) {
+		// update p->gadgets[0].padButton;
+		*(u32*)((u32)player + 0x22d0 + 0x30) = 12;
+		// Make L1 not jump
+		*(u16*)0x005ef0e0 = 0x70;
+		*(u16*)0x00607084 = 0x70;
+		*(u16*)0x00608674 = 0x70;
+		holdingDualVipers = 1;
+	} else if (*(u32*)((u32)player + 0x22f4) == 0 && holdingDualVipers){
+		*(u16*)0x005ef0e0 = 0x40;
+		*(u16*)0x00607084 = 0x40;
+		*(u16*)0x00608674 = 0x40;
+		holdingDualVipers = 0;
+	}
+
 	static int init = 0;
 	if (!init) {
-		HOOK_JAL(DUAL_VIPER_HOOK, &correctShooting);
+		HOOK_JAL(DUAL_VIPER_SHOOT_HOOK, &correctShooting);
+		// let both vipers shoot at same time
+		POKE_U32(0x003B7A8C, 0);
+		POKE_U32(0x003B7A9C, 0);
+		// change rate of fire to something really high.
+		POKE_F32(0x00399acc, 100.00);
 		init = 1;
 	}
 

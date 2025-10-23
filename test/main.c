@@ -95,53 +95,14 @@ void InfiniteHealthMoonjump(void)
 		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
 }
 
-VECTOR hits[250];
-u32 hitsColor[250];
-int hitsCount = 0;
-u32 hitsColorCurrent = 0x80FFFFFF;
-
-void testPlayerCollider(int pid)
-{
-	VECTOR pos,t,o = {0,0,0.7,0};
-	int i,j = 0;
-	int x,y;
-	char buf[12];
-	Player * p = playerGetAll()[pid];
-
-	const int steps = 5 * 2;
-	const float radius = 2;
-
-	for (i = 0; i < steps; ++i) {
-		for (j = 0; j < steps; ++j) {
-			if (hitsCount >= 250) break;
-
-			float theta = (i / (float)steps) * MATH_TAU;
-			float omega = (j / (float)steps) * MATH_TAU;  
-
-			vector_copy(pos, p->PlayerPosition);
-			pos[0] += radius * sinf(theta) * cosf(omega);
-			pos[1] += radius * sinf(theta) * sinf(omega);
-			pos[2] += radius * cosf(theta);
-
-			vector_add(t, p->PlayerPosition, o);
-
-			if (CollLine_Fix(pos, t, COLLISION_FLAG_IGNORE_STATIC, NULL, 0)) {
-				vector_copy(t, CollLine_Fix_GetHitPosition());
-				hitsColor[hitsCount] = hitsColorCurrent;
-				vector_copy(hits[hitsCount++], CollLine_Fix_GetHitPosition());
-				if (gfxWorldSpaceToScreenSpace(t, &x, &y)) {
-					gfxScreenSpaceText(x, y, 1, 1, 0x80FFFFFF, "+", -1, 4);
-				}
-			}
-		}
-	}
-}
+int state = -1;
+int time = 0;
 
 int main(void)
 {
 	dlPreUpdate();
 
-	// GameSettings * gameSettings = gameGetSettings();
+	GameSettings * gameSettings = gameGetSettings();
 	// GameOptions * gameOptions = gameGetOptions();
 
     if (isInGame()) {
@@ -149,9 +110,9 @@ int main(void)
 		if (!p)
 			return 0;
 
-		// printf("\nanimId: %d", p->PlayerMoby->AnimSeqId);
+		printf("\nstate: %d", gameSettings->GameStartTime, p->PlayerState);
 
-		InfiniteChargeboot();
+		// InfiniteChargeboot();
 		InfiniteHealthMoonjump();
     	// DebugInGame(p);
 
