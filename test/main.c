@@ -110,7 +110,7 @@ int main(void)
 		if (!p)
 			return 0;
 
-		printf("\nstate: %d", gameSettings->GameStartTime, p->PlayerState);
+		printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->Health, *(u32*)0x00347e40);
 
 		// InfiniteChargeboot();
 		InfiniteHealthMoonjump();
