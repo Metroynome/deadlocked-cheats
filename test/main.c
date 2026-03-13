@@ -24,10 +24,13 @@
 
 #define TestMoby	(*(Moby**)0x00091004)
 
+typedef void (*LoadArmorFunc)(int armor_index, int armor_slot);
+LoadArmorFunc LoadArmor = (LoadArmorFunc)0x004E6EB8;
+
 void DebugInGame(Player* player)
 {
     if (playerPadGetButtonDown(player, PAD_LEFT) > 0) {
-		// Nothing Yet!
+		LoadArmor(1, 0);
 	} else if (playerPadGetButtonDown(player, PAD_RIGHT) > 0) {
 		// Nothing Yet!
 	} else if (playerPadGetButtonDown(player, PAD_UP) > 0) {
@@ -106,17 +109,23 @@ int main(void)
 	// GameOptions * gameOptions = gameGetOptions();
 
     if (isInGame()) {
-		Player * p = playerGetFromSlot(0);
-		if (!p)
-			return 0;
+		int i;
+		Player ** players = playerGetAll();
+		for (i = 0; i < 10; ++i) {
+			if (!players[i]) continue;
 
-		printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->Health, *(u32*)0x00347e40);
+			Player *p = players[i];
 
-		// InfiniteChargeboot();
-		InfiniteHealthMoonjump();
-    	// DebugInGame(p);
+			printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->Health, *(u32*)0x00347e40);
 
-		// testPlayerCollider(0);
+			LoadArmor(1, 0);
+
+			// InfiniteChargeboot();
+			InfiniteHealthMoonjump();
+			// DebugInGame(p);
+
+			// testPlayerCollider(0);
+		}
     } else {
 		DebugInMenus();
 	}
