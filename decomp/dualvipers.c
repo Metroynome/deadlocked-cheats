@@ -36,19 +36,23 @@ typedef struct gadgetInfo {
 } gadgetInfo_t;
 gadgetInfo_t gadgetInfo;
 
+// Offsets verified against FUN_003b6c28 and M4244_Update_DualVipers assembly (s2 = pvar)
 typedef struct DualVipersPVar {
-    VECTOR transformedPos;
-    u8 _pad[0x30];
-    u16 shotType;
-    u16 shotCount;
-    u32 actuatorHandle;
-    Player* owner;
-    u8  _pad50[6];
-    u16 soundReady;
-    u8  _pad50b[4];
-    u32 idleTimer;
-    u8  _pad60[4];
-    int* shotStatePtr;
+    VECTOR weaponPos;       // 0x00: weapon world position (read by FUN_003b6c28)
+    VECTOR fireDir;         // 0x10: normalized fire direction (written by FUN_003b6c28)
+    VECTOR targetPos;       // 0x20: target position (written by FUN_003b6c28)
+    VECTOR targetAimPos;    // 0x30: target aim position (written by FUN_003b6c28)
+    u16    shotType;        // 0x40
+    u16    shotCount;       // 0x42
+    u32    actuatorHandle;  // 0x44
+    Player* owner;          // 0x48
+    u32    targetUID;       // 0x4c: written at end of FUN_003b6c28
+    u8     _pad50[6];       // 0x50
+    u16    soundReady;      // 0x56
+    u8     _pad58[4];       // 0x58
+    u32    idleTimer;       // 0x5c
+    Moby*  targetMoby;      // 0x60: locked-on target (written by FUN_003b6c28)
+    u32    shotStatePtr;    // 0x64: raw address; byte at offset +0x67 marks shot resolved
 } DualVipersPVar_t;
 
 void M4244_Update_DualVipers(Moby* moby)
@@ -86,11 +90,27 @@ void M4244_Update_DualVipers(Moby* moby)
         }
     }
 
-    VECTOR transformedPos;
-    vector_apply(transformedPos, moby->Position, moby->M0_03);
-    vector_add(transformedPos, transformedPos, moby->Position);
-    vector_copy(pvar->transformedPos, transformedPos);
+    // Transform local-space barrel offset into world space and store as weapon position.
+    // Assembly: loads joint offset from *(VECTOR*)0x220b20, multiplies against moby rotation
+    // rows (M0_03/M1_03/M2_03), then adds moby->Position.
+    VECTOR* barrelOffset = *(VECTOR**)0x220b20;
+    VECTOR barrelWorldPos;
+    barrelWorldPos[0] = moby->M0_03[0] * (*barrelOffset)[0]
+                      + moby->M1_03[0] * (*barrelOffset)[1]
+                      + moby->M2_03[0] * (*barrelOffset)[2]
+                      + moby->Position[0];
+    barrelWorldPos[1] = moby->M0_03[1] * (*barrelOffset)[0]
+                      + moby->M1_03[1] * (*barrelOffset)[1]
+                      + moby->M2_03[1] * (*barrelOffset)[2]
+                      + moby->Position[1];
+    barrelWorldPos[2] = moby->M0_03[2] * (*barrelOffset)[0]
+                      + moby->M1_03[2] * (*barrelOffset)[1]
+                      + moby->M2_03[2] * (*barrelOffset)[2]
+                      + moby->Position[2];
+    barrelWorldPos[3] = moby->Position[3];
+    vector_copy(pvar->weaponPos, barrelWorldPos);
 
+    // Updates pvar->fireDir, pvar->targetPos, pvar->targetAimPos, pvar->targetMoby, pvar->targetUID
     gadgetInfo.vtable.FUN_003b6c28(moby, player);
 
     // gadgetEventType drives the shoot (8) and sound (4) paths — must come from
@@ -108,13 +128,13 @@ void M4244_Update_DualVipers(Moby* moby)
 
         if (canShoot) {
             pvar->shotType = 0x14;
-            pvar->shotStatePtr = NULL;
+            pvar->idleTimer = 0;    // sw zero,0x5c(s2): reset idle timer on fire
             pvar->shotCount++;
 
             if (gadgetEventType == 8) {
                 gadgetInfo.vtable.DualVipers_ShootUpdate(moby, player, &gadgetEvent);
                 moby->SubState = 0;
-                *(u8*)(*(int*)((u8*)pvar + 0x64) + 0x67) = 1;
+                *(u8*)(pvar->shotStatePtr + 0x67) = 1;
             } else if (gadgetEventType == 4 && pvar->soundReady == 1) {
                 mobyPlaySound(4, 0, moby);
                 pvar->soundReady = 0;
