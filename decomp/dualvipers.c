@@ -36,23 +36,23 @@ typedef struct gadgetInfo {
 } gadgetInfo_t;
 gadgetInfo_t gadgetInfo;
 
-// Offsets verified against FUN_003b6c28 and M4244_Update_DualVipers assembly (s2 = pvar)
-typedef struct DualVipersPVar {
-    VECTOR weaponPos;       // 0x00: weapon world position (read by FUN_003b6c28)
-    VECTOR fireDir;         // 0x10: normalized fire direction (written by FUN_003b6c28)
-    VECTOR targetPos;       // 0x20: target position (written by FUN_003b6c28)
-    VECTOR targetAimPos;    // 0x30: target aim position (written by FUN_003b6c28)
-    u16    shotType;        // 0x40
-    u16    shotCount;       // 0x42
-    u32    actuatorHandle;  // 0x44
-    Player* owner;          // 0x48
-    u32    targetUID;       // 0x4c: written at end of FUN_003b6c28
-    u8     _pad50[6];       // 0x50
-    u16    soundReady;      // 0x56
-    u8     _pad58[4];       // 0x58
-    u32    idleTimer;       // 0x5c
-    Moby*  targetMoby;      // 0x60: locked-on target (written by FUN_003b6c28)
-    u32    shotStatePtr;    // 0x64: raw address; byte at offset +0x67 marks shot resolved
+typedef struct DualVipersPVar { // 0x100
+/* 0x00 */ VECTOR weaponPos;
+/* 0x10 */ VECTOR fireDir;
+/* 0x20 */ VECTOR targetPos;
+/* 0x30 */ VECTOR targetAimPos;
+/* 0x40 */ short shotType;
+/* 0x42 */ short shotCount;
+/* 0x44 */ int actuatorHandle;
+/* 0x48 */ Player* owner;
+/* 0x4c */ u32 targetUID;
+/* 0x50 */ char pad_50[6];
+/* 0x56 */ short soundReady;
+/* 0x58 */ int pad_58;
+/* 0x5c */ u32 idleTimer;
+/* 0x60 */ Moby* targetMoby;
+/* 0x64 */ u32 shotStatePtr;
+/* 0x68 */ char unk_68[0x98];
 } DualVipersPVar_t;
 
 void M4244_Update_DualVipers(Moby* moby)
@@ -194,21 +194,20 @@ int gadgetInit(void)
     gadgetFindAndHook();
 
     u32 start = gadgetInfo.vtable.update;
-    printf("\nstart: 0x%08x", start);
     if (!start) return;
     gadgetInfo.vtable.GB_AssignLocalPlayerToWeapon = JAL2ADDR(*(u32*)(start + 0x40));
-    gadgetInfo.vtable.MB_setState                  = JAL2ADDR(*(u32*)(start + 0x58));
-    gadgetInfo.vtable.Hero_PeekGadgetEvent         = JAL2ADDR(*(u32*)(start + 0xc4));
-    gadgetInfo.vtable.FUN_005f02c0                 = JAL2ADDR(*(u32*)(start + 0xd8));
-    gadgetInfo.vtable.MB_transAnim                 = JAL2ADDR(*(u32*)(start + 0x11c));
-    gadgetInfo.vtable.FUN_003b6c28                 = JAL2ADDR(*(u32*)(start + 0x174));
-    gadgetInfo.vtable.Hero_GetGadgetEvent          = JAL2ADDR(*(u32*)(start + 0x198));
-    gadgetInfo.vtable.DualVipers_ShootUpdate       = JAL2ADDR(*(u32*)(start + 0x214));
-    gadgetInfo.vtable.sound_MobyPlay               = JAL2ADDR(*(u32*)(start + 0x254));
-    gadgetInfo.vtable.Hero_QueueGadgetEvent        = JAL2ADDR(*(u32*)(start + 0x290));
-    gadgetInfo.vtable.Hero_EndFiringAnim           = JAL2ADDR(*(u32*)(start + 0x2e0));
-    gadgetInfo.vtable.actuator_killWave            = JAL2ADDR(*(u32*)(start + 0x32c));
-    gadgetInfo.vtable.FUN_004ad330                 = JAL2ADDR(*(u32*)(start + 0x34c));
+    gadgetInfo.vtable.MB_setState = JAL2ADDR(*(u32*)(start + 0x58));
+    gadgetInfo.vtable.Hero_PeekGadgetEvent = JAL2ADDR(*(u32*)(start + 0xc4));
+    gadgetInfo.vtable.FUN_005f02c0 = JAL2ADDR(*(u32*)(start + 0xd8));
+    gadgetInfo.vtable.MB_transAnim = JAL2ADDR(*(u32*)(start + 0x11c));
+    gadgetInfo.vtable.FUN_003b6c28 = JAL2ADDR(*(u32*)(start + 0x174));
+    gadgetInfo.vtable.Hero_GetGadgetEvent = JAL2ADDR(*(u32*)(start + 0x198));
+    gadgetInfo.vtable.DualVipers_ShootUpdate = JAL2ADDR(*(u32*)(start + 0x214));
+    gadgetInfo.vtable.sound_MobyPlay = JAL2ADDR(*(u32*)(start + 0x254));
+    gadgetInfo.vtable.Hero_QueueGadgetEvent = JAL2ADDR(*(u32*)(start + 0x290));
+    gadgetInfo.vtable.Hero_EndFiringAnim = JAL2ADDR(*(u32*)(start + 0x2e0));
+    gadgetInfo.vtable.actuator_killWave = JAL2ADDR(*(u32*)(start + 0x32c));
+    gadgetInfo.vtable.FUN_004ad330 = JAL2ADDR(*(u32*)(start + 0x34c));
     return 1;
 }
 
