@@ -215,20 +215,14 @@ void M4231_Update_MagmaCannon(Moby* moby)
     magmaInfo.vtable.FUN_003eeec0(moby, player);
 
     // Local player checks
-    // if (player->IsLocal) {
-    //     if (player->Health > 0.0f
-    //         && player->PlayerState != PLAYER_STATE_LEDGE_GRAB
-    //         && player->PlayerState != PLAYER_STATE_LEDGE_IDLE
-    //         && player->PlayerState != PLAYER_STATE_LEDGE_TRAVERSE_LEFT
-    //         && player->PlayerState != PLAYER_STATE_LEDGE_TRAVERSE_RIGHT) {
-    //         void* vtable = *(void**)((u32)player + 0x14);
-    //         int (*getSlot)(Player*) = *(void**)((u32)vtable + 0x4c);
-    //         int slot = getSlot(player);
-    //         long cancel = magmaInfo.vtable.GUI_CancelRadarSelect(slot);
-    //         if (!cancel)
-    //             magmaInfo.vtable.FUN_003eef48(moby, player, aimData);
-    //     }
-    // }
+    if (player->IsLocal) {
+        if (player->Health > 0.0f && player->PlayerState != PLAYER_STATE_LEDGE_GRAB && player->PlayerState != PLAYER_STATE_LEDGE_IDLE && player->PlayerState != PLAYER_STATE_LEDGE_TRAVERSE_LEFT && player->PlayerState != PLAYER_STATE_LEDGE_TRAVERSE_RIGHT) {
+            int slot = *(u8*)((u32)p[layer + 0x2fea]);
+            long cancel = magmaInfo.vtable.GUI_CancelRadarSelect(slot);
+            if (!cancel)
+                magmaInfo.vtable.FUN_003eef48(moby, player, aimData);
+        }
+    }
 
     if (moby->State == 1) {
         gadgetEventType = magmaInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
