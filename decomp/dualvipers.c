@@ -19,7 +19,7 @@ typedef struct gadget_vtable {
     long (*Hero_PeekGadgetEvent)(Player* player, int a1, int a2, int a3);
     int  (*FUN_005f02c0)(Player* player);
     void (*MB_transAnim)(Moby* moby, int seq, float frm, int steps, int flags);
-    void (*FUN_003b6c28)(Moby* moby, Player* player);
+    void (*DualVipers_Aiming)(Moby* moby, Player* player);
     long (*Hero_GetGadgetEvent)(Player* player, int a1, int a2, GadgetEvent* out);
     void (*DualVipers_ShootUpdate)(Moby* moby, Player* player, GadgetEvent* event);
     void (*sound_MobyPlay)(int soundId, int a1, Moby* moby);
@@ -95,7 +95,7 @@ void M4244_Update_DualVipers(Moby* moby)
     vector_apply(barrelWorldPos, BARREL_OFFSET, &moby->M0_03);
     vector_add(barrelWorldPos, barrelWorldPos, moby->Position);
     vector_copy(pvar->weaponPos, barrelWorldPos);
-    gadgetInfo.vtable.FUN_003b6c28(moby, player);
+    gadgetInfo.vtable.DualVipers_Aiming(moby, player);
 
     long gadgetEventType = 0;
     if (moby->SubState != 0) {
@@ -178,7 +178,7 @@ int gadgetInit(void)
     gadgetInfo.vtable.Hero_PeekGadgetEvent = JAL2ADDR(*(u32*)(start + 0xc4));
     gadgetInfo.vtable.FUN_005f02c0 = JAL2ADDR(*(u32*)(start + 0xd8));
     gadgetInfo.vtable.MB_transAnim = JAL2ADDR(*(u32*)(start + 0x11c));
-    gadgetInfo.vtable.FUN_003b6c28 = JAL2ADDR(*(u32*)(start + 0x174));
+    gadgetInfo.vtable.DualVipers_Aiming = JAL2ADDR(*(u32*)(start + 0x174));
     gadgetInfo.vtable.Hero_GetGadgetEvent = JAL2ADDR(*(u32*)(start + 0x198));
     gadgetInfo.vtable.DualVipers_ShootUpdate = JAL2ADDR(*(u32*)(start + 0x214));
     gadgetInfo.vtable.sound_MobyPlay = JAL2ADDR(*(u32*)(start + 0x254));
