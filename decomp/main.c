@@ -22,7 +22,12 @@
 #include <libdl/guber.h>
 #include <libdl/sound.h>
 
+#ifdef DUAL_VIPERS
 void dualVipers(void);
+#endif
+#ifdef MAGMA_CANNON
+void magmaCannon(void);
+#endif
 
 typedef void (*LoadArmorFunc)(int armor_index, int armor_slot);
 LoadArmorFunc LoadArmor = (LoadArmorFunc)0x004E6EB8;
@@ -125,7 +130,12 @@ int main(void)
 		DebugInMenus();
 	}
 
+	#ifdef DUAL_VIPERS
 	dualVipers();
+	#endif
+	#ifdef MAGMA_CANNON
+	magmaCannon();
+	#endif
 
 	dlPostUpdate();
 
