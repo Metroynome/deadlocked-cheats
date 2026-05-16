@@ -6,6 +6,7 @@
 #include <libdl/utils.h>
 #include <libdl/spawnpoint.h>
 #include <libdl/sound.h>
+#include <libdl/random.h>
 
 #define JAL2ADDR(jal) ((jal & 0x03FFFFFF) << 2)
 #define MobyClassUpdate ((void**)0x00249980)
@@ -30,7 +31,6 @@ typedef struct magma_vtable {
     int   (*GadgetBox_GadgetIsModSupported)(int gadgetId, int mod);
     void  (*GadgetBox_AddPoolMod)(void* gadgetBox, int mod, long a2, int gadgetId);
     void  (*sound_MobyPlay)(int soundId, int a1, Moby* moby);
-    int   (*MB_randRot)(void);
     void  (*FUN_003ef770)(Moby* moby, void* a1);
     void  (*FUN_003ed960)(Moby* moby, void* a1);
     void  (*FUN_003eed80)(Moby* moby);
@@ -145,8 +145,8 @@ Moby* spawnEffectMoby(float param, float scale, VECTOR position, VECTOR directio
     pvars->param = param;
     pvars->lifetime = lifetime;
     pvars->lifetime2 = lifetime - 15;
-    pvars->randScale1 = randRange(0.105f, 0.21f);
-    pvars->randScale2 = randRange(0.105f, 0.21f);
+    pvars->randScale1 = randRangeFloat(0.105f, 0.21f);
+    pvars->randScale2 = randRangeFloat(0.105f, 0.21f);
     mobySetState(moby, 0, -1);
     return moby;
 }
@@ -288,11 +288,11 @@ void M4231_Update_MagmaCannon(Moby* moby)
             pvar->timer_8a = 9;
             pvar->unk_70   = 0.3333333f;
             pvar->unk_74   = 0.1111111f;
-            pvar->unk_78   = (float)magmaInfo.vtable.MB_randRot();
-            pvar->unk_7c   = (float)magmaInfo.vtable.MB_randRot();
+            pvar->unk_78   = randRot();
+            pvar->unk_7c   = randRot();
             pvar->unk_80   = 4;
             pvar->unk_84   = 0.25f;
-            pvar->unk_8c   = (float)magmaInfo.vtable.MB_randRot();
+            pvar->unk_8c   = randRot();
 
             // Muzzle flash and ejection velocity
             VECTOR muzzlePos;
@@ -306,9 +306,9 @@ void M4231_Update_MagmaCannon(Moby* moby)
 
             // Shell/ejection effect velocity
             VECTOR ejVel, rotVel;
-            float speed1 = randRange(3.5f, 6.25f) * (1.0f / 60.0f);
+            float speed1 = randRangeFloat(3.5f, 6.25f) * (1.0f / 60.0f);
             vector_scale(ejVel, moby->M2_03, speed1);
-            float speed2 = randRange(4.5f, 7.5f) * (1.0f / 60.0f);
+            float speed2 = randRangeFloat(4.5f, 7.5f) * (1.0f / 60.0f);
             vector_scale(rotVel, moby->M0_03, speed2);
             vector_add(ejVel, ejVel, rotVel);
 
@@ -341,7 +341,7 @@ void M4231_Update_MagmaCannon(Moby* moby)
     FastDecTimer(&pvar->unk_80);
 
     if (player && player->IsLocal && pvar->timer_88 != 0)
-        gfxRegisterDrawFunction((void**)0x0022251c, (void*)0x003efd78, moby);
+        gfxRegisterDrawFunction((void**)0x0022251c, 0x003efd78, moby);
 }
 
 int gadgetInit(void)
@@ -369,7 +369,6 @@ int gadgetInit(void)
     magmaInfo.vtable.GadgetBox_GadgetIsModSupported = JAL2ADDR(*(u32*)(start + 0x378));
     magmaInfo.vtable.GadgetBox_AddPoolMod           = JAL2ADDR(*(u32*)(start + 0x390));
     magmaInfo.vtable.sound_MobyPlay                 = JAL2ADDR(*(u32*)(start + 0x3f4));
-    magmaInfo.vtable.MB_randRot                     = JAL2ADDR(*(u32*)(start + 0x428));
     magmaInfo.vtable.FUN_003ef770                   = JAL2ADDR(*(u32*)(start + 0x478));
     magmaInfo.vtable.FUN_003ed960                   = JAL2ADDR(*(u32*)(start + 0x484));
     magmaInfo.vtable.FUN_003eed80                   = JAL2ADDR(*(u32*)(start + 0x550));
