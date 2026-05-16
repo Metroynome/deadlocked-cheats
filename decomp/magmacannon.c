@@ -14,7 +14,6 @@
 typedef struct magma_vtable {
     void  (*update)(Moby* moby);
     void  (*GetMobyJointWorld)(Moby* moby, int joint, VECTOR* out);
-    void  (*FUN_003eea48)(Moby* moby);
     int   (*GadgetBox_GetGadgetLevel)(void* gadgetBox, int gadgetId);
     long  (*Hero_PeekGadgetEvent)(Player* player, int a1, int a2, int a3);
     void  (*MB_transAnim)(Moby* moby, int seq, float frm, int steps, int flags);
@@ -34,14 +33,11 @@ typedef struct magma_vtable {
     int   (*MB_randRot)(void);
     void  (*FUN_003ef770)(Moby* moby, void* a1);
     void  (*FUN_003ed960)(Moby* moby, void* a1);
-    int   (*MB_randRange)(float min, float max);
     void  (*FUN_003eed80)(Moby* moby);
     void  (*actuator_killWave)(void);
     void  (*FUN_003eece8)(Moby* moby, Player* player, VECTOR* a2, GadgetEvent* a3);
     void  (*WPN_TurnOnHoloShields)(int a0);
     void  (*WPN_TurnOffHoloShields)(void);
-    void  (*FastDecTimer)(void* timer);
-    void  (*RegisterDrawFunction)(void** list, void* func, Moby* moby);
     void* (*Guber_GetObject)(void);
 } magma_vtable_t;
 
@@ -87,10 +83,52 @@ typedef struct MagmaCannonPVar {
     float unk_8c;           // 0x8c
 } MagmaCannonPVar_t;
 
+void GB_AssignLocalPlayerToWeapon(Moby* weaponMoby, Player** outPlayer)
+{
+    int i;
+    for (i = 0; i < GAME_MAX_PLAYERS; ++i) {
+        Player* player = playerGetFromSlot(i);
+        if (!player) continue;
+
+        // Primary gadget ownership check
+        if (player->Gadgets[0].pMoby == weaponMoby) {
+            *outPlayer = player;
+            weaponMoby->NetObject = player;
+            return;
+        }
+
+        // Secondary gadget ownership (dual/special weapons only)
+        if (weaponMoby->OClass == MOBY_ID_DUAL_VIPERS && player->Gadgets[0].pMoby2 == weaponMoby) {
+            *outPlayer = player;
+            weaponMoby->NetObject = player;
+            return;
+        }
+    }
+
+    *outPlayer = NULL;
+    weaponMoby->NetObject = NULL;
+}
+
+int FastDecTimer(short* timer)
+{
+    if (*timer == 0) return 1;
+    if (*timer > 0) --(*timer);
+    return (*timer > 0) ? 0 : 2;
+}
+
 int isUsingGadget(Player *player)
 {
     int idx = (player->MpIndex & 0xFF);
     return (idx < 10) && player->GadgetBox->bButtonDown[idx] && player->PlayerStateType != 20;
+}
+
+void magmaCannon_Init(Moby* moby)
+{
+    MagmaCannonPVar_t* pvar = (MagmaCannonPVar_t*)moby->PVar;
+    pvar->actuatorHandle = -1;
+    pvar->timer_88 = 0;
+    pvar->timer_8a = 0;
+    GB_AssignLocalPlayerToWeapon(moby, &pvar->owner);
 }
 
 Moby* spawnEffectMoby(float param, float scale, VECTOR position, VECTOR direction, short lifetime)
@@ -133,7 +171,7 @@ void M4231_Update_MagmaCannon(Moby* moby)
     magmaInfo.vtable.GetMobyJointWorld(moby, 0, &jointPos);
 
     if (!moby->State) {
-        magmaInfo.vtable.FUN_003eea48(moby);
+        magmaCannon_Init(moby);
         mobySetState(moby, 1, -1);
     }
 
@@ -268,7 +306,7 @@ void M4231_Update_MagmaCannon(Moby* moby)
 
             // Shell/ejection effect velocity
             VECTOR ejVel, rotVel;
-            float speed1 = magmaInfo.vtable.MB_randRange(3.5f, 6.25f) * (1.0f / 60.0f);
+            float speed1 = randRange(3.5f, 6.25f) * (1.0f / 60.0f);
             vector_scale(ejVel, moby->M2_03, speed1);
             float speed2 = randRange(4.5f, 7.5f) * (1.0f / 60.0f);
             vector_scale(rotVel, moby->M0_03, speed2);
@@ -298,12 +336,12 @@ void M4231_Update_MagmaCannon(Moby* moby)
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
 
-    magmaInfo.vtable.FastDecTimer(&pvar->timer_8a);
-    magmaInfo.vtable.FastDecTimer(&pvar->timer_88);
-    magmaInfo.vtable.FastDecTimer(&pvar->unk_80);
+    FastDecTimer(&pvar->timer_8a);
+    FastDecTimer(&pvar->timer_88);
+    FastDecTimer(&pvar->unk_80);
 
     if (player && player->IsLocal && pvar->timer_88 != 0)
-        magmaInfo.vtable.RegisterDrawFunction((void**)0x0022251c, (void*)0x003efd78, moby);
+        gfxRegisterDrawFunction((void**)0x0022251c, (void*)0x003efd78, moby);
 }
 
 int gadgetInit(void)
@@ -314,7 +352,6 @@ int gadgetInit(void)
     magmaInfo.vtable.update                         = (void*)start;
     MobyClassUpdate[M_CLASS]                        = &M4231_Update_MagmaCannon;
     magmaInfo.vtable.GetMobyJointWorld              = JAL2ADDR(*(u32*)(start + 0x040));
-    magmaInfo.vtable.FUN_003eea48                   = JAL2ADDR(*(u32*)(start + 0x054));
     magmaInfo.vtable.GadgetBox_GetGadgetLevel       = JAL2ADDR(*(u32*)(start + 0x0b8));
     magmaInfo.vtable.Hero_PeekGadgetEvent           = JAL2ADDR(*(u32*)(start + 0x114));
     magmaInfo.vtable.MB_transAnim                   = JAL2ADDR(*(u32*)(start + 0x180));
@@ -335,14 +372,11 @@ int gadgetInit(void)
     magmaInfo.vtable.MB_randRot                     = JAL2ADDR(*(u32*)(start + 0x428));
     magmaInfo.vtable.FUN_003ef770                   = JAL2ADDR(*(u32*)(start + 0x478));
     magmaInfo.vtable.FUN_003ed960                   = JAL2ADDR(*(u32*)(start + 0x484));
-    magmaInfo.vtable.MB_randRange                   = JAL2ADDR(*(u32*)(start + 0x4b0));
     magmaInfo.vtable.FUN_003eed80                   = JAL2ADDR(*(u32*)(start + 0x550));
     magmaInfo.vtable.WPN_TurnOnHoloShields          = JAL2ADDR(*(u32*)(start + 0x5c0));
     magmaInfo.vtable.actuator_killWave              = JAL2ADDR(*(u32*)(start + 0x58c));
     magmaInfo.vtable.FUN_003eece8                   = JAL2ADDR(*(u32*)(start + 0x5d4));
     magmaInfo.vtable.WPN_TurnOffHoloShields         = JAL2ADDR(*(u32*)(start + 0x5dc));
-    magmaInfo.vtable.FastDecTimer                   = JAL2ADDR(*(u32*)(start + 0x5e4));
-    magmaInfo.vtable.RegisterDrawFunction           = JAL2ADDR(*(u32*)(start + 0x628));
     return 1;
 }
 
