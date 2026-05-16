@@ -10,6 +10,7 @@
 
 #define JAL2ADDR(jal) ((jal & 0x03FFFFFF) << 2)
 #define MobyClassUpdate ((void**)0x00249980)
+#define BARREL_OFFSET ((VECTOR*)0x220b20)
 
 typedef struct gadget_vtable {
     void (*update)(Moby* this);
@@ -90,42 +91,19 @@ void M4244_Update_DualVipers(Moby* moby)
         }
     }
 
-    // Transform local-space barrel offset into world space and store as weapon position.
-    // Assembly: loads joint offset from *(VECTOR*)0x220b20, multiplies against moby rotation
-    // rows (M0_03/M1_03/M2_03), then adds moby->Position.
-    VECTOR* barrelOffset = *(VECTOR**)0x220b20;
     VECTOR barrelWorldPos;
-    barrelWorldPos[0] = moby->M0_03[0] * (*barrelOffset)[0]
-                      + moby->M1_03[0] * (*barrelOffset)[1]
-                      + moby->M2_03[0] * (*barrelOffset)[2]
-                      + moby->Position[0];
-    barrelWorldPos[1] = moby->M0_03[1] * (*barrelOffset)[0]
-                      + moby->M1_03[1] * (*barrelOffset)[1]
-                      + moby->M2_03[1] * (*barrelOffset)[2]
-                      + moby->Position[1];
-    barrelWorldPos[2] = moby->M0_03[2] * (*barrelOffset)[0]
-                      + moby->M1_03[2] * (*barrelOffset)[1]
-                      + moby->M2_03[2] * (*barrelOffset)[2]
-                      + moby->Position[2];
-    barrelWorldPos[3] = moby->Position[3];
+    vector_apply(barrelWorldPos, BARREL_OFFSET, &moby->M0_03);
+    vector_add(barrelWorldPos, barrelWorldPos, moby->Position);
     vector_copy(pvar->weaponPos, barrelWorldPos);
-
-    // Updates pvar->fireDir, pvar->targetPos, pvar->targetAimPos, pvar->targetMoby, pvar->targetUID
     gadgetInfo.vtable.FUN_003b6c28(moby, player);
 
-    // gadgetEventType drives the shoot (8) and sound (4) paths — must come from
-    // Hero_GetGadgetEvent's return value, NOT from moby->SubState.
     long gadgetEventType = 0;
-
     if (moby->SubState != 0) {
         GadgetEvent gadgetEvent;
         gadgetEventType = gadgetInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
 
         int equippedTime = player->Gadgets[0].equippedTime;
-        int canShoot = (gadgetInfo.vtable.FUN_005f02c0(player) != 0)
-                     ? (equippedTime >= 0x17)
-                     : (equippedTime >= 0x17 || player->timers.noInput != 0);
-
+        int canShoot = (gadgetInfo.vtable.FUN_005f02c0(player) != 0) ? (equippedTime >= 0x17) : (equippedTime >= 0x17 || player->timers.noInput != 0);
         if (canShoot) {
             pvar->shotType = 0x14;
             pvar->idleTimer = 0;    // sw zero,0x5c(s2): reset idle timer on fire
