@@ -75,7 +75,7 @@ void InfiniteChargeboot(void)
 		if (!p)
 			continue;
 
-		if (p->PlayerState == PLAYER_STATE_CHARGE && playerPadGetButton(p, PAD_L2) > 0 && p->timers.state > 55)
+		if (p->state == PLAYER_STATE_CHARGE && playerPadGetButton(p, PAD_L2) > 0 && p->timers.state > 55)
 			p->timers.state = 55;
 	}
 }
@@ -97,7 +97,7 @@ void InfiniteHealthMoonjump(void)
 		return;
 
 	// Player Health is always max.
-	player->Health = player->MaxHealth;
+	player->hitPoints = player->maxHP;
 	// if X is pressed, lower gravity.
 	if ((pad->btns & PAD_CROSS) == 0)
 		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
@@ -118,7 +118,7 @@ int main(void)
 
 			Player *p = players[i];
 
-			// printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->Health, *(u32*)0x00347e40);
+			// printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->state, p->stateType, p->Health, *(u32*)0x00347e40);
 
 			// InfiniteChargeboot();
 			InfiniteHealthMoonjump();
