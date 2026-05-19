@@ -93,20 +93,20 @@ void GB_AssignLocalPlayerToWeapon(Moby* weaponMoby, Player** outPlayer)
         // Primary gadget ownership check
         if (player->gadgets[0].pMoby == weaponMoby) {
             *outPlayer = player;
-            weaponMoby->pNetObject = player;
+            weaponMoby->netObject = player;
             return;
         }
 
         // Secondary gadget ownership (dual/special weapons only)
         if (weaponMoby->oClass == MOBY_ID_DUAL_VIPERS && player->gadgets[0].pMoby2 == weaponMoby) {
             *outPlayer = player;
-            weaponMoby->pNetObject = player;
+            weaponMoby->netObject = player;
             return;
         }
     }
 
     *outPlayer = NULL;
-    weaponMoby->pNetObject = NULL;
+    weaponMoby->netObject = NULL;
 }
 
 int FastDecTimer(short* timer)
@@ -119,7 +119,7 @@ int FastDecTimer(short* timer)
 int isUsingGadget(Player *player)
 {
     int idx = (player->mpIndex & 0xFF);
-    return (idx < 10) && player->pGadgetBox->bButtonDown[idx] && player->stateType != PLAYER_TYPE_DEAD;
+    return (idx < 10) && player->pGadgetBox->bButtonDown[idx] && player->stateType != PLAYER_TYPE_DEATH;
 }
 
 void magmaCannon_Init(Moby* moby)
@@ -137,10 +137,10 @@ Moby* spawnEffectMoby(float param, float scale, VECTOR position, VECTOR directio
     if (!moby) return NULL;
 
     EffectMobyPVar_t* pvars = (EffectMobyPVar_t*)moby->pVar;
-    moby->DrawDist = 0x20;
-    moby->UpdateDist = 0xFF;
+    moby->drawDist = 0x20;
+    moby->updateDist = 0xFF;
     vector_copy(moby->pos, position);
-    moby->Scale *= scale * 0.4f;
+    moby->scale *= scale * 0.4f;
     vector_copy(pvars->direction, direction);
     pvars->param = param;
     pvars->lifetime = lifetime;
@@ -213,32 +213,34 @@ bool playerIsFPSModeActive(Player* player)
     if (!player)
         return false;
 
-    if (!player->mpFpsEnabled)
-        return false;
+    return false;
 
-    if (player->timers.noFpsCamTimer != 0)
-        return false;
+    // if (!player->mpFpsEnabled)
+    //     return false;
 
-    int gameMode = *(int*)0x0021ddb4;
-    if (gameMode == 2 || gameMode == 6)
-        return false;
+    // if (player->timers.noFpsCamTimer != 0)
+    //     return false;
 
-    if (player->isLocal) {
-        UpdateCam* cam = player->camera->pCurrentUpdCam;
+    // int gameMode = *(int*)0x0021ddb4;
+    // if (gameMode == 2 || gameMode == 6)
+    //     return false;
 
-        if (cam && cam->type == 5)
-            return false;
-    }
+    // if (player->isLocal) {
+    //     UpdateCam* cam = player->camera->pCurrentUpdCam;
 
-    switch (player->state) {
-        case PLAYER_STATE_CUT_SCENE:
-        case PLAYER_STATE_VEHICLE:
-        case PLAYER_STATE_VISIBOMB:
-        case PLAYER_STATE_GET_FLATTENED:
-        case PLAYER_STATE_SKYDIVE:
-            return false;
-    }
-    return player->mpFpsEnabled;
+    //     if (cam && cam->type == 5)
+    //         return false;
+    // }
+
+    // switch (player->state) {
+    //     case PLAYER_STATE_CUT_SCENE:
+    //     case PLAYER_STATE_VEHICLE:
+    //     case PLAYER_STATE_VISIBOMB:
+    //     case PLAYER_STATE_GET_FLATTENED:
+    //     case PLAYER_STATE_SKYDIVE:
+    //         return false;
+    // }
+    // return player->mpFpsEnabled;
 }
 
 void M4231_Update_MagmaCannon(Moby* moby)

@@ -35,7 +35,7 @@ LoadArmorFunc LoadArmor = (LoadArmorFunc)0x004E6EB8;
 void DebugInGame(Player* player)
 {
     if (playerPadGetButtonDown(player, PAD_LEFT) > 0) {
-		LoadArmor(1, 0);
+		printf("\nPAD DOWN PAD DOWN");
 	} else if (playerPadGetButtonDown(player, PAD_RIGHT) > 0) {
 		// Nothing Yet!
 	} else if (playerPadGetButtonDown(player, PAD_UP) > 0) {
@@ -83,13 +83,10 @@ void InfiniteChargeboot(void)
 void InfiniteHealthMoonjump(void)
 {
 	int _InfiniteHealthMoonjump_Init = 0;
-	// Handle On/Off Button Press
-	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
-	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
-	PadButtonStatus * pad = playerGetPad(player);
-	if ((pad->btns & (PAD_R3 | PAD_R2)) == 0)
+	Player *player = playerGetFromSlot(0);
+	if (playerPadGetButton(player, PAD_R3 | PAD_R2) > 0)
 		_InfiniteHealthMoonjump_Init = 1;
-	else if ((pad->btns & (PAD_L3)) == 0)
+	else if (playerPadGetButton(player, PAD_L2) > 0)
 		_InfiniteHealthMoonjump_Init = 0;
 
 	// Handle On/Off
@@ -99,8 +96,8 @@ void InfiniteHealthMoonjump(void)
 	// Player Health is always max.
 	player->hitPoints = player->maxHP;
 	// if X is pressed, lower gravity.
-	if ((pad->btns & PAD_CROSS) == 0)
-		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
+	if (playerPadGetButton(player, PAD_CROSS) > 0)
+		player->ground.gravity[2] = 0.125;
 }
 
 int main(void)
@@ -118,16 +115,16 @@ int main(void)
 
 			Player *p = players[i];
 
-			// printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->state, p->stateType, p->Health, *(u32*)0x00347e40);
+			// printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->state, p->stateType, p->hitPoints, *(u32*)0x00347e40);
 
-			// InfiniteChargeboot();
+			InfiniteChargeboot();
 			InfiniteHealthMoonjump();
-			// DebugInGame(p);
+			DebugInGame(p);
 
 			// testPlayerCollider(0);
 		}
     } else {
-		DebugInMenus();
+		// DebugInMenus();
 	}
 
 	#ifdef DUAL_VIPERS
