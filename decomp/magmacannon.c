@@ -8,6 +8,7 @@
 #include <libdl/sound.h>
 #include <libdl/random.h>
 #include <libdl/weapon.h>
+#include <libdl/camera.h>
 
 #define JAL2ADDR(jal) ((jal & 0x03FFFFFF) << 2)
 #define MobyClassUpdate ((void**)0x00249980)
@@ -19,23 +20,23 @@ typedef struct magma_vtable {
     int   (*GadgetBox_GetGadgetLevel)(void* gadgetBox, int gadgetId);
     long  (*Hero_PeekGadgetEvent)(Player* player, int a1, int a2, int a3);
     void  (*MB_transAnim)(Moby* moby, int seq, float frm, int steps, int flags);
-    void  (*FUN_003eeec0)(Moby* moby, Player* player);
+    void  (*UpdateWeaponGunpoint)(Moby* moby, Player* player);
     long  (*GUI_CancelRadarSelect)(int slot);
-    void  (*FUN_003eef48)(Moby* moby, Player* player, VECTOR* a2);
+    void  (*HandleWeaponTargetValidation)(Moby* moby, Player* player, VECTOR* a2);
     long  (*Hero_GetGadgetEvent)(Player* player, int a1, int a2, GadgetEvent* out);
     int   (*GB_GadgetIdToIndex)(int gadgetId);
-    void  (*FUN_003eea78)(Moby* moby, Player* player);
-    void  (*FUN_003ed778)(Moby* moby, void* a1);
-    void* (*FUN_00449ab8)(Moby* moby, u8 upgradeFlag);
+    void  (*UpdateWeaponAim)(Moby* moby, Player* player);
+    void  (*BuildMagmaCannonShot)(Moby* moby, VECTOR* a1);
+    void* (*SpawnProjectile)(Moby* moby, u8 upgradeFlag);
     int   (*GadgetBox_GetActivePostFXMod)(void* gadgetBox, int gadgetId);
     int   (*GadgetBox_GadgetIsModSupported)(int gadgetId, int mod);
     void  (*GadgetBox_AddPoolMod)(void* gadgetBox, int mod, long a2, int gadgetId);
     void  (*sound_MobyPlay)(int soundId, int a1, Moby* moby);
-    void  (*FUN_003ef770)(Moby* moby, void* a1);
-    void  (*FUN_003ed960)(Moby* moby, void* a1);
-    void  (*FUN_003eed80)(Moby* moby);
+    void  (*SpawnShotEffects)(Moby* moby, void* a1);
+    void  (*ApplyDamage)(Moby* moby, void* a1);
+    void  (*PlayMagmaCannonSound)(Moby* moby);
     void  (*actuator_killWave)(void);
-    void  (*FUN_003eece8)(Moby* moby, Player* player, VECTOR* a2, GadgetEvent* a3);
+    void  (*DoFireEffects)(Moby* moby, Player* player, VECTOR* a2, GadgetEvent* a3);
     void  (*WPN_TurnOnHoloShields)(int a0);
     void  (*WPN_TurnOffHoloShields)(void);
     void* (*Guber_GetObject)(void);
@@ -67,7 +68,7 @@ typedef struct MagmaCannonPVar {
     u8    unk_45;           // 0x45
     u8    upgradeFlag;      // 0x46: 0=base, 1=mid, 2=max
     u8    _pad47;
-    void* unk_48;           // 0x48: result of FUN_00449ab8
+    void* unk_48;           // 0x48: result of SpawnProjectile
     u32   targetMod;        // 0x4c
     int   actuatorHandle;   // 0x50: -1 = inactive
     u8    _pad54[0xc];
@@ -208,39 +209,40 @@ void updateGunPointTarget(Moby* weaponMoby, Player* player)
     GB_SetGunpointMobyIfTarget(player);
 }
 
-bool playerIsFPSModeActive(Player* player)
+int playerIsFPSModeActive(Player *this)
 {
-    if (!player)
+    if (!Settings.FirstPersonModeOn[this->mpIndex])
         return false;
 
-    return false;
+    if (this->timers.noFpsCamTimer != 0)
+        return false;
 
-    // if (!player->mpFpsEnabled)
-    //     return false;
+    if (gameMode == GAME_MODE_SCENE || gameMode == GAME_MODE_SPACE)
+        return false;
 
-    // if (player->timers.noFpsCamTimer != 0)
-    //     return false;
+    // Local players cannot use FPS mode during certain camera updates
+    if (this->isLocal) {
+        struct UpdateCam *cam = this->camera->pCurrentUpdCam;
+        if (cam && cam->type == 5)
+            return false;
+    }
 
-    // int gameMode = *(int*)0x0021ddb4;
-    // if (gameMode == 2 || gameMode == 6)
-    //     return false;
+    // Hero states that disable FPS mode
+    switch (this->state) {
+        case PLAYER_STATE_CUT_SCENE:
+        case PLAYER_STATE_VEHICLE:
+        case PLAYER_STATE_VISIBOMB:
+        case PLAYER_STATE_GET_FLATTENED:
+        case PLAYER_STATE_SKYDIVE:
+            return false;
+    }
 
-    // if (player->isLocal) {
-    //     UpdateCam* cam = player->camera->pCurrentUpdCam;
+    return true;
+}
 
-    //     if (cam && cam->type == 5)
-    //         return false;
-    // }
-
-    // switch (player->state) {
-    //     case PLAYER_STATE_CUT_SCENE:
-    //     case PLAYER_STATE_VEHICLE:
-    //     case PLAYER_STATE_VISIBOMB:
-    //     case PLAYER_STATE_GET_FLATTENED:
-    //     case PLAYER_STATE_SKYDIVE:
-    //         return false;
-    // }
-    // return player->mpFpsEnabled;
+int playerGetSlot(Player *player)
+{
+    return player->LocalHero.slot;
 }
 
 void M4231_Update_MagmaCannon(Moby* moby)
@@ -294,7 +296,7 @@ void M4231_Update_MagmaCannon(Moby* moby)
 
     // Update animation if mid-sequence
     if ((moby->animFlags & 2) != 0) {
-        if (*(u32*)0x0021e694 == 1) {   // g_gameType
+        if (gameType == 1) {   // g_gameType
             moby->animSpeed = 0.0f;
         } else {
             magmaInfo.vtable.MB_transAnim(moby, 1, 0.0f, 2, 0);
@@ -304,17 +306,17 @@ void M4231_Update_MagmaCannon(Moby* moby)
     // Stack buffer for aim data (auStack_130 in Ghidra = sp+0x00, frame size 0x130)
     VECTOR aimData[2];
     buildWeaponProjectile(player, aimData);
-    magmaInfo.vtable.FUN_003eeec0(moby, player);
+    magmaInfo.vtable.UpdateWeaponGunpoint(moby, player);
 
     // Local player checks
-    // if (player->isLocal) {
-    //     if (player->Health > 0.0f && player->state != PLAYER_STATE_LEDGE_GRAB && player->state != PLAYER_STATE_LEDGE_IDLE && player->state != PLAYER_STATE_LEDGE_TRAVERSE_LEFT && player->state != PLAYER_STATE_LEDGE_TRAVERSE_RIGHT) {
-    //         int slot = *(u8*)((u32)p[layer + 0x2fea]);
-    //         long cancel = magmaInfo.vtable.GUI_CancelRadarSelect(slot);
-    //         if (!cancel)
-    //             magmaInfo.vtable.FUN_003eef48(moby, player, aimData);
-    //     }
-    // }
+    if (player->isLocal) {
+        if (player->hitPoints > 0.0f && player->state != PLAYER_STATE_LEDGE_GRAB && player->state != PLAYER_STATE_LEDGE_IDLE && player->state != PLAYER_STATE_LEDGE_TRAVERSE_LEFT && player->state != PLAYER_STATE_LEDGE_TRAVERSE_RIGHT) {
+            int slot = playerGetSlot(player);
+            long cancel = magmaInfo.vtable.GUI_CancelRadarSelect(slot);
+            if (!cancel)
+                magmaInfo.vtable.HandleWeaponTargetValidation(moby, player, aimData);
+        }
+    }
 
     if (moby->state == 1) {
         gadgetEventType = magmaInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
@@ -332,13 +334,13 @@ void M4231_Update_MagmaCannon(Moby* moby)
                 pvar->targetDir[3] = *(float*)0x0022100c;
             }
 
-            magmaInfo.vtable.FUN_003eea78(moby, player);
-            magmaInfo.vtable.FUN_003ed778(moby, &savedPos);
+            magmaInfo.vtable.UpdateWeaponAim(moby, player);
+            magmaInfo.vtable.BuildMagmaCannonShot(moby, &savedPos);
 
             pvar->unk_45 = 0;
             pvar->unk_44 = 0;
 
-            pvar->unk_48 = magmaInfo.vtable.FUN_00449ab8(moby, pvar->upgradeFlag);
+            pvar->unk_48 = magmaInfo.vtable.SpawnProjectile(moby, pvar->upgradeFlag);
             if (pvar->unk_48) {
                 void (*callback)(void*) = *(void**)((u32)pvar->unk_48 + 0xa8);
                 if (callback)
@@ -384,8 +386,8 @@ void M4231_Update_MagmaCannon(Moby* moby)
             VECTOR muzzlePos;
             vector_copy(muzzlePos, moby->pos);
             magmaInfo.vtable.GetMobyJointWorld(moby, 0, &muzzlePos);
-            magmaInfo.vtable.FUN_003ef770(moby, &muzzlePos);
-            magmaInfo.vtable.FUN_003ed960(moby, aimData);
+            magmaInfo.vtable.SpawnShotEffects(moby, &muzzlePos);
+            magmaInfo.vtable.ApplyDamage(moby, aimData);
 
             VECTOR joint2Pos;
             magmaInfo.vtable.GetMobyJointWorld(moby, 2, &joint2Pos);
@@ -403,7 +405,7 @@ void M4231_Update_MagmaCannon(Moby* moby)
             mobySetState(moby, 2, -1);
 
         } else if (gadgetEventType == 4) {
-            magmaInfo.vtable.FUN_003eed80(moby);
+            magmaInfo.vtable.PlayMagmaCannonSound(moby);
         }
 
         // Kill rumble if not firing
@@ -415,10 +417,10 @@ void M4231_Update_MagmaCannon(Moby* moby)
         }
 
     } else if (moby->state == 2) {
-        magmaInfo.vtable.FUN_003eea78(moby, player);
-        magmaInfo.vtable.FUN_003ed778(moby, &gadgetEvent);
+        magmaInfo.vtable.UpdateWeaponAim(moby, player);
+        magmaInfo.vtable.BuildMagmaCannonShot(moby, &gadgetEvent);
         magmaInfo.vtable.WPN_TurnOnHoloShields(player->mpTeam);
-        magmaInfo.vtable.FUN_003eece8(moby, player, aimData, &gadgetEvent);
+        magmaInfo.vtable.DoFireEffects(moby, player, aimData, &gadgetEvent);
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
 
@@ -441,25 +443,25 @@ int gadgetInit(void)
     magmaInfo.vtable.GadgetBox_GetGadgetLevel       = JAL2ADDR(*(u32*)(start + 0x0b8));
     magmaInfo.vtable.Hero_PeekGadgetEvent           = JAL2ADDR(*(u32*)(start + 0x114));
     magmaInfo.vtable.MB_transAnim                   = JAL2ADDR(*(u32*)(start + 0x180));
-    magmaInfo.vtable.FUN_003eeec0                   = JAL2ADDR(*(u32*)(start + 0x1a4));
+    magmaInfo.vtable.UpdateWeaponGunpoint           = JAL2ADDR(*(u32*)(start + 0x1a4));
     magmaInfo.vtable.GUI_CancelRadarSelect          = JAL2ADDR(*(u32*)(start + 0x20c));
-    magmaInfo.vtable.FUN_003eef48                   = JAL2ADDR(*(u32*)(start + 0x220));
+    magmaInfo.vtable.HandleWeaponTargetValidation   = JAL2ADDR(*(u32*)(start + 0x220));
     magmaInfo.vtable.Hero_GetGadgetEvent            = JAL2ADDR(*(u32*)(start + 0x254));
     magmaInfo.vtable.GB_GadgetIdToIndex             = JAL2ADDR(*(u32*)(start + 0x274));
-    magmaInfo.vtable.FUN_003eea78                   = JAL2ADDR(*(u32*)(start + 0x2e0));
-    magmaInfo.vtable.FUN_003ed778                   = JAL2ADDR(*(u32*)(start + 0x2f0));
-    magmaInfo.vtable.FUN_00449ab8                   = JAL2ADDR(*(u32*)(start + 0x304));
+    magmaInfo.vtable.UpdateWeaponAim                = JAL2ADDR(*(u32*)(start + 0x2e0));
+    magmaInfo.vtable.BuildMagmaCannonShot           = JAL2ADDR(*(u32*)(start + 0x2f0));
+    magmaInfo.vtable.SpawnProjectile                   = JAL2ADDR(*(u32*)(start + 0x304));
     magmaInfo.vtable.Guber_GetObject                = JAL2ADDR(*(u32*)(start + 0x3b0));
     magmaInfo.vtable.GadgetBox_GetActivePostFXMod   = JAL2ADDR(*(u32*)(start + 0x368));
     magmaInfo.vtable.GadgetBox_GadgetIsModSupported = JAL2ADDR(*(u32*)(start + 0x378));
     magmaInfo.vtable.GadgetBox_AddPoolMod           = JAL2ADDR(*(u32*)(start + 0x390));
     magmaInfo.vtable.sound_MobyPlay                 = JAL2ADDR(*(u32*)(start + 0x3f4));
-    magmaInfo.vtable.FUN_003ef770                   = JAL2ADDR(*(u32*)(start + 0x478));
-    magmaInfo.vtable.FUN_003ed960                   = JAL2ADDR(*(u32*)(start + 0x484));
-    magmaInfo.vtable.FUN_003eed80                   = JAL2ADDR(*(u32*)(start + 0x550));
+    magmaInfo.vtable.SpawnShotEffects                   = JAL2ADDR(*(u32*)(start + 0x478));
+    magmaInfo.vtable.ApplyDamage                   = JAL2ADDR(*(u32*)(start + 0x484));
+    magmaInfo.vtable.PlayMagmaCannonSound                   = JAL2ADDR(*(u32*)(start + 0x550));
     magmaInfo.vtable.WPN_TurnOnHoloShields          = JAL2ADDR(*(u32*)(start + 0x5c0));
     magmaInfo.vtable.actuator_killWave              = JAL2ADDR(*(u32*)(start + 0x58c));
-    magmaInfo.vtable.FUN_003eece8                   = JAL2ADDR(*(u32*)(start + 0x5d4));
+    magmaInfo.vtable.DoFireEffects                  = JAL2ADDR(*(u32*)(start + 0x5d4));
     magmaInfo.vtable.WPN_TurnOffHoloShields         = JAL2ADDR(*(u32*)(start + 0x5dc));
     return 1;
 }
