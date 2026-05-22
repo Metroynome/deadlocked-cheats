@@ -116,7 +116,19 @@ void M4244_Update_DualVipers(Moby* moby)
             if (gadgetEventType == 8) {
                 gadgetInfo.vtable.DualVipers_ShootUpdate(moby, player, &gadgetEvent);
                 moby->subState = 0;
-                *(u8*)(pvar->pOtherGun + 0x67) = 1;
+                
+                // get new shot targets.
+                DualViperspVar_t* otherPvar = (DualViperspVar_t*)pvar->pOtherGun->pVar;
+                vector_copy(otherPvar->weaponPos, pvar->weaponPos);
+                vector_copy(otherPvar->fireDir, pvar->fireDir);
+                vector_copy(otherPvar->aimPos, pvar->aimPos);
+                vector_copy(otherPvar->targetAimPos, pvar->targetAimPos);
+
+                otherPvar->shotType = pvar->shotType;
+                otherPvar->pTarget = pvar->pTarget;
+                otherPvar->targetUID = pvar->targetUID;
+
+                pvar->pOtherGun->subState = 1;
             } else if (gadgetEventType == 4 && pvar->outAmmoFirstTime == 1) {
                 mobyPlaySound(4, 0, moby);
                 pvar->outAmmoFirstTime = 0;
