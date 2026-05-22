@@ -11,6 +11,7 @@
 #define JAL2ADDR(jal) ((jal & 0x03FFFFFF) << 2)
 #define MobyClassUpdate ((void**)0x00249980)
 #define BARREL_OFFSET ((VECTOR*)0x220b20)
+#define M_CLASS (13)
 
 typedef struct gadget_vtable {
     void (*update)(Moby* this);
@@ -37,72 +38,75 @@ typedef struct gadgetInfo {
 } gadgetInfo_t;
 gadgetInfo_t gadgetInfo;
 
-typedef struct DualVipersPVar { // 0x100
+typedef struct DualViperspVar { // 0x70
 /* 0x00 */ VECTOR weaponPos;
 /* 0x10 */ VECTOR fireDir;
-/* 0x20 */ VECTOR targetPos;
+/* 0x20 */ VECTOR aimPos;
 /* 0x30 */ VECTOR targetAimPos;
 /* 0x40 */ short shotType;
 /* 0x42 */ short shotCount;
 /* 0x44 */ int actuatorHandle;
 /* 0x48 */ Player* owner;
 /* 0x4c */ u32 targetUID;
-/* 0x50 */ char pad_50[6];
-/* 0x56 */ short soundReady;
-/* 0x58 */ int pad_58;
+/* 0x50 */ int pointLight;
+/* 0x54 */ short int fireFromTopBarrel;
+/* 0x56 */ short int outAmmoFirstTime;
+/* 0x58 */ float scopeAng1;
 /* 0x5c */ u32 idleTimer;
-/* 0x60 */ Moby* targetMoby;
-/* 0x64 */ u32 shotStatePtr;
-/* 0x68 */ char unk_68[0x98];
-} DualVipersPVar_t;
+/* 0x60 */ Moby* pTarget;
+/* 0x64 */ Moby* pOtherGun;
+/* 0x68 */ unsigned char cIsMainGun;
+/* 0x69 */ char pad_69[0x3];
+/* 0x6c */ int pad_6c;
+} DualViperspVar_t;
 
 void M4244_Update_DualVipers(Moby* moby)
 {
-    DualVipersPVar_t* pvar = (DualVipersPVar_t*)moby->PVar;
+    DualViperspVar_t* pvar = (DualViperspVar_t*)moby->pVar;
 
-    if (!moby->State) {
-        moby->UpdateDist = 0xFF;
+    if (!moby->state) {
+        moby->updateDist = 0xFF;
         pvar->shotCount = 0;
         pvar->actuatorHandle = -1;
         gadgetInfo.vtable.GB_AssignLocalPlayerToWeapon(moby, &pvar->owner);
-        pvar->soundReady = 1;
+        pvar->outAmmoFirstTime = 1;
         mobySetState(moby, 1, -1);
     }
 
     Player* player = pvar->owner;
     PlayerVTable* vtable = playerGetVTable(player);
 
-    if (*(u32*)((u32)player + 0x25cc) == PLAYER_STATE_LOOK)
-        vtable->UpdateState(player, PLAYER_STATE_TARGETING, 1, 0, 1);
+    if (player->state == PLAYER_STATE_LOOK)
+        vtable->InitBodyState(player, PLAYER_STATE_TARGETING, 1, 0, 1);
 
-    if (!player || !*(u32*)((u32)player + 0x266d)) {
+    if (!player || !player->isLocal) {
         long event = gadgetInfo.vtable.Hero_PeekGadgetEvent(player, 0, 1, 0);
         if (event == 0 && gadgetInfo.vtable.FUN_005f02c0(player) == 0) {
             return;
         }
     }
 
-    if ((moby->AnimFlags & 2) != 0) {
-        if (moby->AnimSeqId == 1) {
-            if (*(u32*)0x0021e694 == 1) // g_gameType: only freeze anim speed in singleplayer
-                moby->AnimSpeed = 0.0f;
+    if ((moby->animFlags & 2) != 0) {
+        if (moby->animSeqId == 1) {
+            if (gameType == 1)
+                moby->animSpeed = 0.0f;
         } else {
             gadgetInfo.vtable.MB_transAnim(moby, 1, 0.0f, 2, 0);
         }
     }
 
     VECTOR barrelWorldPos;
-    vector_apply(barrelWorldPos, BARREL_OFFSET, &moby->M0_03);
-    vector_add(barrelWorldPos, barrelWorldPos, moby->Position);
+    vector_apply(barrelWorldPos, BARREL_OFFSET, &moby->rMtx.v0);
+    vector_add(barrelWorldPos, barrelWorldPos, moby->pos);
     vector_copy(pvar->weaponPos, barrelWorldPos);
     gadgetInfo.vtable.DualVipers_Aiming(moby, player);
 
     long gadgetEventType = 0;
-    if (moby->SubState != 0) {
+    if (moby->subState != 0) {
         GadgetEvent gadgetEvent;
         gadgetEventType = gadgetInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
 
-        int equippedTime = player->Gadgets[0].equippedTime;
+        int equippedTime = player->gadgets[0].equippedTime;
         int canShoot = (gadgetInfo.vtable.FUN_005f02c0(player) != 0) ? (equippedTime >= 0x17) : (equippedTime >= 0x17 || player->timers.noInput != 0);
         if (canShoot) {
             pvar->shotType = 0x14;
@@ -111,16 +115,16 @@ void M4244_Update_DualVipers(Moby* moby)
 
             if (gadgetEventType == 8) {
                 gadgetInfo.vtable.DualVipers_ShootUpdate(moby, player, &gadgetEvent);
-                moby->SubState = 0;
-                *(u8*)(pvar->shotStatePtr + 0x67) = 1;
-            } else if (gadgetEventType == 4 && pvar->soundReady == 1) {
+                moby->subState = 0;
+                *(u8*)(pvar->pOtherGun + 0x67) = 1;
+            } else if (gadgetEventType == 4 && pvar->outAmmoFirstTime == 1) {
                 mobyPlaySound(4, 0, moby);
-                pvar->soundReady = 0;
+                pvar->outAmmoFirstTime = 0;
             }
         }
     } else {
-        if (player->timers.noInput != 0 && player->Gadgets[0].padButtonDown == 1) {
-            player->Gadgets[0].padButtonDown = 0;
+        if (player->timers.noInput != 0 && player->gadgets[0].padButtonDown == 1) {
+            player->gadgets[0].padButtonDown = 0;
             gadgetInfo.vtable.Hero_QueueGadgetEvent(player, 2, -1, -1, 0, 0);
         }
 
@@ -132,22 +136,22 @@ void M4244_Update_DualVipers(Moby* moby)
             gadgetInfo.vtable.Hero_EndFiringAnim(player);
 
         if (pvar->idleTimer >= 0x15)
-            pvar->soundReady = 1;
+            pvar->outAmmoFirstTime = 1;
 
         if (pvar->shotCount < 1)
             pvar->shotCount = 0;
     }
 
     int handle = pvar->actuatorHandle;
-    if (gadgetEventType != 8 || *(u8*)((u32)player + 0x265a) == 0) {
+    if (gadgetEventType != 8 || player->firing == 0) {
         if (handle >= 0) {
-            gadgetInfo.vtable.actuator_killWave(handle, player->Paddata);
+            gadgetInfo.vtable.actuator_killWave(handle, player->pPad);
             pvar->actuatorHandle = -1;
             handle = pvar->actuatorHandle;
         }
     }
 
-    if (handle > 0 && gadgetInfo.vtable.FUN_004ad330(handle - 1, player->Paddata) == 0)
+    if (handle > 0 && gadgetInfo.vtable.FUN_004ad330(handle - 1, player->pPad) == 0)
         pvar->actuatorHandle = -1;
 }
 
@@ -156,12 +160,12 @@ void gadgetFindAndHook(void)
     Moby *start = mobyListGetStart();
     Moby *end = mobyListGetEnd();
     while (start < end) {
-        if (start->OClass == 0x1094 && start->PParent->OClass == 0x251c) {
+        if (start->oClass == 0x1094 && start->pParent->oClass == 0x251c) {
             if (!gadgetInfo.vtable.update) {
-                gadgetInfo.vtable.update = start->PUpdate;
+                gadgetInfo.vtable.update = start->pUpdate;
             }
-            MobyClassUpdate[start->MClass] = &M4244_Update_DualVipers;
-            start->PUpdate = &M4244_Update_DualVipers;
+            MobyClassUpdate[start->mClass] = &M4244_Update_DualVipers;
+            start->pUpdate = &M4244_Update_DualVipers;
         }
         ++start;
     }
@@ -199,4 +203,6 @@ void dualVipers(void)
 
     if (!gadgetInfo.init)
         gadgetInfo.init = gadgetInit();
+    else if (MobyClassUpdate[M_CLASS] != &M4244_Update_DualVipers)
+        MobyClassUpdate[M_CLASS] = &M4244_Update_DualVipers;
 }
