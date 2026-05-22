@@ -25,7 +25,7 @@ typedef struct magma_vtable {
     void  (*HandleReticle)(Moby* moby, Player* player, VECTOR* output);
     long  (*Hero_GetGadgetEvent)(Player* player, int a1, int a2, GadgetEvent* out);
     int   (*GB_GadgetIdToIndex)(int gadgetId);
-    void  (*UpdateWeaponAim)(Moby* moby, Player* player, VECTOR* out);
+    void  (*UpdateWeaponAim)(Moby* moby, Player* player, VECTOR *out);
     void  (*BuildMagmaCannonShot)(Moby* pMoby, void* out);
     void* (*SpawnProjectile)(Moby* moby, u8 upgradeFlag);
     int   (*GadgetBox_GetActivePostFXMod)(void* gadgetBox, int gadgetId);
@@ -59,15 +59,11 @@ typedef struct EffectMobyPVar { // 0x20
     float randScale2;
 } EffectMobyPVar_t;
 
-typedef struct MagmaAimData {
-    VECTOR aimDir;      // +0x00
-    VECTOR rightAxis;   // +0x10
-    VECTOR upAxis;      // +0x20
-    VECTOR targetPos;   // +0x30
-} MagmaAimData_t;
-
 typedef struct MagmaCannonPVar {
-/* 0x00 */ MagmaAimData_t aimData; 
+/* 0x00 */ VECTOR aimDir;        // normalized direction toward target
+/* 0x10 */ VECTOR rightAxis;     // lateral axis (cross product derived, negated)
+/* 0x20 */ VECTOR upAxis;        // up axis (completes orthonormal basis)
+/* 0x30 */ VECTOR targetPos;  
 /* 0x40 */ Player* owner;
 /* 0x44 */ bool projectileActive;
 /* 0x45 */ bool shotQueued;
@@ -250,23 +246,24 @@ int playerGetSlot(Player *player)
     return player->LocalHero.slot;
 }
 
+
+
 void M4231_Update_MagmaCannon(Moby* moby)
 {
     if (!magmaInfo.vtable.GetMobyJointWorld)
         return;
 
-    printf("\nnew mag: start");
-
     VECTOR damageData;
     VECTOR aimData;
     VECTOR jointPos;
-    struct COLL_DAM_IN shotData = {0};
+    struct COLL_DAM_IN shotData;
     MagmaCannonPVar_t* pvar = (MagmaCannonPVar_t*)moby->pVar;
     GadgetEvent gadgetEvent = {0};
     long gadgetEventType = 0;
 
     *(u16*)(moby + 0x74) |= 3;
 
+    vector_copy(jointPos, moby->pos);
     magmaInfo.vtable.GetMobyJointWorld(moby, 0, &jointPos);
 
     if (!moby->state) {
@@ -287,8 +284,6 @@ void M4231_Update_MagmaCannon(Moby* moby)
     else if (gadgetLevel > 8)
         pvar->upgradeFlag = 1;
 
-    printf("\nnew mag: after gadgetLevel");
-
     if (*(u8*)0x002204c1 && player && !player->isLocal) {
         long event = magmaInfo.vtable.Hero_PeekGadgetEvent(player, 0, 1, 0);
         if (event == 0 && !isUsingGadget(player)) {
@@ -307,12 +302,10 @@ void M4231_Update_MagmaCannon(Moby* moby)
             magmaInfo.vtable.MB_transAnim(moby, 1, 0.0f, 2, 0);
         }
     }
-    printf("\nnew mag: after anim flags");
 
-    magmaInfo.vtable.BuildWeaponProjectile(player, &aimData);
+    magmaInfo.vtable.BuildWeaponProjectile(player, aimData);
     magmaInfo.vtable.UpdateWeaponGunpoint(moby, player);
     
-    printf("\nnew mag: after buildweaponproject 1");
 
     if (player->isLocal) {
         if (player->hitPoints > 0.0f
@@ -323,10 +316,10 @@ void M4231_Update_MagmaCannon(Moby* moby)
             // u32 slot = playerGetVTable(player)->getSlot(player);
             // long cancel = magmaInfo.vtable.GUI_CancelRadarSelect(slot);
             // if (!cancel)
-                magmaInfo.vtable.HandleReticle(moby, player, &aimData);
+                magmaInfo.vtable.HandleReticle(moby, player, aimData);
         }
     }
-    printf("\nnew mag: after handleReticle");
+
     if (moby->state == 1) {
         gadgetEventType = magmaInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
 
@@ -342,15 +335,11 @@ void M4231_Update_MagmaCannon(Moby* moby)
                 pvar->targetDir[3] = *(float*)0x0022100c;
             }
         
-            printf("\nnew mag: after pvar->targetDir");
-
-            magmaInfo.vtable.UpdateWeaponAim(moby, player, &jointPos);
+            magmaInfo.vtable.UpdateWeaponAim(moby, player, jointPos);
             magmaInfo.vtable.BuildMagmaCannonShot(moby, &shotData);
 
             pvar->shotQueued = 0;
             pvar->projectileActive = 0;
-
-            printf("\nnew mag: after pvar->shotQueueued");
 
             pvar->projectile = magmaInfo.vtable.SpawnProjectile(moby, pvar->upgradeFlag);
             if (pvar->projectile) {
@@ -358,8 +347,6 @@ void M4231_Update_MagmaCannon(Moby* moby)
                 if (callback)
                     callback(pvar->projectile);
             }
-
-            printf("\nnew mag: after pvar->projectile");
 
             pvar->targetMoby = 0;
             if (*(u32*)0x0021e694 == 1 && !player->isLocal) {
@@ -382,22 +369,20 @@ void M4231_Update_MagmaCannon(Moby* moby)
                 }
             }
 
-            printf("\nnew mag: after getObject");
-
             magmaInfo.vtable.sound_MobyPlay(0, 0, moby);
 
             pvar->flashTimer  = 3;
             pvar->glowTimer   = 9;
-            pvar->rotSpeed    = 0.333333f;   // 0x70 = 0x3eaaaaab
-            pvar->rotDamping  = 0.111111f;   // 0x74 = 0x3de38e39, hardcoded not randRot()
-            pvar->randRotX    = randRot();   // 0x78
-            pvar->effectTimer = 4;           // 0x80
-            pvar->effectScale = 0.25f;       // 0x84
-            pvar->randRotY    = randRot();   // 0x7c
-            pvar->randRotZ    = randRot();   // 0x8c — separate call, not reused
-
+            pvar->rotSpeed    = 0.333333f;          // 0x70
+            pvar->rotDamping  = 0.111111f;          // 0x74
+            pvar->effectTimer = 4;                  // 0x80
+            pvar->effectScale = 0.25f;             // 0x84
+            pvar->randRotX = randRot();
+            pvar->randRotY = randRot();
+            pvar->randRotZ = randRot();
+            
             VECTOR joint0Pos;
-            vector_copy(joint0Pos, moby->pos);
+            // vector_copy(joint0Pos, moby->pos);
             magmaInfo.vtable.GetMobyJointWorld(moby, 0, &joint0Pos);
             magmaInfo.vtable.SpawnShotEffects(moby, &joint0Pos);
             magmaInfo.vtable.ApplyDamage(moby, &shotData);
@@ -411,9 +396,6 @@ void M4231_Update_MagmaCannon(Moby* moby)
             float speed2 = randRangeFloat(4.5f, 7.5f) * (1.0f / 60.0f);
             vector_scale(rotVel, moby->rMtx.v0, speed2);
             vector_add(ejVel, ejVel, rotVel);
-
-            printf("\nnew mag: after shell math");
-
 
             spawnMagmaCannonShell(30.0f, 2.5f, joint2Pos, ejVel, 100);
             mobySetState(moby, 2, -1);
@@ -430,11 +412,10 @@ void M4231_Update_MagmaCannon(Moby* moby)
         }
 
     } else if (moby->state == 2) {
-            printf("\nnew mag: state == 2");
-        magmaInfo.vtable.UpdateWeaponAim(moby, player, &jointPos);
+        magmaInfo.vtable.UpdateWeaponAim(moby, player, jointPos);
         magmaInfo.vtable.BuildMagmaCannonShot(moby, (struct COLL_DAM_IN*)&gadgetEvent);
         magmaInfo.vtable.WPN_TurnOnHoloShields(pvar->owner->mpTeam);
-        magmaInfo.vtable.DoFireEffect(moby, player, &aimData, (struct COLL_DAM_IN*)&gadgetEvent);
+        magmaInfo.vtable.DoFireEffect(moby, player, shotData.momentum, (struct COLL_DAM_IN*)&gadgetEvent);
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
 
