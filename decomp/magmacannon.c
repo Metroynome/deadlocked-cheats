@@ -94,23 +94,23 @@ typedef struct magma_vtable {
     int   (*GadgetBox_GetGadgetLevel)(void* gadgetBox, int gadgetId);
     long  (*Hero_PeekGadgetEvent)(Player* player, int a1, int a2, int a3);
     void  (*MB_transAnim)(Moby* moby, int seq, float frm, int steps, int flags);
-    void  (*UpdateWeaponGunpoint)(Moby* moby, Player* player);
+    void  (*UpdateGunpointTarget)(Moby* moby, Player* player);
     long  (*GUI_CancelRadarSelect)(int slot);
-    void  (*M4231_DrawReticle)(Moby* moby, Player* player, struct M4231_ShotStats* shotStats);
+    void  (*M4231_DrawReticle)(Moby* moby, Player* player, M4231_ShotStats_t* shotStats);
     long  (*Hero_GetGadgetEvent)(Player* player, int a1, int a2, GadgetEvent* out);
     int   (*GB_GadgetIdToIndex)(int gadgetId);
-    void  (*UpdateWeaponAim)(Moby* moby, Player* player, VECTOR vBarrelPos);
-    void  (*BuildMagmaCannonShot)(Moby* pMoby, void* out);
+    void  (*UpdateShotMtx)(Moby* moby, Player* player, VECTOR vBarrelPos);
+    void  (*SetupDamageIn)(Moby* pMoby, COLL_DAM_IN_t* pDamageIn);
     void* (*SpawnProjectile)(Moby* moby, u8 upgradeFlag);
     int   (*GadgetBox_GetActivePostFXMod)(void* gadgetBox, int gadgetId);
     int   (*GadgetBox_GadgetIsModSupported)(int gadgetId, int mod);
     void  (*GadgetBox_AddPoolMod)(void* gadgetBox, int mod, long a2, int gadgetId);
     void  (*sound_MobyPlay)(int soundId, int a1, Moby* moby);
-    void  (*SpawnShotEffects)(Moby* moby, VECTOR* a1);
-    void  (*ApplyDamage)(Moby* moby, void* damageData);
+    void  (*SpawnMuzzleFlash)(Moby* moby, VECTOR* a1);
+    void  (*SetupSphereCollision)(Moby* moby, COLL_DAM_IN_t* pDamageIn);
     void  (*PlayMagmaCannonSound)(Moby* moby);
     void  (*actuator_killWave)(void);
-    void  (*DoFireEffect)(Moby* moby, Player* player, void* a2, void* a3);
+    void  (*DoFire)(Moby* moby, Player* player, M4231_ShotStats_t* pShotStats, COLL_DAM_IN_t* dammage);
     void  (*WPN_TurnOnHoloShields)(int a0);
     void  (*WPN_TurnOffHoloShields)(void);
     void* (*Guber_GetObject)(void);
@@ -298,14 +298,14 @@ void M4231_Update_MagmaCannon(Moby* this)
         return;
 
     VECTOR vBarrelPos;
-    struct COLL_DAM_IN damageData;
+    COLL_DAM_IN_t damageIn;
     M4231_ShotStats_t shotStats;
     M4231_Weapon_MagmaCannon_t* pvar = (M4231_Weapon_MagmaCannon_t*)this->pVar;
     GadgetEvent gadgetEvent = {0};
     long gadgetEventType = 0;
 
     M4231_SetupBangles(this);
-
+    vector_copy(vBarrelPos, this->pos);
     magmaInfo.vtable.GetMobyJointWorld(this, 0, &vBarrelPos);
 
     if (!this->state) {
@@ -346,7 +346,7 @@ void M4231_Update_MagmaCannon(Moby* this)
     }
 
     magmaInfo.vtable.SetupShotStats(player, &shotStats);
-    magmaInfo.vtable.UpdateWeaponGunpoint(this, player);
+    magmaInfo.vtable.UpdateGunpointTarget(this, player);
     
 
     if (player->isLocal) {
@@ -377,8 +377,8 @@ void M4231_Update_MagmaCannon(Moby* this)
                 pvar->remoteFireDir[3] = *(float*)0x0022100c;
             }
         
-            magmaInfo.vtable.UpdateWeaponAim(this, player, vBarrelPos);
-            magmaInfo.vtable.BuildMagmaCannonShot(this, &damageData);
+            magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+            magmaInfo.vtable.SetupDamageIn(this, &damageIn);
 
             pvar->cNumEndColl = 0;
             pvar->cShotRowsCompleted = 0;
@@ -426,8 +426,8 @@ void M4231_Update_MagmaCannon(Moby* this)
             VECTOR joint0Pos;
             // vector_copy(joint0Pos, this->pos);
             magmaInfo.vtable.GetMobyJointWorld(this, 0, &joint0Pos);
-            magmaInfo.vtable.SpawnShotEffects(this, &joint0Pos);
-            magmaInfo.vtable.ApplyDamage(this, &damageData);
+            magmaInfo.vtable.SpawnMuzzleFlash(this, &joint0Pos);
+            magmaInfo.vtable.SetupSphereCollision(this, &damageIn);
 
             VECTOR joint2Pos;
             magmaInfo.vtable.GetMobyJointWorld(this, 2, &joint2Pos);
@@ -454,10 +454,10 @@ void M4231_Update_MagmaCannon(Moby* this)
         }
 
     } else if (this->state == 2) {
-        magmaInfo.vtable.UpdateWeaponAim(this, player, vBarrelPos);
-        magmaInfo.vtable.BuildMagmaCannonShot(this, (struct COLL_DAM_IN*)&gadgetEvent);
+        magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+        magmaInfo.vtable.SetupDamageIn(this, (COLL_DAM_IN_t*)&gadgetEvent);
         magmaInfo.vtable.WPN_TurnOnHoloShields(pvar->pUser->mpTeam);
-        magmaInfo.vtable.DoFireEffect(this, player, vBarrelPos, (struct COLL_DAM_IN*)&gadgetEvent);
+        magmaInfo.vtable.DoFire(this, player, vBarrelPos, (COLL_DAM_IN_t*)&gadgetEvent);
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
 
@@ -482,25 +482,25 @@ int gadgetInit(void)
     magmaInfo.vtable.Hero_PeekGadgetEvent           = JAL2ADDR(*(u32*)(start + 0x114));
     magmaInfo.vtable.MB_transAnim                   = JAL2ADDR(*(u32*)(start + 0x180));
     magmaInfo.vtable.SetupShotStats          = JAL2ADDR(*(u32*)(start + 0x198));
-    magmaInfo.vtable.UpdateWeaponGunpoint           = JAL2ADDR(*(u32*)(start + 0x1a4));
+    magmaInfo.vtable.UpdateGunpointTarget           = JAL2ADDR(*(u32*)(start + 0x1a4));
     magmaInfo.vtable.GUI_CancelRadarSelect          = JAL2ADDR(*(u32*)(start + 0x20c));
     magmaInfo.vtable.M4231_DrawReticle                  = JAL2ADDR(*(u32*)(start + 0x220));
     magmaInfo.vtable.Hero_GetGadgetEvent            = JAL2ADDR(*(u32*)(start + 0x254));
     magmaInfo.vtable.GB_GadgetIdToIndex             = JAL2ADDR(*(u32*)(start + 0x274));
-    magmaInfo.vtable.UpdateWeaponAim                = JAL2ADDR(*(u32*)(start + 0x2e0));
-    magmaInfo.vtable.BuildMagmaCannonShot           = JAL2ADDR(*(u32*)(start + 0x2f0));
+    magmaInfo.vtable.UpdateShotMtx                = JAL2ADDR(*(u32*)(start + 0x2e0));
+    magmaInfo.vtable.SetupDamageIn           = JAL2ADDR(*(u32*)(start + 0x2f0));
     magmaInfo.vtable.SpawnProjectile                = JAL2ADDR(*(u32*)(start + 0x304));
     magmaInfo.vtable.Guber_GetObject                = JAL2ADDR(*(u32*)(start + 0x3b0));
     magmaInfo.vtable.GadgetBox_GetActivePostFXMod   = JAL2ADDR(*(u32*)(start + 0x368));
     magmaInfo.vtable.GadgetBox_GadgetIsModSupported = JAL2ADDR(*(u32*)(start + 0x378));
     magmaInfo.vtable.GadgetBox_AddPoolMod           = JAL2ADDR(*(u32*)(start + 0x390));
     magmaInfo.vtable.sound_MobyPlay                 = JAL2ADDR(*(u32*)(start + 0x3f4));
-    magmaInfo.vtable.SpawnShotEffects               = JAL2ADDR(*(u32*)(start + 0x478));
-    magmaInfo.vtable.ApplyDamage                    = JAL2ADDR(*(u32*)(start + 0x484));
+    magmaInfo.vtable.SpawnMuzzleFlash               = JAL2ADDR(*(u32*)(start + 0x478));
+    magmaInfo.vtable.SetupSphereCollision                    = JAL2ADDR(*(u32*)(start + 0x484));
     magmaInfo.vtable.PlayMagmaCannonSound           = JAL2ADDR(*(u32*)(start + 0x550));
     magmaInfo.vtable.WPN_TurnOnHoloShields          = JAL2ADDR(*(u32*)(start + 0x5c0));
     magmaInfo.vtable.actuator_killWave              = JAL2ADDR(*(u32*)(start + 0x58c));
-    magmaInfo.vtable.DoFireEffect                   = JAL2ADDR(*(u32*)(start + 0x5d4));
+    magmaInfo.vtable.DoFire                   = JAL2ADDR(*(u32*)(start + 0x5d4));
     magmaInfo.vtable.WPN_TurnOffHoloShields         = JAL2ADDR(*(u32*)(start + 0x5dc));
     return 1;
 }
