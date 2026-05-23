@@ -8,8 +8,8 @@ EE_BIN = $(EE_BIN_DIR)$(EE_FILE_NAME).bin
 EE_OBJS = main.o
 
 EE_DEFS = -DFIRST_DEF
-EE_DEFS += -DDUAL_VIPERS
-# EE_DEFS += -DMAGMA_CANNON
+# EE_DEFS += -DDUAL_VIPERS
+EE_DEFS += -DMAGMA_CANNON
 
 ifneq (,$(findstring -DDUAL_VIPERS,$(EE_DEFS)))
     EE_OBJS += dualvipers.o
