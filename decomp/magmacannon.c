@@ -113,7 +113,7 @@ typedef struct magma_vtable {
     void  (*DoFire)(Moby* moby, Player* player, M4231_ShotStats_t* pShotStats, COLL_DAM_IN_t* dammage);
     void  (*WPN_TurnOnHoloShields)(int a0);
     void  (*WPN_TurnOffHoloShields)(void);
-    void* (*Guber_GetObject)(void);
+    void* (*Guber_GetObject)(u32 uid);
     void* (*SetupShotStats)(Player* player, M4231_ShotStats_t* pShotStats);
 } magma_vtable_t;
 
@@ -404,7 +404,7 @@ void M4231_Update_MagmaCannon(Moby* this)
             }
 
             if (gadgetEvent.gadgetEventMsg.targetUID != *(u32*)0x002204b0) {
-                void* guberObj = magmaInfo.vtable.Guber_GetObject();
+                void* guberObj = magmaInfo.vtable.Guber_GetObject(gadgetEvent.gadgetEventMsg.targetUID);
                 if (guberObj) {
                     void* (*getMoby)(void*) = *(void**)(*(u32*)((u32)guberObj + 0x14) + 0x10);
                     pvar->pTargetInRet = (u32)getMoby(guberObj);
