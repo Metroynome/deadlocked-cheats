@@ -101,8 +101,8 @@ void M4244_Update_DualVipers(Moby* moby)
     vector_copy(pvar->weaponPos, barrelWorldPos);
     gadgetInfo.vtable.DualVipers_Aiming(moby, player);
 
-    long gadgetEventType = 0;
-    if (moby->subState != 0) {
+    long gadgetEventType = 1;
+    if (moby->subState == 1) {
         GadgetEvent gadgetEvent;
         gadgetEventType = gadgetInfo.vtable.Hero_GetGadgetEvent(player, 0, 1, &gadgetEvent);
 
@@ -110,14 +110,13 @@ void M4244_Update_DualVipers(Moby* moby)
         int canShoot = (gadgetInfo.vtable.FUN_005f02c0(player) != 0) ? (equippedTime >= 0x17) : (equippedTime >= 0x17 || player->timers.noInput != 0);
         if (canShoot) {
             pvar->shotType = 0x14;
-            pvar->idleTimer = 0;    // sw zero,0x5c(s2): reset idle timer on fire
+            pvar->idleTimer = 0;
             pvar->shotCount++;
 
             if (gadgetEventType == 8) {
                 gadgetInfo.vtable.DualVipers_ShootUpdate(moby, player, &gadgetEvent);
                 moby->subState = 0;
                 
-                // get new shot targets.
                 DualViperspVar_t* otherPvar = (DualViperspVar_t*)pvar->pOtherGun->pVar;
                 vector_copy(otherPvar->weaponPos, pvar->weaponPos);
                 vector_copy(otherPvar->fireDir, pvar->fireDir);
