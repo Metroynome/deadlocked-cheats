@@ -454,10 +454,11 @@ void M4231_Update_MagmaCannon(Moby* this)
         }
 
     } else if (this->state == 2) {
+        COLL_DAM_IN_t d;
         magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
-        magmaInfo.vtable.SetupDamageIn(this, (COLL_DAM_IN_t*)&gadgetEvent);
+        magmaInfo.vtable.SetupDamageIn(this, &d);
         magmaInfo.vtable.WPN_TurnOnHoloShields(pvar->pUser->mpTeam);
-        magmaInfo.vtable.DoFire(this, player, vBarrelPos, (COLL_DAM_IN_t*)&gadgetEvent);
+        magmaInfo.vtable.DoFire(this, player, &shotStats, &d);
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
 
