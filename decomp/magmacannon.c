@@ -14,6 +14,7 @@
 #define MobyClassUpdate ((void**)0x00249980)
 #define M_CLASS (32)
 
+int kInvalidUID = -1;
 // actuatorWave M4231_AW[8];
 int M4231_SHOT_TIMER_INTERRUPT = 5;
 int M4231_LENS_TIMER = 2;
@@ -67,7 +68,7 @@ typedef struct M4231_ShotStats { // 0x10
 } M4231_ShotStats_t;
 
 typedef struct M4231_Weapon_MagmaCannon { // 0x90
-/* 0x00 */ MATRIX shotMtx;
+/* 0x00 */ mtx4 shotMtx;
 /* 0x40 */ Player *pUser;
 /* 0x44 */ unsigned char cShotRowsCompleted;
 /* 0x45 */ unsigned char cNumEndColl;
@@ -192,7 +193,7 @@ Moby* spawnMagmaCannonShell(float param, float scale, VECTOR position, VECTOR di
     return moby;
 }
 
-void SetupShotStats(Player* player, M4231_ShotStats_t* pShotStats)
+__attribute__((noinline)) void SetupShotStats(Player* player, M4231_ShotStats_t* pShotStats)
 {
     if (!pShotStats || !player)
         return;
@@ -203,16 +204,13 @@ void SetupShotStats(Player* player, M4231_ShotStats_t* pShotStats)
     pShotStats->fPitch = 30.0f;
     pShotStats->iBaseWidth = 0;
 
-    // Multiplayer/game mode tweak
     if (*(int*)0x0021e694 == 1)
         pShotStats->fRange = 20.0f;
 
     GadgetBox* gb = player->pGadgetBox;
     int mod = GB_GetActiveWeaponMod(gb, 3);
 
-    // Tier 3 mod adjustments
-    if (mod == 3)
-    {
+    if (mod == 3) {
         pShotStats->fYaw   -= 11.0f;
         pShotStats->fRange += 4.0f;
     }
@@ -287,6 +285,122 @@ int playerGetSlot(Player *player)
     return player->LocalHero.slot;
 }
 
+TargetVars_t* MB_getTargetVars(Moby* pMoby)
+{
+    if (pMoby == NULL)
+        return NULL;
+
+    int i = 0;
+    Player** Heros = playerGetAll();
+    for (i; i < GAME_MAX_PLAYERS; ++i) {
+        Player* player = Heros[i];
+        if (player && pMoby == player->pMoby)
+            return &player->target;
+    }
+
+    // Fall back to moby's own pVar if mode bit 0x20 is set
+    if (pMoby->pVar && (pMoby->modeBits & 0x20))
+        return *(TargetVars_t**)pMoby->pVar;
+
+    return NULL;
+}
+
+void GetDirToMoby(float scale, Moby* pMoby, VECTOR fromPos, VECTOR outDir)
+{
+    VECTOR mobyPos;
+
+    TargetVars_t* targetVars = MB_getTargetVars(pMoby);
+    if (targetVars == NULL) {
+        // No lock-on — use moby's base world position
+        vector_copy(mobyPos, (VECTOR*)((u32)pMoby + 0x10));
+    } else {
+        // Blend moby's alternate position scaled by lock-on factor
+        VECTOR altPos;
+        vector_copy(altPos, (VECTOR*)((u32)pMoby + 0xe0));
+        vector_scale(altPos, altPos, targetVars->targetHeight);
+        vector_copy(mobyPos, (VECTOR*)((u32)pMoby + 0x10));
+        vector_add(mobyPos, mobyPos, altPos);
+    }
+
+    // Normalized direction from fromPos to moby
+    VECTOR dir;
+    vector_subtract(dir, mobyPos, fromPos);
+    float lenSq = vector_sqrmag(dir);
+    if (lenSq != 0.0f)
+        vector_normalize(outDir, dir);
+    else
+        memset(outDir, 0, sizeof(VECTOR));
+}
+
+void UpdateShotMtx(Moby* pMoby, Player* pHero, VECTOR targetPos)
+{
+    M4231_Weapon_MagmaCannon_t* pvar = (M4231_Weapon_MagmaCannon_t*)pMoby->pVar;
+
+    // Store targetPos into pvar->shotMtx (offset 0x30)
+    vector_copy(pvar->shotMtx.v3, targetPos);
+
+    Moby* pGunPointMoby = pHero->attack.pGunPointMoby;
+
+    if (pGunPointMoby != NULL) {
+        // Aim toward locked-on target moby
+        VECTOR toTarget;
+        GetDirToMoby(1.0f, pGunPointMoby, toTarget, pHero->fireDir.v);
+        vector_copy(pHero->fireDir.v, toTarget);
+
+    } else if (!pHero->isLocal) {
+        // Remote player: use stored remote fire direction from pvar (offset 0x60)
+        vector_copy(pHero->fireDir.v, pvar->remoteFireDir);
+
+    } else {
+        // Local player: aim toward FPS aim position
+        VECTOR toAim;
+        vector_subtract(toAim, pHero->fps.fVars.aim_pos, targetPos);
+
+        float distSq = vector_sqrmag(toAim);
+        if (distSq < 15.0f * 15.0f) {
+            VECTOR nudge;
+            vector_scale(nudge, (VECTOR*)0x0022cd20, 7.0f);
+            vector_add(toAim, (VECTOR*)0x0022cd00, nudge);
+        }
+
+        vector_normalize(toAim, toAim);
+        vector_copy(pHero->fireDir.v, toAim);
+    }
+
+    // Determine forward direction (vf2 / shotMtx.v0)
+    VECTOR forward;
+    if (!pvar->pShot)
+        return;
+    
+    if (pHero->fps.active) {
+        // Check if camera forward aligns with aim (dot > 0.35 threshold)
+        float dot = vector_innerproduct(pHero->camUMtx.v0, pHero->fireDir.v);
+        if (dot > 0.35f) {
+            vector_copy(forward, pHero->fireDir.v);
+            goto store_forward;
+        }
+    }
+    // Fall back to pShot's forward (pvar->pShot->rMtx.v0)
+    vector_copy(forward, pvar->pShot->rMtx.v0);
+
+store_forward:
+    vector_copy(pvar->shotMtx.v0, forward);
+
+    // Build right vector (v1): cross(forward, pShot->rMtx.v1), normalized, negated
+    VECTOR right;
+    vector_outerproduct(right, forward, pvar->pShot->rMtx.v1);
+    vector_normalize(right, right);
+    vector_negate(right, right);
+    vector_copy(pvar->shotMtx.v1, right);
+
+    // Build up vector (v2): cross(forward, right), normalized, negated
+    VECTOR up;
+    vector_outerproduct(up, forward, right);
+    vector_normalize(up, up);
+    vector_negate(up, up);
+    vector_copy(pvar->shotMtx.v2, up);
+}
+
 void M4231_SetupBangles(Moby *this)
 {
     this->bangles |= 3;
@@ -345,9 +459,11 @@ void M4231_Update_MagmaCannon(Moby* this)
         }
     }
 
-    magmaInfo.vtable.SetupShotStats(player, &shotStats);
+    // magmaInfo.vtable.SetupShotStats(player, &shotStats);
+    SetupShotStats(player, &shotStats);
     magmaInfo.vtable.UpdateGunpointTarget(this, player);
     
+    printf("\nSetupShotStats: %08x", &SetupShotStats);
 
     if (player->isLocal) {
         if (player->hitPoints > 0.0f
@@ -377,7 +493,10 @@ void M4231_Update_MagmaCannon(Moby* this)
                 pvar->remoteFireDir[3] = *(float*)0x0022100c;
             }
         
-            magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+
+            // magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+
+            UpdateShotMtx(this, player, vBarrelPos);
             magmaInfo.vtable.SetupDamageIn(this, &damageIn);
 
             pvar->cNumEndColl = 0;
@@ -400,7 +519,6 @@ void M4231_Update_MagmaCannon(Moby* this)
                 }
             }
 
-            printf("\ntargetUID: %08x", gadgetEvent.gadgetEventMsg.targetUID);
             if (gadgetEvent.gadgetEventMsg.targetUID != *(u32*)0x002204b0) {
                 void* guberObj = magmaInfo.vtable.Guber_GetObject(gadgetEvent.gadgetEventMsg.targetUID);
                 if (guberObj) {
@@ -452,19 +570,19 @@ void M4231_Update_MagmaCannon(Moby* this)
         }
 
     } else if (this->state == 2) {
-        magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+        // magmaInfo.vtable.UpdateShotMtx(this, player, vBarrelPos);
+
+        UpdateShotMtx(this, player, vBarrelPos);
         magmaInfo.vtable.SetupDamageIn(this, &damageIn);
         magmaInfo.vtable.WPN_TurnOnHoloShields(pvar->pUser->mpTeam);
         magmaInfo.vtable.DoFire(this, player, &shotStats, &damageIn);
         magmaInfo.vtable.WPN_TurnOffHoloShields();
     }
-
     FastDecTimer(&pvar->shockwaveTimer);
     FastDecTimer(&pvar->lensTimer);
     FastDecTimer(&pvar->flashTimer);
 
-    // lwu loads both flashTimer(0x88) and glowTimer(0x8a) as one u32
-    if (player && player->isLocal && *(u32*)((u32)pvar + 0x88) != 0)
+    if (player && player->isLocal && pvar->lensTimer && pvar->shockwaveTimer)
         gfxRegisterDrawFunction((void**)0x0022251c, 0x003efd78, this);
 }
 
@@ -479,14 +597,14 @@ int gadgetInit(void)
     magmaInfo.vtable.GadgetBox_GetGadgetLevel       = JAL2ADDR(*(u32*)(start + 0x0b8));
     magmaInfo.vtable.Hero_PeekGadgetEvent           = JAL2ADDR(*(u32*)(start + 0x114));
     magmaInfo.vtable.MB_transAnim                   = JAL2ADDR(*(u32*)(start + 0x180));
-    magmaInfo.vtable.SetupShotStats          = JAL2ADDR(*(u32*)(start + 0x198));
+    magmaInfo.vtable.SetupShotStats                 = JAL2ADDR(*(u32*)(start + 0x198));
     magmaInfo.vtable.UpdateGunpointTarget           = JAL2ADDR(*(u32*)(start + 0x1a4));
     magmaInfo.vtable.GUI_CancelRadarSelect          = JAL2ADDR(*(u32*)(start + 0x20c));
-    magmaInfo.vtable.M4231_DrawReticle                  = JAL2ADDR(*(u32*)(start + 0x220));
+    magmaInfo.vtable.M4231_DrawReticle              = JAL2ADDR(*(u32*)(start + 0x220));
     magmaInfo.vtable.Hero_GetGadgetEvent            = JAL2ADDR(*(u32*)(start + 0x254));
     magmaInfo.vtable.GB_GadgetIdToIndex             = JAL2ADDR(*(u32*)(start + 0x274));
-    magmaInfo.vtable.UpdateShotMtx                = JAL2ADDR(*(u32*)(start + 0x2e0));
-    magmaInfo.vtable.SetupDamageIn           = JAL2ADDR(*(u32*)(start + 0x2f0));
+    magmaInfo.vtable.UpdateShotMtx                  = JAL2ADDR(*(u32*)(start + 0x2e0));
+    magmaInfo.vtable.SetupDamageIn                  = JAL2ADDR(*(u32*)(start + 0x2f0));
     magmaInfo.vtable.M9771_SpawnShot                = JAL2ADDR(*(u32*)(start + 0x304));
     magmaInfo.vtable.Guber_GetObject                = JAL2ADDR(*(u32*)(start + 0x3b0));
     magmaInfo.vtable.GadgetBox_GetActivePostFXMod   = JAL2ADDR(*(u32*)(start + 0x368));
@@ -494,11 +612,11 @@ int gadgetInit(void)
     magmaInfo.vtable.GadgetBox_AddPoolMod           = JAL2ADDR(*(u32*)(start + 0x390));
     magmaInfo.vtable.sound_MobyPlay                 = JAL2ADDR(*(u32*)(start + 0x3f4));
     magmaInfo.vtable.SpawnMuzzleFlash               = JAL2ADDR(*(u32*)(start + 0x478));
-    magmaInfo.vtable.SetupSphereCollision                    = JAL2ADDR(*(u32*)(start + 0x484));
+    magmaInfo.vtable.SetupSphereCollision           = JAL2ADDR(*(u32*)(start + 0x484));
     magmaInfo.vtable.PlayMagmaCannonSound           = JAL2ADDR(*(u32*)(start + 0x550));
     magmaInfo.vtable.WPN_TurnOnHoloShields          = JAL2ADDR(*(u32*)(start + 0x5c0));
     magmaInfo.vtable.actuator_killWave              = JAL2ADDR(*(u32*)(start + 0x58c));
-    magmaInfo.vtable.DoFire                   = JAL2ADDR(*(u32*)(start + 0x5d4));
+    magmaInfo.vtable.DoFire                         = JAL2ADDR(*(u32*)(start + 0x5d4));
     magmaInfo.vtable.WPN_TurnOffHoloShields         = JAL2ADDR(*(u32*)(start + 0x5dc));
     return 1;
 }
