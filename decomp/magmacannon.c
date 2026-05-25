@@ -67,7 +67,7 @@ typedef struct M4231_ShotStats { // 0x10
 /* 0x0c */ int iBaseWidth;
 } M4231_ShotStats_t;
 
-typedef struct M4231_Weapon_MagmaCannon { // 0x90
+typedef struct M4231_Gadget_MagmaCannon { // 0x90
 /* 0x00 */ mtx4 shotMtx;
 /* 0x40 */ Player *pUser;
 /* 0x44 */ unsigned char cShotRowsCompleted;
@@ -87,7 +87,7 @@ typedef struct M4231_Weapon_MagmaCannon { // 0x90
 /* 0x88 */ short int lensTimer;
 /* 0x8a */ short int shockwaveTimer;
 /* 0x8c */ float lensAngOfs;
-} M4231_Weapon_MagmaCannon_t;
+} M4231_Gadget_MagmaCannon_t;
 
 typedef struct magma_vtable {
     void  (*update)(Moby* moby);
@@ -166,7 +166,7 @@ int isUsingGadget(Player *player)
 
 void M4231_Init(Moby* moby)
 {
-    M4231_Weapon_MagmaCannon_t* pvar = (M4231_Weapon_MagmaCannon_t*)moby->pVar;
+    M4231_Gadget_MagmaCannon_t* pvar = (M4231_Gadget_MagmaCannon_t*)moby->pVar;
     pvar->actuatorIdx = -1;
     pvar->lensTimer = 0;
     pvar->shockwaveTimer = 0;
@@ -334,7 +334,7 @@ void GetDirToMoby(float scale, Moby* pMoby, VECTOR fromPos, VECTOR outDir)
 
 void UpdateShotMtx(Moby* pMoby, Player* pHero, VECTOR targetPos)
 {
-    M4231_Weapon_MagmaCannon_t* pvar = (M4231_Weapon_MagmaCannon_t*)pMoby->pVar;
+    M4231_Gadget_MagmaCannon_t* pvar = (M4231_Gadget_MagmaCannon_t*)pMoby->pVar;
 
     // Store targetPos into pvar->shotMtx (offset 0x30)
     vector_copy(pvar->shotMtx.v3, targetPos);
@@ -414,7 +414,7 @@ void M4231_Update_MagmaCannon(Moby* this)
     COLL_DAM_IN_t damageIn;
     VECTOR vBarrelPos;
     M4231_ShotStats_t shotStats;
-    M4231_Weapon_MagmaCannon_t* pvar = (M4231_Weapon_MagmaCannon_t*)this->pVar;
+    M4231_Gadget_MagmaCannon_t* pvar = (M4231_Gadget_MagmaCannon_t*)this->pVar;
     GadgetEvent gadgetEvent;
     long gadgetEventType = 0;
 
