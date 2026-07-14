@@ -1,8 +1,8 @@
 EE_OBJS_DIR = obj/
 EE_BIN_DIR = bin/
 
-EE_ELF = $(EE_BIN_DIR)flailicopter.elf
-EE_BIN = $(EE_BIN_DIR)flailicopter.bin
+EE_ELF = $(EE_BIN_DIR)v99-chargeboots.elf
+EE_BIN = $(EE_BIN_DIR)v99-chargeboots.bin
 EE_OBJS = main.o
 EE_LIBS = -ldl -lkernel
 ADDRESS = 000F3000
@@ -48,3 +48,4 @@ clean:
 
 include $(CURDIR)/../Makefile.pref
 include $(CURDIR)/../Makefile.eeglobal
+
