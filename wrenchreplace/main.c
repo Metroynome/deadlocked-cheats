@@ -3,10 +3,30 @@
 #include <libdl/player.h>
 #include <libdl/dl.h>
 #include <libdl/moby.h>
+#include <libdl/pad.h>
 #include <libdl/utils.h>
 
-#define WRENCH_REPLACEMENT_MOBY_ID  (MOBY_ID_BETA_BOX)
-#define WRENCH_REPLACEMENT_SCALE    (0.08f)
+#define WRENCH_REPLACEMENT_COUNT    (sizeof(replacementConfigs) / sizeof(replacementConfigs[0]))
+
+typedef struct ReplacementConfig
+{
+	int oClass;
+	float scale;
+	float offsetX;
+	float offsetZ;
+	float offsetY;
+} ReplacementConfig;
+
+ReplacementConfig replacementConfigs[] = {
+	{MOBY_ID_BETA_BOX, 0.04, -.5, 0, 0},
+	{MOBY_ID_SKIN_RATCHET, 0.8, -.5, 0, 0},
+	{MOBY_ID_PUMA, .09, 0, 0, 0},
+	{MOBY_ID_CHICKEN, 0.25, 0, 0, 0},
+	{MOBY_ID_UYA_RATCHET, 0.20, 0, 0, 0},
+};
+
+int replacementConfigIndex = 0;
+ReplacementConfig *replacementConfig = &replacementConfigs[0];
 
 int initialized = 0;
 
@@ -20,6 +40,24 @@ void stripReplacementCollision(Moby *moby)
 	moby->collCnt = 0;
 }
 
+void applyReplacementOffset(Moby *moby, Moby *parent)
+{
+	float x;
+	float z;
+	float y;
+
+	if (!moby || !parent)
+		return;
+
+	x = replacementConfig->offsetX;
+	z = replacementConfig->offsetZ;
+	y = replacementConfig->offsetY;
+
+	moby->pos[0] += (parent->rMtx.v0[0] * x) + (parent->rMtx.v1[0] * z) + (parent->rMtx.v2[0] * y);
+	moby->pos[1] += (parent->rMtx.v0[1] * x) + (parent->rMtx.v1[1] * z) + (parent->rMtx.v2[1] * y);
+	moby->pos[2] += (parent->rMtx.v0[2] * x) + (parent->rMtx.v1[2] * z) + (parent->rMtx.v2[2] * y);
+}
+
 void wrenchReplacementUpdate(Moby *moby)
 {
 	Moby *parent;
@@ -31,6 +69,7 @@ void wrenchReplacementUpdate(Moby *moby)
 	if (parent) {
 		vector_copy(moby->pos, parent->pos);
 		vector_copy(moby->rot, parent->rot);
+		applyReplacementOffset(moby, parent);
 		moby->lights[0] = parent->lights[0];
 		moby->lights[1] = parent->lights[1];
 		moby->drawDist = parent->drawDist;
@@ -42,7 +81,7 @@ void wrenchReplacementUpdate(Moby *moby)
 	stripReplacementCollision(moby);
 	moby->modeBits &= ~MOBY_MODE_BIT_HIDDEN;
 	moby->drawn = 1;
-	moby->scale = WRENCH_REPLACEMENT_SCALE;
+	moby->scale = replacementConfig->scale;
 	mobyUpdateTransform(moby);
 }
 void setupReplacementMoby(Moby *moby)
@@ -55,12 +94,12 @@ void setupReplacementMoby(Moby *moby)
 	moby->updateDist = 0xff;
 	moby->drawDist = 0x7fff;
 	moby->pUpdate = &wrenchReplacementUpdate;
-	moby->scale = WRENCH_REPLACEMENT_SCALE;
+	moby->scale = replacementConfig->scale;
 }
 
 Moby *wrenchReplacementSpawnHook(int oClass, int pVarSize)
 {
-	Moby *moby = mobySpawn(WRENCH_REPLACEMENT_MOBY_ID, pVarSize);
+	Moby *moby = mobySpawn(replacementConfig->oClass, pVarSize);
 
 	setupReplacementMoby(moby);
 	return moby;
@@ -78,6 +117,42 @@ void initWrenchReplacement(void)
 	initialized = 1;
 }
 
+void setReplacementConfigIndex(int index)
+{
+	int count = WRENCH_REPLACEMENT_COUNT;
+
+	while (index < 0)
+		index += count;
+
+	replacementConfigIndex = index % count;
+	replacementConfig = &replacementConfigs[replacementConfigIndex];
+}
+
+void destroyPlayerReplacement(Player *player)
+{
+	if (!player || !player->pWrenchReplacement)
+		return;
+
+	mobyDestroy(player->pWrenchReplacement);
+	player->pWrenchReplacement = 0;
+}
+
+void handleReplacementDebugInput(Player *player)
+{
+	if (!player)
+		return;
+
+	if (playerPadGetButton(player, PAD_L1) <= 0)
+		return;
+
+	if (playerPadGetButtonDown(player, PAD_RIGHT) > 0) {
+		setReplacementConfigIndex(replacementConfigIndex + 1);
+		destroyPlayerReplacement(player);
+	} else if (playerPadGetButtonDown(player, PAD_LEFT) > 0) {
+		setReplacementConfigIndex(replacementConfigIndex - 1);
+		destroyPlayerReplacement(player);
+	}
+}
 void updatePlayerReplacement(Player *player)
 {
 	Moby *replacement;
@@ -85,11 +160,13 @@ void updatePlayerReplacement(Player *player)
 	if (!player)
 		return;
 
+	handleReplacementDebugInput(player);
+
 	replacement = player->pWrenchReplacement;
 	if (!replacement)
 		return;
 
-	if (replacement->oClass != WRENCH_REPLACEMENT_MOBY_ID) {
+	if (replacement->oClass != replacementConfig->oClass) {
 		player->pWrenchReplacement = 0;
 		return;
 	}
