@@ -14,6 +14,12 @@
 #define PUMA_FLATTEN_DIST_SQR      (4.0f)
 #define WRENCH_MOD_CHEAT_ACTIVE    (*(u8*)0x0021DE3C)
 
+typedef enum ReplacementRotationMode
+{
+	ROTATION_SIMPLE = 0,
+	ROTATION_EXACT = 1
+} ReplacementRotationMode;
+
 typedef struct ReplacementConfig
 {
 	int oClass;
@@ -21,14 +27,15 @@ typedef struct ReplacementConfig
 	float offsetX;
 	float offsetZ;
 	float offsetY;
+	int rotationMode;
 } ReplacementConfig;
 
 ReplacementConfig replacementConfigs[] = {
-	{MOBY_ID_BETA_BOX, 0.04, -.5, 0, 0},
-	{MOBY_ID_SKIN_RATCHET, 0.8, -.5, 0, 0},
-	{MOBY_ID_PUMA, .09, 0, 0, 0},
-	{MOBY_ID_CHICKEN, 0.25, 0, 0, 0},
-	{MOBY_ID_UYA_RATCHET, 0.20, 0, 0, 0},
+	{MOBY_ID_BETA_BOX, 0.04, -.5, 0, 0, ROTATION_EXACT},
+	{MOBY_ID_SKIN_RATCHET, 0.8, -.5, 0, 0, ROTATION_EXACT},
+	{MOBY_ID_PUMA, .09, 0, 0, 0, ROTATION_EXACT},
+	{MOBY_ID_CHICKEN, 0.25, 0, 0, 0, ROTATION_SIMPLE},
+	{MOBY_ID_UYA_RATCHET, 0.20, 0, 0, 0, ROTATION_EXACT},
 };
 
 int replacementConfigIndex = 0;
@@ -91,6 +98,14 @@ int playerIsHoldingWrench(Player *player)
 	return player->gadgets[0].id == WRENCH_GADGET_ID;
 }
 
+int playerIsDyingOrDead(Player *player)
+{
+	if (!player)
+		return 0;
+
+	return player->stateType == PLAYER_TYPE_DEATH || player->deathWasCalled || player->hitPoints <= 0;
+}
+
 int shouldDrawReplacement(Player *player, Moby *wrench)
 {
 	if (!player || !wrench || mobyIsDestroyed(wrench))
@@ -123,6 +138,7 @@ void wrenchReplacementUpdate(Moby *moby)
 	Player *owner;
 	Moby *basis;
 	Moby *parent;
+	int useExactRotation;
 
 	if (!moby)
 		return;
@@ -133,15 +149,26 @@ void wrenchReplacementUpdate(Moby *moby)
 
 	parent = moby->pParent;
 	if (!shouldDrawReplacement(owner, parent)) {
+		if (playerIsDyingOrDead(owner))
+			return;
 		hideReplacementMoby(moby);
 		return;
 	}
 
+	useExactRotation = replacementConfig->rotationMode == ROTATION_EXACT && owner && !wrenchReplacementIsThrown(parent);
 	basis = wrenchReplacementIsThrown(parent) ? parent : ((owner && owner->pMoby) ? owner->pMoby : parent);
 	if (parent) {
-		vector_copy(moby->pos, parent->pos);
-		vector_copy(moby->rot, basis ? basis->rot : parent->rot);
-		applyReplacementOffset(moby, basis);
+		if (useExactRotation) {
+			vector_copy(moby->pos, owner->joints.gadgetMtxs[0].v3);
+			matrix_toeuler((float*)&owner->joints.gadgetMtxs[0], moby->rot);
+			mobyUpdateTransform(moby);
+			applyReplacementOffset(moby, moby);
+		} else {
+			vector_copy(moby->pos, parent->pos);
+			vector_copy(moby->rot, basis ? basis->rot : parent->rot);
+			applyReplacementOffset(moby, basis);
+		}
+
 		moby->lights[0] = parent->lights[0];
 		moby->lights[1] = parent->lights[1];
 		moby->drawDist = parent->drawDist;
@@ -315,6 +342,8 @@ void updatePlayerReplacement(Player *player)
 	replacement = player->pWrenchReplacement;
 
 	if (!shouldDrawReplacement(player, wrench)) {
+		if (playerIsDyingOrDead(player))
+			return;
 		if (replacement && !mobyIsDestroyed(replacement))
 			mobyDestroy(replacement);
 		player->pWrenchReplacement = 0;
