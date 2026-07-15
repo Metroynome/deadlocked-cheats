@@ -103,7 +103,7 @@ int playerIsDyingOrDead(Player *player)
 	if (!player)
 		return 0;
 
-	return player->stateType == PLAYER_TYPE_DEATH || player->deathWasCalled || player->hitPoints <= 0;
+	return player->stateType == PLAYER_TYPE_DEATH || player->hitPoints <= 0;
 }
 
 int shouldDrawReplacement(Player *player, Moby *wrench)
