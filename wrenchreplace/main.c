@@ -7,6 +7,12 @@
 #include <libdl/utils.h>
 
 #define WRENCH_REPLACEMENT_COUNT    (sizeof(replacementConfigs) / sizeof(replacementConfigs[0]))
+#define WRENCH_SPECIAL_EFFECT_TOGGLE (1)
+#define WRENCH_THROWING_STATE       (10)
+#define WRENCH_RETURNING_STATE      (11)
+#define WRENCH_GADGET_ID            (1)
+#define PUMA_FLATTEN_DIST_SQR      (4.0f)
+#define WRENCH_MOD_CHEAT_ACTIVE    (*(u8*)0x0021DE3C)
 
 typedef struct ReplacementConfig
 {
@@ -29,6 +35,7 @@ int replacementConfigIndex = 0;
 ReplacementConfig *replacementConfig = &replacementConfigs[0];
 
 int initialized = 0;
+int pumaFlattenArmed[GAME_MAX_PLAYERS];
 
 void stripReplacementCollision(Moby *moby)
 {
@@ -40,36 +47,101 @@ void stripReplacementCollision(Moby *moby)
 	moby->collCnt = 0;
 }
 
-void applyReplacementOffset(Moby *moby, Moby *parent)
+void applyReplacementOffset(Moby *moby, Moby *basis)
 {
 	float x;
 	float z;
 	float y;
 
-	if (!moby || !parent)
+	if (!moby || !basis)
 		return;
 
 	x = replacementConfig->offsetX;
 	z = replacementConfig->offsetZ;
 	y = replacementConfig->offsetY;
 
-	moby->pos[0] += (parent->rMtx.v0[0] * x) + (parent->rMtx.v1[0] * z) + (parent->rMtx.v2[0] * y);
-	moby->pos[1] += (parent->rMtx.v0[1] * x) + (parent->rMtx.v1[1] * z) + (parent->rMtx.v2[1] * y);
-	moby->pos[2] += (parent->rMtx.v0[2] * x) + (parent->rMtx.v1[2] * z) + (parent->rMtx.v2[2] * y);
+	moby->pos[0] += (basis->rMtx.v0[0] * x) + (basis->rMtx.v1[0] * z) + (basis->rMtx.v2[0] * y);
+	moby->pos[1] += (basis->rMtx.v0[1] * x) + (basis->rMtx.v1[1] * z) + (basis->rMtx.v2[1] * y);
+	moby->pos[2] += (basis->rMtx.v0[2] * x) + (basis->rMtx.v1[2] * z) + (basis->rMtx.v2[2] * y);
+}
+
+Moby *getPlayerWrenchMoby(Player *player)
+{
+	Moby *wrench;
+
+	if (!player)
+		return 0;
+
+	wrench = player->gadgets[0].pMoby;
+	if (!wrench || mobyIsDestroyed(wrench))
+		return 0;
+
+	return wrench;
+}
+int wrenchReplacementIsThrown(Moby *wrench)
+{
+	return wrench && (wrench->state == WRENCH_THROWING_STATE || wrench->state == WRENCH_RETURNING_STATE);
+}
+
+int playerIsHoldingWrench(Player *player)
+{
+	if (!player)
+		return 0;
+
+	return player->gadgets[0].id == WRENCH_GADGET_ID;
+}
+
+int shouldDrawReplacement(Player *player, Moby *wrench)
+{
+	if (!player || !wrench || mobyIsDestroyed(wrench))
+		return 0;
+
+	if (wrenchReplacementIsThrown(wrench))
+		return 1;
+
+	if (player->gadgetsOff || player->hideWeapon || player->hideWrench || player->noWrenchEquip)
+		return 0;
+
+	if (!playerIsHoldingWrench(player))
+		return 0;
+
+	return player->gadgets[0].state != 3;
+}
+
+void hideReplacementMoby(Moby *moby)
+{
+	if (!moby)
+		return;
+
+	moby->modeBits |= MOBY_MODE_BIT_HIDDEN;
+	moby->drawn = 0;
+	stripReplacementCollision(moby);
 }
 
 void wrenchReplacementUpdate(Moby *moby)
 {
+	Player *owner;
+	Moby *basis;
 	Moby *parent;
 
 	if (!moby)
 		return;
 
+	owner = 0;
+	if (moby->pVar)
+		owner = *(Player**)moby->pVar;
+
 	parent = moby->pParent;
+	if (!shouldDrawReplacement(owner, parent)) {
+		hideReplacementMoby(moby);
+		return;
+	}
+
+	basis = wrenchReplacementIsThrown(parent) ? parent : ((owner && owner->pMoby) ? owner->pMoby : parent);
 	if (parent) {
 		vector_copy(moby->pos, parent->pos);
-		vector_copy(moby->rot, parent->rot);
-		applyReplacementOffset(moby, parent);
+		vector_copy(moby->rot, basis ? basis->rot : parent->rot);
+		applyReplacementOffset(moby, basis);
 		moby->lights[0] = parent->lights[0];
 		moby->lights[1] = parent->lights[1];
 		moby->drawDist = parent->drawDist;
@@ -90,7 +162,6 @@ void setupReplacementMoby(Moby *moby)
 		return;
 
 	stripReplacementCollision(moby);
-	moby->drawn = 1;
 	moby->updateDist = 0xff;
 	moby->drawDist = 0x7fff;
 	moby->pUpdate = &wrenchReplacementUpdate;
@@ -105,6 +176,30 @@ Moby *wrenchReplacementSpawnHook(int oClass, int pVarSize)
 	return moby;
 }
 
+Moby *spawnPlayerReplacement(Player *player)
+{
+	Moby *moby;
+	Moby *wrench;
+
+	if (!player)
+		return 0;
+
+	wrench = getPlayerWrenchMoby(player);
+	if (!wrench)
+		return 0;
+
+	moby = mobySpawn(replacementConfig->oClass, 0x10);
+	if (!moby)
+		return 0;
+
+	setupReplacementMoby(moby);
+	moby->pParent = wrench;
+	if (moby->pVar)
+		*(Player**)moby->pVar = player;
+	player->pWrenchReplacement = moby;
+	wrenchReplacementUpdate(moby);
+	return moby;
+}
 void initWrenchReplacement(void)
 {
 	HOOK_JAL(0x00438010, &wrenchReplacementSpawnHook);
@@ -153,25 +248,94 @@ void handleReplacementDebugInput(Player *player)
 		destroyPlayerReplacement(player);
 	}
 }
-void updatePlayerReplacement(Player *player)
+int isPumaReturningToPlayer(Player *player, Moby *replacement)
 {
-	Moby *replacement;
+	Moby *wrench;
+	float dx;
+	float dz;
+	float dy;
+
+	if (!player || !player->pMoby || !replacement)
+		return 0;
+
+	if (replacementConfig->oClass != MOBY_ID_PUMA)
+		return 0;
+
+	wrench = replacement->pParent;
+	if (!wrench || wrench->state != WRENCH_RETURNING_STATE)
+		return 0;
+
+	dx = wrench->pos[0] - player->pMoby->pos[0];
+	dz = wrench->pos[1] - player->pMoby->pos[1];
+	dy = wrench->pos[2] - player->pMoby->pos[2];
+
+	return ((dx * dx) + (dz * dz) + (dy * dy)) <= PUMA_FLATTEN_DIST_SQR;
+}
+
+void updatePumaFlatten(Player *player, Moby *replacement)
+{
+	int playerIdx;
+
+	if (!WRENCH_SPECIAL_EFFECT_TOGGLE)
+		return;
 
 	if (!player)
 		return;
 
-	handleReplacementDebugInput(player);
+	playerIdx = player->mpIndex;
+	if (playerIdx < 0 || playerIdx >= GAME_MAX_PLAYERS)
+		playerIdx = 0;
 
-	replacement = player->pWrenchReplacement;
-	if (!replacement)
+	if (replacementConfig->oClass != MOBY_ID_PUMA || !replacement || !replacement->pParent || replacement->pParent->state != WRENCH_RETURNING_STATE) {
+		pumaFlattenArmed[playerIdx] = 1;
+		return;
+	}
+
+	if (!pumaFlattenArmed[playerIdx])
 		return;
 
-	if (replacement->oClass != replacementConfig->oClass) {
+	if (!isPumaReturningToPlayer(player, replacement))
+		return;
+
+	pumaFlattenArmed[playerIdx] = 0;
+	playerGetVTable(player)->InitBodyState(player, PLAYER_STATE_GET_FLATTENED, 1, 0, 1);
+}
+void updatePlayerReplacement(Player *player)
+{
+	Moby *replacement;
+	Moby *wrench;
+
+	if (!player)
+		return;
+
+	WRENCH_MOD_CHEAT_ACTIVE = 1;
+	handleReplacementDebugInput(player);
+
+	wrench = getPlayerWrenchMoby(player);
+	replacement = player->pWrenchReplacement;
+
+	if (!shouldDrawReplacement(player, wrench)) {
+		if (replacement && !mobyIsDestroyed(replacement))
+			mobyDestroy(replacement);
 		player->pWrenchReplacement = 0;
 		return;
 	}
 
+	if (!replacement || mobyIsDestroyed(replacement) || replacement->oClass != replacementConfig->oClass) {
+		player->pWrenchReplacement = 0;
+		replacement = spawnPlayerReplacement(player);
+		if (!replacement)
+			return;
+	}
+
+	if (wrench)
+		replacement->pParent = wrench;
+	if (replacement->pVar)
+		*(Player**)replacement->pVar = player;
+
 	setupReplacementMoby(replacement);
+	wrenchReplacementUpdate(replacement);
+	updatePumaFlatten(player, replacement);
 }
 
 void wrenchReplace(void)
