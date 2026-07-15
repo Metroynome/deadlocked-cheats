@@ -17,7 +17,8 @@
 typedef enum ReplacementRotationMode
 {
 	ROTATION_SIMPLE = 0,
-	ROTATION_EXACT = 1
+	ROTATION_EXACT = 1,
+	ROTATION_SIMPLE_BODY = 2
 } ReplacementRotationMode;
 
 typedef struct ReplacementConfig
@@ -34,7 +35,7 @@ ReplacementConfig replacementConfigs[] = {
 	{MOBY_ID_BETA_BOX, 0.04, -.5, 0, 0, ROTATION_EXACT},
 	{MOBY_ID_SKIN_RATCHET, 0.8, -.5, 0, 0, ROTATION_EXACT},
 	{MOBY_ID_PUMA, .09, 0, 0, 0, ROTATION_EXACT},
-	{MOBY_ID_CHICKEN, 0.25, 0, 0, 0, ROTATION_SIMPLE},
+	{MOBY_ID_CHICKEN, 0.25, 0, 0, 0, ROTATION_SIMPLE_BODY},
 	{MOBY_ID_UYA_RATCHET, 0.20, 0, 0, 0, ROTATION_EXACT},
 };
 
@@ -138,7 +139,9 @@ void wrenchReplacementUpdate(Moby *moby)
 	Player *owner;
 	Moby *basis;
 	Moby *parent;
+	MATRIX bodyMtx;
 	int useExactRotation;
+	int useBodyRotation;
 
 	if (!moby)
 		return;
@@ -156,6 +159,7 @@ void wrenchReplacementUpdate(Moby *moby)
 	}
 
 	useExactRotation = replacementConfig->rotationMode == ROTATION_EXACT && owner && !wrenchReplacementIsThrown(parent);
+	useBodyRotation = replacementConfig->rotationMode == ROTATION_SIMPLE_BODY && owner && owner->pMoby && !wrenchReplacementIsThrown(parent);
 	basis = wrenchReplacementIsThrown(parent) ? parent : ((owner && owner->pMoby) ? owner->pMoby : parent);
 	if (parent) {
 		if (useExactRotation) {
@@ -165,7 +169,12 @@ void wrenchReplacementUpdate(Moby *moby)
 			applyReplacementOffset(moby, moby);
 		} else {
 			vector_copy(moby->pos, parent->pos);
-			vector_copy(moby->rot, basis ? basis->rot : parent->rot);
+			if (useBodyRotation) {
+				matrix_fromrows(bodyMtx, owner->pMoby->rMtx.v0, owner->pMoby->rMtx.v1, owner->pMoby->rMtx.v2, owner->pMoby->pos);
+				matrix_toeuler(bodyMtx, moby->rot);
+			} else {
+				vector_copy(moby->rot, basis ? basis->rot : parent->rot);
+			}
 			applyReplacementOffset(moby, basis);
 		}
 
