@@ -1,81 +1,112 @@
 #include <tamtypes.h>
-#include <libdl/stdio.h>
 #include <libdl/game.h>
 #include <libdl/player.h>
-#include <libdl/pad.h>
 #include <libdl/dl.h>
-#include <libdl/weapon.h>
 #include <libdl/moby.h>
 #include <libdl/utils.h>
 
-#define MAX_WRENCH_MOBIES (16)
+#define WRENCH_REPLACEMENT_MOBY_ID  (MOBY_ID_BETA_BOX)
+#define WRENCH_REPLACEMENT_SCALE    (0.08f)
 
-typedef struct CustomGear {
-	char init;
-	char count;
-	char head[GAME_MAX_PLAYERS];
-	char wrench[GAME_MAX_PLAYERS];
-	Moby *wrenchMobies[MAX_WRENCH_MOBIES];
-} CustomGear_t;
-CustomGear_t gear;
+int initialized = 0;
 
-int customMobies[] = {
-	NULL,
-	MOBY_ID_RATCHET,
-	MOBY_ID_BETA_BOX,
-};
-int customMobyCount = sizeof(customMobies) / sizeof(customMobies[0]);
-
-void gearSpawn(void)
+void stripReplacementCollision(Moby *moby)
 {
-	VECTOR z = {0, 0, 0, 0};
-	int i;
-	for (i = 1; i < customMobyCount; ++i) {
-		Moby *m = mobySpawn(customMobies[i], 0x10);
-		m->Drawn = 1;
-		m->UpdateDist = 1000;
-		m->PUpdate = 0x00437f50;
-		vector_copy(m->Position, z);
-		gear.wrenchMobies[i] = (Moby*)m;
-		printf("\nspawned: %08x", gear.wrenchMobies[i]);
+	if (!moby)
+		return;
+
+	moby->collData = 0;
+	moby->collActive = 0;
+	moby->collCnt = 0;
+}
+
+void wrenchReplacementUpdate(Moby *moby)
+{
+	Moby *parent;
+
+	if (!moby)
+		return;
+
+	parent = moby->pParent;
+	if (parent) {
+		vector_copy(moby->pos, parent->pos);
+		vector_copy(moby->rot, parent->rot);
+		moby->lights[0] = parent->lights[0];
+		moby->lights[1] = parent->lights[1];
+		moby->drawDist = parent->drawDist;
+		moby->updateDist = parent->updateDist;
+		parent->modeBits |= MOBY_MODE_BIT_HIDDEN;
+		parent->drawn = 0;
 	}
-	// memset(&gear.wrench, -1, sizeof(char) * 10);
+
+	stripReplacementCollision(moby);
+	moby->modeBits &= ~MOBY_MODE_BIT_HIDDEN;
+	moby->drawn = 1;
+	moby->scale = WRENCH_REPLACEMENT_SCALE;
+	mobyUpdateTransform(moby);
+}
+void setupReplacementMoby(Moby *moby)
+{
+	if (!moby)
+		return;
+
+	stripReplacementCollision(moby);
+	moby->drawn = 1;
+	moby->updateDist = 0xff;
+	moby->drawDist = 0x7fff;
+	moby->pUpdate = &wrenchReplacementUpdate;
+	moby->scale = WRENCH_REPLACEMENT_SCALE;
 }
 
-Moby *gearWrench_Hook(int oClass, int size)
+Moby *wrenchReplacementSpawnHook(int oClass, int pVarSize)
 {
-	Moby *a = mobySpawn(MOBY_ID_RATCHET, size);
-	a->PUpdate = 0x00437f50;
-	a->CollData = 0;
-	return a;
+	Moby *moby = mobySpawn(WRENCH_REPLACEMENT_MOBY_ID, pVarSize);
+
+	setupReplacementMoby(moby);
+	return moby;
 }
 
-void gearWrenchUpdate(void)
+void initWrenchReplacement(void)
 {
-	HOOK_JAL(0x00438010, &gearWrench_Hook);
+	HOOK_JAL(0x00438010, &wrenchReplacementSpawnHook);
+
+	/* In multiplayer, vanilla skips the replacement branch before checking pWrenchReplacement.
+	 * Keep the branch inside the replacement path so the vanilla MB_SpawnInit still runs.
+	 */
 	POKE_U32(0x00437fc0, 0x50430005);
+
+	initialized = 1;
 }
 
-void gearInit(void)
+void updatePlayerReplacement(Player *player)
 {
-	// gearSpawn();
-	gearWrenchUpdate();
-	gear.init = 1;
-	printf("\ninited!");
+	Moby *replacement;
+
+	if (!player)
+		return;
+
+	replacement = player->pWrenchReplacement;
+	if (!replacement)
+		return;
+
+	if (replacement->oClass != WRENCH_REPLACEMENT_MOBY_ID) {
+		player->pWrenchReplacement = 0;
+		return;
+	}
+
+	setupReplacementMoby(replacement);
 }
 
-void gearUpdate(int index, char *gear, int which)
+void wrenchReplace(void)
 {
-	gear[index] = which;
-}
+	int i;
+	Player **players = playerGetAll();
 
-void gearReplace(Player *p)
-{
-	int currentWrench = gear.wrench[p->MpIndex];
-	if (currentWrench < 1) {
-		*(u32*)((u32)p + 0x2fcc) = gear.wrenchMobies[2];
-		gearUpdate(p->MpIndex, &gear.wrench, 2);
-		printf("\nreplaced gear: %d", currentWrench);
+	if (!initialized)
+		initWrenchReplacement();
+
+	for (i = 0; i < GAME_MAX_PLAYERS; ++i) {
+		updatePlayerReplacement(players[i]);
 	}
 }
 
@@ -83,24 +114,15 @@ int main(void)
 {
 	dlPreUpdate();
 
-	// Only Run if in game.
 	if (!isInGame())
 		return -1;
 
-	if (!gear.init)
-		gearInit();
-
-	// Grab Player 1's data and run cheat logic.
-	int i;
-	Player **players = playerGetAll();
-	for (i = 0; i < GAME_MAX_PLAYERS; ++i) {
-		if (!players[i]) continue;
-
-		// if (playerIsLocal(players[i]))
-		// 	gearReplace(players[i]);
-	}
+	wrenchReplace();
 
 	dlPostUpdate();
 
 	return 0;
 }
+
+
+

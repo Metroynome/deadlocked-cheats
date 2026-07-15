@@ -13,8 +13,6 @@
 #include <libdl/color.h>
 
 /*
- * Chargeboot flame address notes (Deadlocked NTSC-U Sarathos MP eeMemory)
- *
  * FUN_005D2930 is the hero post/draw FX function. The chargeboot flame block
  * is entered when hero->state == PLAYER_STATE_CHARGE (0x7d):
  *   0x005D4E48: li v0, 0x7d
