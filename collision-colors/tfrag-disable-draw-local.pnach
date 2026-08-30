@@ -1,0 +1,6 @@
+// Local-runtime tfrag visibility diagnostic.
+// Ghidra active image: DrawTfrag = 0x00590bd0.
+// Test by itself. If correct, visible terrain should disappear or break obviously.
+
+patch=1,EE,20590BD0,extended,03E00008
+patch=1,EE,20590BD4,extended,00000000

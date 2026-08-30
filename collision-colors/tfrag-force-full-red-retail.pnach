@@ -1,0 +1,20 @@
+// Collision Colors renderer diagnostic for retail SCUS_974.65.
+// Full-color version: replaces LightTfrags color packing with constants so the
+// scratchpad vertex color writes receive 0x800000ff.
+// Test this by itself, after tfrag-noop-retail.pnach has passed.
+
+// Two-color path, first color register:
+patch=1,EE,204E4268,extended,3C018000
+patch=1,EE,204E4278,extended,342100FF
+
+// Two-color path, second color register:
+patch=1,EE,204E4270,extended,3C028000
+patch=1,EE,204E4280,extended,344200FF
+
+// Single-color path:
+patch=1,EE,204E444C,extended,3C018000
+patch=1,EE,204E4450,extended,342100FF
+
+// Alternate color path:
+patch=1,EE,204E4630,extended,3C028000
+patch=1,EE,204E4634,extended,344200FF

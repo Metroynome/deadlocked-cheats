@@ -1,0 +1,5 @@
+// Scratch write control.
+// Writes a harmless nop word to the normal cheat payload area used by these mods.
+// This should not affect execution unless something is already jumping there.
+
+patch=1,EE,200F3000,extended,00000000

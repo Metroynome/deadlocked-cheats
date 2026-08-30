@@ -1,0 +1,5 @@
+// Collision Colors renderer visibility diagnostic for retail SCUS_974.65.
+// Returns immediately from DrawTfrag. Test by itself.
+
+patch=1,EE,204E2ED0,extended,03E00008
+patch=1,EE,204E2ED4,extended,00000000

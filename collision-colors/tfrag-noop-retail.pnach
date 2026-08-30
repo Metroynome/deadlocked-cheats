@@ -1,0 +1,9 @@
+// Collision Colors PNACH sanity test for retail SCUS_974.65.
+// Writes the original LightTfrags instructions back to the same addresses.
+// This should have no visual effect and should not freeze if the address map matches.
+// Test this by itself.
+
+patch=1,EE,204E4278,extended,C80E0170
+patch=1,EE,204E4280,extended,C8160270
+patch=1,EE,204E4450,extended,C80E0170
+patch=1,EE,204E4634,extended,C8160270

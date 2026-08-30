@@ -27,6 +27,10 @@
 typedef void (*LoadArmorFunc)(int armor_index, int armor_slot);
 LoadArmorFunc LoadArmor = (LoadArmorFunc)0x004E6EB8;
 
+int state = -1;
+int time = 0;
+
+
 void DebugInGame(Player* player)
 {
     if (playerPadGetButtonDown(player, PAD_LEFT) > 0) {
@@ -70,7 +74,7 @@ void InfiniteChargeboot(void)
 		if (!p)
 			continue;
 
-		if (p->PlayerState == PLAYER_STATE_CHARGE && playerPadGetButton(p, PAD_L2) > 0 && p->timers.state > 55)
+		if (p->state == PLAYER_STATE_CHARGE && playerPadGetButton(p, PAD_L2) > 0 && p->timers.state > 55)
 			p->timers.state = 55;
 	}
 }
@@ -91,15 +95,21 @@ void InfiniteHealthMoonjump(void)
 	if(!_InfiniteHealthMoonjump_Init)
 		return;
 
-	// Player Health is always max.
-	player->Health = player->MaxHealth;
+	// Player hitPoints is always max.
+	player->hitPoints = player->maxHP;
 	// if X is pressed, lower gravity.
 	if ((pad->btns & PAD_CROSS) == 0)
 		*(float*)(PlayerPointer - 0x2EB4) = 0.125;
 }
 
-int state = -1;
-int time = 0;
+void landstalkerDebug(Player* p)
+{
+	if (!p->pVehicle || p->pVehicle->pMoby->oClass != MOBY_ID_LANDSTALKER)
+		return;
+
+	Moby *v = p->pVehicle->pMoby;
+	printf("\nstate: %d, y: %.02f", v->state, v->pos[2]);
+}
 
 int main(void)
 {
@@ -116,9 +126,9 @@ int main(void)
 
 			Player *p = players[i];
 
-			printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->Health, *(u32*)0x00347e40);
+			// printf("\nstate: %d, type: %d, health: %.02f, noCollTime: %d", p->PlayerState, p->PlayerStateType, p->hitPoints, *(u32*)0x00347e40);
 
-			LoadArmor(1, 0);
+			landstalkerDebug(p);
 
 			// InfiniteChargeboot();
 			InfiniteHealthMoonjump();

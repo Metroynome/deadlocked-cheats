@@ -1,0 +1,4 @@
+// Collision Colors renderer visibility diagnostic for retail SCUS_974.65.
+// Skips the TfragProc call inside DrawTfrag. Test by itself.
+
+patch=1,EE,204E2FE4,extended,00000000

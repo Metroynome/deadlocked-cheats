@@ -1,0 +1,20 @@
+// Local-runtime tfrag color diagnostic.
+// Ghidra active image: LightTfrags = 0x00591d00.
+// Replaces color packing with constant 0x800000ff before scratchpad color stores.
+// Test by itself, not with the /bin overlay.
+
+// Two-color path, first color register:
+patch=1,EE,20591F68,extended,3C018000
+patch=1,EE,20591F78,extended,342100FF
+
+// Two-color path, second color register:
+patch=1,EE,20591F70,extended,3C028000
+patch=1,EE,20591F80,extended,344200FF
+
+// Single-color path:
+patch=1,EE,2059214C,extended,3C018000
+patch=1,EE,20592150,extended,342100FF
+
+// Alternate color path:
+patch=1,EE,20592330,extended,3C028000
+patch=1,EE,20592334,extended,344200FF

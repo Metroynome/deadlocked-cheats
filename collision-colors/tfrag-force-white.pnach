@@ -1,0 +1,23 @@
+// Collision Colors renderer-path diagnostic for retail SCUS_974.65.
+//
+// This does not use the injected ELF, does not hook 0x00139A48, and does not
+// call libdl/game helpers. It only forces terrain-fragment vertex colors inside
+// LightTfrags to 0xffffffff so we can verify that renderer-side coloring is a
+// viable path without freezing the game.
+//
+// Test this file by itself. Do not also enable bin/collision-colors.bin.pnach.
+//
+// Important: these addresses are based on ProjectRYNO retail symbols:
+//   LightTfrags = 0x004e4000
+// The earlier 0x00591xxx diagnostic came from a loaded Sarathos map memory
+// image in Ghidra and can freeze when used as a PNACH against the retail ELF.
+
+// LightTfrags first packed-color path:
+patch=1,EE,204E4278,extended,2401FFFF // addiu at, zero, -1
+patch=1,EE,204E4280,extended,2402FFFF // addiu v0, zero, -1
+
+// LightTfrags single-color path:
+patch=1,EE,204E4450,extended,2401FFFF // addiu at, zero, -1
+
+// LightTfrags alternate color path:
+patch=1,EE,204E4634,extended,2402FFFF // addiu v0, zero, -1

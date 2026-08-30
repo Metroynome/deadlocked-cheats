@@ -1,0 +1,8 @@
+// Collision Colors renderer diagnostic for retail SCUS_974.65.
+// Forces selected LightTfrags packed color outputs to 0x800000ff.
+// Test only after tfrag-noop-retail.pnach does not freeze.
+
+patch=1,EE,204E4278,extended,340100FF
+patch=1,EE,204E4280,extended,340200FF
+patch=1,EE,204E4450,extended,340100FF
+patch=1,EE,204E4634,extended,340200FF
